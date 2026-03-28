@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 using FWTCG.Core;
 
 namespace FWTCG.UI
@@ -12,10 +11,10 @@ namespace FWTCG.UI
     /// </summary>
     public class CardView : MonoBehaviour
     {
-        [SerializeField] private TMP_Text _nameText;
-        [SerializeField] private TMP_Text _costText;
-        [SerializeField] private TMP_Text _atkText;
-        [SerializeField] private TMP_Text _descText;
+        [SerializeField] private Text _nameText;
+        [SerializeField] private Text _costText;
+        [SerializeField] private Text _atkText;
+        [SerializeField] private Text _descText;
         [SerializeField] private Image _cardBg;
         [SerializeField] private Image _artImage;
         [SerializeField] private Button _clickButton;

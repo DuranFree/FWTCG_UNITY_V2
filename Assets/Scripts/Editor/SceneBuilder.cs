@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEditor;
 using UnityEditor.SceneManagement;
-using TMPro;
 using FWTCG.Data;
 
 namespace FWTCG.Editor
@@ -14,10 +13,34 @@ namespace FWTCG.Editor
     /// </summary>
     public static class SceneBuilder
     {
+        // Chinese font — loaded once per build, assigned to all Text components
+        private static Font _font;
+
+        private static Font LoadFont()
+        {
+            // Try project-imported fonts first
+            string[] candidates = new[]
+            {
+                "Assets/Fonts/simhei.ttf",
+                "Assets/Fonts/simkai.ttf",
+                "Assets/Fonts/msyh.ttc",
+            };
+            foreach (string p in candidates)
+            {
+                Font f = AssetDatabase.LoadAssetAtPath<Font>(p);
+                if (f != null) return f;
+            }
+            // Fallback: OS font
+            Font os = Font.CreateDynamicFontFromOSFont(new[] { "SimHei", "Microsoft YaHei", "Arial" }, 14);
+            return os;
+        }
+
         // ── Menu entry ────────────────────────────────────────────────────────
         [MenuItem("FWTCG/Build Game Scene")]
         public static void BuildGameScene()
         {
+            _font = LoadFont();
+
             // 1. Create a new empty scene
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -59,9 +82,9 @@ namespace FWTCG.Editor
                 out var resultText, out var restartButton);
 
             // Collect sub-references from TopBar
-            var playerScoreText  = topBar.transform.Find("PlayerScore").GetComponent<TMP_Text>();
-            var roundInfoText    = topBar.transform.Find("RoundInfo").GetComponent<TMP_Text>();
-            var enemyScoreText   = topBar.transform.Find("EnemyScore").GetComponent<TMP_Text>();
+            var playerScoreText  = topBar.transform.Find("PlayerScore").GetComponent<Text>();
+            var roundInfoText    = topBar.transform.Find("RoundInfo").GetComponent<Text>();
+            var enemyScoreText   = topBar.transform.Find("EnemyScore").GetComponent<Text>();
 
             // Collect sub-references from MainArea
             var enemyArea       = mainArea.transform.Find("EnemyArea");
@@ -75,10 +98,10 @@ namespace FWTCG.Editor
             var bf1Panel        = battlefieldsArea.Find("BF1Panel");
             var bf2Panel        = battlefieldsArea.Find("BF2Panel");
             var bf1EnemyUnits   = bf1Panel.Find("BF1EnemyUnits");
-            var bf1Label        = bf1Panel.Find("BF1Label").GetComponent<TMP_Text>();
+            var bf1Label        = bf1Panel.Find("BF1Label").GetComponent<Text>();
             var bf1PlayerUnits  = bf1Panel.Find("BF1PlayerUnits");
             var bf2EnemyUnits   = bf2Panel.Find("BF2EnemyUnits");
-            var bf2Label        = bf2Panel.Find("BF2Label").GetComponent<TMP_Text>();
+            var bf2Label        = bf2Panel.Find("BF2Label").GetComponent<Text>();
             var bf2PlayerUnits  = bf2Panel.Find("BF2PlayerUnits");
 
             var playerRunes     = playerArea.Find("PlayerRunes");
@@ -192,9 +215,9 @@ namespace FWTCG.Editor
             hlg.padding = new RectOffset(10, 10, 5, 5);
             hlg.spacing = 10f;
 
-            CreateTMPText(go.transform, "PlayerScore", "玩家: 0/8", Color.white, 24, TextAlignmentOptions.Left);
-            CreateTMPText(go.transform, "RoundInfo", "回合 1 · 你的回合", Color.white, 24, TextAlignmentOptions.Center);
-            CreateTMPText(go.transform, "EnemyScore", "AI: 0/8", Color.white, 24, TextAlignmentOptions.Right);
+            CreateTMPText(go.transform, "PlayerScore", "玩家: 0/8", Color.white, 24, TextAnchor.MiddleLeft);
+            CreateTMPText(go.transform, "RoundInfo", "回合 1 · 你的回合", Color.white, 24, TextAnchor.MiddleCenter);
+            CreateTMPText(go.transform, "EnemyScore", "AI: 0/8", Color.white, 24, TextAnchor.MiddleRight);
 
             return go;
         }
@@ -323,7 +346,7 @@ namespace FWTCG.Editor
             CreateHorizontalZone(panel.transform, enemyZoneName);
 
             // Label
-            var lbl = CreateTMPText(panel.transform, labelName, labelText, Color.white, 18, TextAlignmentOptions.Center);
+            var lbl = CreateTMPText(panel.transform, labelName, labelText, Color.white, 18, TextAnchor.MiddleCenter);
             var lblLE = lbl.gameObject.AddComponent<LayoutElement>();
             lblLE.preferredHeight = 25f;
             lblLE.flexibleHeight = 0f;
@@ -338,8 +361,8 @@ namespace FWTCG.Editor
         // ── BottomBar ─────────────────────────────────────────────────────────
 
         private static GameObject CreateBottomBar(Transform parent,
-            out TMP_Text manaDisplay, out TMP_Text phaseDisplay,
-            out Button endTurnButton, out TMP_Text schDisplay)
+            out Text manaDisplay, out Text phaseDisplay,
+            out Button endTurnButton, out Text schDisplay)
         {
             var go = new GameObject("BottomBar");
             go.transform.SetParent(parent, false);
@@ -359,17 +382,17 @@ namespace FWTCG.Editor
             hlg.padding = new RectOffset(10, 10, 5, 5);
             hlg.spacing = 10f;
 
-            manaDisplay  = CreateTMPText(go.transform, "ManaDisplay", "法力: 0", Color.white, 20, TextAlignmentOptions.Left);
-            phaseDisplay = CreateTMPText(go.transform, "PhaseDisplay", "阶段: -", Color.white, 20, TextAlignmentOptions.Center);
+            manaDisplay  = CreateTMPText(go.transform, "ManaDisplay", "法力: 0", Color.white, 20, TextAnchor.MiddleLeft);
+            phaseDisplay = CreateTMPText(go.transform, "PhaseDisplay", "阶段: -", Color.white, 20, TextAnchor.MiddleCenter);
             endTurnButton = CreateButton(go.transform, "EndTurnButton", "结束回合");
-            schDisplay   = CreateTMPText(go.transform, "SchDisplay", "符能: -", Color.white, 20, TextAlignmentOptions.Right);
+            schDisplay   = CreateTMPText(go.transform, "SchDisplay", "符能: -", Color.white, 20, TextAnchor.MiddleRight);
 
             return go;
         }
 
         // ── MessagePanel ──────────────────────────────────────────────────────
 
-        private static GameObject CreateMessagePanel(Transform parent, out TMP_Text messageText)
+        private static GameObject CreateMessagePanel(Transform parent, out Text messageText)
         {
             var go = new GameObject("MessagePanel");
             go.transform.SetParent(parent, false);
@@ -392,7 +415,7 @@ namespace FWTCG.Editor
             vlg.padding = new RectOffset(5, 5, 5, 5);
             vlg.spacing = 4f;
 
-            messageText = CreateTMPText(go.transform, "MessageText", "", Color.white, 14, TextAlignmentOptions.TopLeft);
+            messageText = CreateTMPText(go.transform, "MessageText", "", Color.white, 14, TextAnchor.UpperLeft);
             var msgLE = messageText.gameObject.AddComponent<LayoutElement>();
             msgLE.flexibleWidth = 1f;
             msgLE.flexibleHeight = 1f;
@@ -403,7 +426,7 @@ namespace FWTCG.Editor
         // ── GameOverPanel ─────────────────────────────────────────────────────
 
         private static GameObject CreateGameOverPanel(Transform parent,
-            out TMP_Text resultText, out Button restartButton)
+            out Text resultText, out Button restartButton)
         {
             var go = CreateFullscreenPanel(parent, "GameOverPanel", new Color(0f, 0f, 0f, 0.8f));
 
@@ -415,7 +438,7 @@ namespace FWTCG.Editor
             vlg.childAlignment = TextAnchor.MiddleCenter;
             vlg.spacing = 20f;
 
-            resultText    = CreateTMPText(go.transform, "ResultText", "结果", Color.white, 48, TextAlignmentOptions.Center);
+            resultText    = CreateTMPText(go.transform, "ResultText", "结果", Color.white, 48, TextAnchor.MiddleCenter);
             restartButton = CreateButton(go.transform, "RestartButton", "再来一局");
 
             go.SetActive(false);
@@ -443,7 +466,7 @@ namespace FWTCG.Editor
             var cardView = root.AddComponent<FWTCG.UI.CardView>();
 
             // CardName — top
-            var cardName = CreateTMPText(root.transform, "CardName", "卡名", Color.black, 12, TextAlignmentOptions.Center);
+            var cardName = CreateTMPText(root.transform, "CardName", "卡名", Color.black, 12, TextAnchor.MiddleCenter);
             var nameRT = cardName.GetComponent<RectTransform>();
             nameRT.anchorMin = new Vector2(0f, 0.8f);
             nameRT.anchorMax = new Vector2(1f, 1f);
@@ -451,7 +474,7 @@ namespace FWTCG.Editor
             nameRT.offsetMax = Vector2.zero;
 
             // CostText — top-left
-            var costText = CreateTMPText(root.transform, "CostText", "0", Color.black, 14, TextAlignmentOptions.Left);
+            var costText = CreateTMPText(root.transform, "CostText", "0", Color.black, 14, TextAnchor.MiddleLeft);
             var costRT = costText.GetComponent<RectTransform>();
             costRT.anchorMin = new Vector2(0f, 0.8f);
             costRT.anchorMax = new Vector2(0.35f, 1f);
@@ -459,7 +482,7 @@ namespace FWTCG.Editor
             costRT.offsetMax = new Vector2(0f, 0f);
 
             // AtkText — bottom
-            var atkText = CreateTMPText(root.transform, "AtkText", "0", Color.black, 16, TextAlignmentOptions.Center);
+            var atkText = CreateTMPText(root.transform, "AtkText", "0", Color.black, 16, TextAnchor.MiddleCenter);
             var atkRT = atkText.GetComponent<RectTransform>();
             atkRT.anchorMin = new Vector2(0f, 0f);
             atkRT.anchorMax = new Vector2(1f, 0.2f);
@@ -497,7 +520,7 @@ namespace FWTCG.Editor
             root.AddComponent<Button>();
 
             // RuneTypeText
-            var runeTypeText = CreateTMPText(root.transform, "RuneTypeText", "符", Color.black, 12, TextAlignmentOptions.Center);
+            var runeTypeText = CreateTMPText(root.transform, "RuneTypeText", "符", Color.black, 12, TextAnchor.MiddleCenter);
             var runeRT = runeTypeText.GetComponent<RectTransform>();
             runeRT.anchorMin = new Vector2(0f, 0.3f);
             runeRT.anchorMax = new Vector2(1f, 1f);
@@ -569,19 +592,19 @@ namespace FWTCG.Editor
             FWTCG.UI.GameUI gameUI,
             GameObject cardPrefab,
             GameObject runePrefab,
-            TMP_Text playerScoreText, TMP_Text enemyScoreText, TMP_Text roundPhaseText,
-            TMP_Text playerManaText, TMP_Text playerSchText,
+            Text playerScoreText, Text enemyScoreText, Text roundPhaseText,
+            Text playerManaText, Text playerSchText,
             Transform playerHandContainer, Transform enemyHandContainer,
             Transform playerBaseContainer, Transform enemyBaseContainer,
             Transform bf1PlayerContainer, Transform bf1EnemyContainer,
             Transform bf2PlayerContainer, Transform bf2EnemyContainer,
-            TMP_Text bf1CtrlText, TMP_Text bf2CtrlText,
+            Text bf1CtrlText, Text bf2CtrlText,
             Transform playerRuneContainer, Transform enemyRuneContainer,
             Button endTurnButton,
             Transform messageContainer,
-            TMP_Text messageTextPrefab,
+            Text messageTextPrefab,
             GameObject gameOverPanel,
-            TMP_Text gameOverText,
+            Text gameOverText,
             Button restartButton)
         {
             var so = new SerializedObject(gameUI);
@@ -621,7 +644,7 @@ namespace FWTCG.Editor
 
             so.FindProperty("_endTurnButton").objectReferenceValue        = endTurnButton;
             // _endTurnLabel — child of endTurnButton
-            var endTurnLabel = endTurnButton.GetComponentInChildren<TMP_Text>();
+            var endTurnLabel = endTurnButton.GetComponentInChildren<UnityEngine.UI.Text>();
             so.FindProperty("_endTurnLabel").objectReferenceValue         = endTurnLabel;
 
             so.FindProperty("_messageContainer").objectReferenceValue     = messageContainer;
@@ -684,19 +707,23 @@ namespace FWTCG.Editor
 
         // ── Helpers ───────────────────────────────────────────────────────────
 
-        private static TMP_Text CreateTMPText(Transform parent, string name, string text,
-            Color color, float fontSize, TextAlignmentOptions alignment)
+        private static Text CreateTMPText(Transform parent, string name, string text,
+            Color color, float fontSize, TextAnchor alignment)
         {
             var go = new GameObject(name);
             go.transform.SetParent(parent, false);
 
-            var tmp = go.AddComponent<TextMeshProUGUI>();
-            tmp.text = text;
-            tmp.color = color;
-            tmp.fontSize = fontSize;
-            tmp.alignment = alignment;
+            var t = go.AddComponent<Text>();
+            t.text = text;
+            t.color = color;
+            t.fontSize = Mathf.RoundToInt(fontSize);
+            t.alignment = alignment;
+            t.resizeTextForBestFit = false;
+            t.horizontalOverflow = HorizontalWrapMode.Overflow;
+            t.verticalOverflow = VerticalWrapMode.Overflow;
+            if (_font != null) t.font = _font;
 
-            return tmp;
+            return t;
         }
 
         private static Button CreateButton(Transform parent, string name, string label)
@@ -713,11 +740,14 @@ namespace FWTCG.Editor
             // Label child
             var lblGO = new GameObject("Label");
             lblGO.transform.SetParent(go.transform, false);
-            var lbl = lblGO.AddComponent<TextMeshProUGUI>();
+            var lbl = lblGO.AddComponent<Text>();
             lbl.text = label;
             lbl.color = Color.white;
-            lbl.fontSize = 18f;
-            lbl.alignment = TextAlignmentOptions.Center;
+            lbl.fontSize = 18;
+            lbl.alignment = TextAnchor.MiddleCenter;
+            lbl.horizontalOverflow = HorizontalWrapMode.Overflow;
+            lbl.verticalOverflow = VerticalWrapMode.Overflow;
+            if (_font != null) lbl.font = _font;
 
             var lblRT = lblGO.GetComponent<RectTransform>();
             lblRT.anchorMin = Vector2.zero;

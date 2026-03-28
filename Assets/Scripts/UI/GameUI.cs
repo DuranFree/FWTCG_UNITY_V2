@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 using FWTCG.Core;
 using FWTCG.Data;
 
@@ -23,15 +22,15 @@ namespace FWTCG.UI
     public class GameUI : MonoBehaviour
     {
         // ── Score / header ────────────────────────────────────────────────────
-        [SerializeField] private TMP_Text _playerScoreText;
-        [SerializeField] private TMP_Text _enemyScoreText;
-        [SerializeField] private TMP_Text _roundPhaseText;
+        [SerializeField] private Text _playerScoreText;
+        [SerializeField] private Text _enemyScoreText;
+        [SerializeField] private Text _roundPhaseText;
 
         // ── Mana / energy ─────────────────────────────────────────────────────
-        [SerializeField] private TMP_Text _playerManaText;
-        [SerializeField] private TMP_Text _enemyManaText;
-        [SerializeField] private TMP_Text _playerSchText;
-        [SerializeField] private TMP_Text _enemySchText;
+        [SerializeField] private Text _playerManaText;
+        [SerializeField] private Text _enemyManaText;
+        [SerializeField] private Text _playerSchText;
+        [SerializeField] private Text _enemySchText;
 
         // ── Hand areas ────────────────────────────────────────────────────────
         [SerializeField] private Transform _playerHandContainer;
@@ -47,8 +46,8 @@ namespace FWTCG.UI
         [SerializeField] private Transform _bf1EnemyContainer;
         [SerializeField] private Transform _bf2PlayerContainer;
         [SerializeField] private Transform _bf2EnemyContainer;
-        [SerializeField] private TMP_Text _bf1CtrlText;
-        [SerializeField] private TMP_Text _bf2CtrlText;
+        [SerializeField] private Text _bf1CtrlText;
+        [SerializeField] private Text _bf2CtrlText;
         [SerializeField] private Button _bf1Button;
         [SerializeField] private Button _bf2Button;
 
@@ -59,15 +58,15 @@ namespace FWTCG.UI
 
         // ── Controls ──────────────────────────────────────────────────────────
         [SerializeField] private Button _endTurnButton;
-        [SerializeField] private TMP_Text _endTurnLabel;
+        [SerializeField] private Text _endTurnLabel;
 
         // ── Message log ───────────────────────────────────────────────────────
         [SerializeField] private Transform _messageContainer;
-        [SerializeField] private TMP_Text _messageTextPrefab;
+        [SerializeField] private Text _messageTextPrefab;
 
         // ── Game over overlay ─────────────────────────────────────────────────
         [SerializeField] private GameObject _gameOverPanel;
-        [SerializeField] private TMP_Text _gameOverText;
+        [SerializeField] private Text _gameOverText;
         [SerializeField] private Button _restartButton;
 
         // ── Callbacks set by GameManager ──────────────────────────────────────
@@ -78,7 +77,7 @@ namespace FWTCG.UI
 
         // ── Message log state ─────────────────────────────────────────────────
         private const int MAX_MESSAGES = 5;
-        private readonly Queue<TMP_Text> _messageTexts = new Queue<TMP_Text>();
+        private readonly Queue<Text> _messageTexts = new Queue<Text>();
 
         // ── Unity lifecycle ───────────────────────────────────────────────────
 
@@ -282,7 +281,7 @@ namespace FWTCG.UI
                 GameObject go = Instantiate(_runeButtonPrefab, container);
                 go.name = $"Rune_{r.RuneType}_{i}";
 
-                TMP_Text label = go.GetComponentInChildren<TMP_Text>();
+                Text label = go.GetComponentInChildren<Text>();
                 if (label != null)
                     label.text = $"{RuneTypeShortName(r.RuneType)}\n{(r.Tapped ? "[横置]" : "[就绪]")}";
 
@@ -319,7 +318,7 @@ namespace FWTCG.UI
         {
             if (_messageContainer == null) return;
 
-            TMP_Text entry;
+            Text entry;
             if (_messageTexts.Count >= MAX_MESSAGES)
             {
                 // Reuse oldest entry

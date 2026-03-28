@@ -2,8 +2,7 @@
     "name": "FWTCG.Editor",
     "rootNamespace": "FWTCG.Editor",
     "references": [
-        "FWTCG.Runtime",
-        "Unity.TextMeshPro"
+        "FWTCG.Runtime"
     ],
     "includePlatforms": ["Editor"],
     "excludePlatforms": [],
