@@ -60,13 +60,8 @@ namespace FWTCG.Core
                 : EnemyUnits.Count > 0;
         }
 
-        /// <summary>Returns true if the given owner can still place units here.</summary>
-        public bool HasSlot(string owner)
-        {
-            return owner == GameRules.OWNER_PLAYER
-                ? PlayerUnits.Count < GameRules.MAX_BF_UNITS
-                : EnemyUnits.Count < GameRules.MAX_BF_UNITS;
-        }
+        /// <summary>Returns true if the given owner can still place units here (no cap).</summary>
+        public bool HasSlot(string owner) => true;
 
         public override string ToString()
         {

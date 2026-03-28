@@ -8,12 +8,10 @@ namespace FWTCG.Core
         // Victory
         public const int WIN_SCORE = 8;
 
-        // Hand
-        public const int MAX_HAND_SIZE = 7;
+        // Hand — no hand size cap
         public const int INITIAL_HAND_SIZE = 4;
 
-        // Battlefield
-        public const int MAX_BF_UNITS = 2;
+        // Battlefield — no unit cap per side
         public const int BATTLEFIELD_COUNT = 2;
 
         // Turn

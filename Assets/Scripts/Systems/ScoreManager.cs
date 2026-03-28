@@ -30,33 +30,6 @@ namespace FWTCG.Systems
         {
             if (gs.GameOver) return false;
 
-            int currentScore = gs.GetScore(who);
-
-            // Check if this would reach or exceed WIN_SCORE
-            if (currentScore + pts >= GameRules.WIN_SCORE)
-            {
-                // Last-point restriction: only "conquer" can award the final point,
-                // and the player must have conquered ALL battlefields this turn.
-                if (type != GameRules.SCORE_TYPE_CONQUER)
-                {
-                    // Not a conquer — draw a card instead
-                    DrawCardInstead(who, gs);
-                    TurnManager.BroadcastMessage_Static(
-                        $"[最后1分限制] {DisplayName(who)} 的 {type} 得分被拒绝，改为抽1张牌");
-                    return false;
-                }
-
-                // It is a conquer — check if ALL battlefields have been conquered this turn
-                if (!AllBattlefieldsConqueredThisTurn(who, gs))
-                {
-                    // Not all battlefields conquered — deny and draw instead
-                    DrawCardInstead(who, gs);
-                    TurnManager.BroadcastMessage_Static(
-                        $"[最后1分限制] {DisplayName(who)} 未征服所有战场，得分被拒绝，改为抽1张牌");
-                    return false;
-                }
-            }
-
             // Award the score
             gs.AddScore(who, pts);
 
@@ -104,53 +77,6 @@ namespace FWTCG.Systems
         }
 
         // ── Private helpers ────────────────────────────────────────────────────
-
-        /// <summary>
-        /// Returns true if the player has conquered every battlefield this turn
-        /// (i.e., all bf IDs appear in BFConqueredThisTurn).
-        /// </summary>
-        private bool AllBattlefieldsConqueredThisTurn(string who, GameState gs)
-        {
-            // The conquering player must have entries for ALL battlefields
-            // Count how many BFs the 'who' player controls after conquering
-            int conqueredCount = 0;
-            for (int i = 0; i < GameRules.BATTLEFIELD_COUNT; i++)
-            {
-                if (gs.BFConqueredThisTurn.Contains(i))
-                {
-                    conqueredCount++;
-                }
-            }
-            return conqueredCount >= GameRules.BATTLEFIELD_COUNT;
-        }
-
-        /// <summary>
-        /// Draws one card for a player (used as compensation for denied last-point).
-        /// </summary>
-        private void DrawCardInstead(string who, GameState gs)
-        {
-            var deck = gs.GetDeck(who);
-            var hand = gs.GetHand(who);
-
-            if (deck.Count == 0)
-            {
-                // Deck empty — no card to draw
-                TurnManager.BroadcastMessage_Static($"[抽牌] {DisplayName(who)} 牌库为空，无法抽牌");
-                return;
-            }
-
-            if (hand.Count >= GameRules.MAX_HAND_SIZE)
-            {
-                TurnManager.BroadcastMessage_Static($"[抽牌] {DisplayName(who)} 手牌已满，抽牌被废弃");
-                deck.RemoveAt(0); // Burn the card
-                return;
-            }
-
-            UnitInstance drawn = deck[0];
-            deck.RemoveAt(0);
-            hand.Add(drawn);
-            TurnManager.BroadcastMessage_Static($"[抽牌] {DisplayName(who)} 抽到 {drawn.UnitName}（最后1分补偿）");
-        }
 
         private string DisplayName(string owner) =>
             owner == GameRules.OWNER_PLAYER ? "玩家" : "AI";

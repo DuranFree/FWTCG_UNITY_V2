@@ -222,21 +222,10 @@ namespace FWTCG.Systems
                 return;
             }
 
-            if (hand.Count >= GameRules.MAX_HAND_SIZE)
-            {
-                // Burn the card — hand is full
-                UnitInstance burned = deck[0];
-                deck.RemoveAt(0);
-                discard.Add(burned);
-                Broadcast($"[抽牌] {DisplayName(who)} 手牌已满（{GameRules.MAX_HAND_SIZE}），{burned.UnitName} 被废弃");
-                await Delay(GameRules.PHASE_DELAY_MS);
-                return;
-            }
-
             UnitInstance drawn = deck[0];
             deck.RemoveAt(0);
             hand.Add(drawn);
-            Broadcast($"[抽牌] {DisplayName(who)} 抽到 {drawn.UnitName}（手牌 {hand.Count}/{GameRules.MAX_HAND_SIZE}）");
+            Broadcast($"[抽牌] {DisplayName(who)} 抽到 {drawn.UnitName}（手牌 {hand.Count}）");
 
             await Delay(GameRules.PHASE_DELAY_MS);
         }
