@@ -21,6 +21,16 @@ namespace FWTCG.Editor
             // 1. Create a new empty scene
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
+            // ── Camera ────────────────────────────────────────────────────────
+            var cameraGO = new GameObject("Main Camera");
+            cameraGO.tag = "MainCamera";
+            var cam = cameraGO.AddComponent<Camera>();
+            cam.clearFlags = CameraClearFlags.SolidColor;
+            cam.backgroundColor = HexColor("#010a13");
+            cam.orthographic = true;
+            cam.depth = -1;
+            cameraGO.AddComponent<AudioListener>();
+
             // ── Canvas ────────────────────────────────────────────────────────
             var canvasGO = CreateCanvas();
             var canvas = canvasGO.GetComponent<Canvas>();
