@@ -255,6 +255,12 @@ namespace FWTCG.Systems
                 Broadcast("[行动] AI 回合思考中…");
                 await _ai.TakeAction(gs, this, _combatSys, _scoreMgr);
             }
+
+            // Resolve combat on all contested battlefields after all moves are committed
+            if (!gs.GameOver)
+            {
+                _combatSys.ResolveAllBattlefields(who, gs, _scoreMgr);
+            }
         }
 
         /// <summary>

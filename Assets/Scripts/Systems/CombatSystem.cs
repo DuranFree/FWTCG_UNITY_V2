@@ -20,8 +20,9 @@ namespace FWTCG.Systems
 
         /// <summary>
         /// Moves a unit from a location to a battlefield slot.
-        /// fromLoc: "base", "1", or "2" (battlefield index as string).
-        /// If the destination battlefield has enemy units, combat is triggered.
+        /// fromLoc: "base", "0", or "1" (battlefield index as string).
+        /// Combat is NOT triggered here — call ResolveAllBattlefields at end of action phase
+        /// so the player can stack multiple units before fighting.
         /// </summary>
         public void MoveUnit(UnitInstance unit, string fromLoc, int toBF,
                              string owner, GameState gs, ScoreManager score)
@@ -29,13 +30,6 @@ namespace FWTCG.Systems
             if (gs.GameOver) return;
 
             BattlefieldState bf = gs.BF[toBF];
-
-            // Check slot availability
-            if (!bf.HasSlot(owner))
-            {
-                Log($"[移动失败] {owner} 战场{toBF + 1} 槽位已满");
-                return;
-            }
 
             // Remove from source
             RemoveFromSource(unit, fromLoc, owner, gs);
@@ -50,16 +44,29 @@ namespace FWTCG.Systems
 
             Log($"[移动] {unit.UnitName}({owner}) → 战场{toBF + 1}");
 
-            // Trigger combat if there are enemy units on this battlefield
+            // If no enemies here, claim control immediately
             string opponent = gs.Opponent(owner);
-            if (bf.HasUnits(opponent))
+            if (!bf.HasUnits(opponent))
             {
-                TriggerCombat(toBF, owner, gs, score);
-            }
-            else
-            {
-                // No enemies — this owner now controls the battlefield
                 bf.Ctrl = owner;
+            }
+        }
+
+        /// <summary>
+        /// Resolves combat on every battlefield that has units from both sides.
+        /// Call this at the end of the action phase, after all moves are committed.
+        /// currentPlayer is the active turn owner (they are the "attacker").
+        /// </summary>
+        public void ResolveAllBattlefields(string currentPlayer, GameState gs, ScoreManager score)
+        {
+            for (int i = 0; i < GameRules.BATTLEFIELD_COUNT; i++)
+            {
+                if (gs.GameOver) return;
+                BattlefieldState bf = gs.BF[i];
+                if (bf.HasUnits(currentPlayer) && bf.HasUnits(gs.Opponent(currentPlayer)))
+                {
+                    TriggerCombat(i, currentPlayer, gs, score);
+                }
             }
         }
 
