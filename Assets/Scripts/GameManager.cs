@@ -43,6 +43,7 @@ namespace FWTCG
         [SerializeField] private Button _debugSpellBtn;
         [SerializeField] private Button _debugEquipBtn;
         [SerializeField] private Button _debugUnitBtn;
+        [SerializeField] private Button _debugReactiveBtn;
         [SerializeField] private Button _debugManaBtn;
 
         // ── Game state ────────────────────────────────────────────────────────
@@ -76,10 +77,11 @@ namespace FWTCG
             if (_reactiveWindowUI == null) _reactiveWindowUI = GetComponent<ReactiveWindowUI>();
 
             // Wire debug buttons
-            if (_debugSpellBtn != null) _debugSpellBtn.onClick.AddListener(() => DebugDraw("spell"));
-            if (_debugEquipBtn != null) _debugEquipBtn.onClick.AddListener(() => DebugDraw("equip"));
-            if (_debugUnitBtn != null) _debugUnitBtn.onClick.AddListener(() => DebugDraw("unit"));
-            if (_debugManaBtn != null) _debugManaBtn.onClick.AddListener(DebugAddMana);
+            if (_debugSpellBtn != null)    _debugSpellBtn.onClick.AddListener(() => DebugDraw("spell"));
+            if (_debugEquipBtn != null)    _debugEquipBtn.onClick.AddListener(() => DebugDraw("equip"));
+            if (_debugUnitBtn != null)     _debugUnitBtn.onClick.AddListener(() => DebugDraw("unit"));
+            if (_debugReactiveBtn != null) _debugReactiveBtn.onClick.AddListener(() => DebugDraw("reactive"));
+            if (_debugManaBtn != null)     _debugManaBtn.onClick.AddListener(DebugAddMana);
         }
 
         private void OnEnable()
@@ -650,8 +652,9 @@ namespace FWTCG
 
             foreach (UnitInstance u in deck)
             {
-                bool match = cardType == "spell" ? u.CardData.IsSpell
-                    : cardType == "equip" ? u.CardData.IsEquipment
+                bool match = cardType == "spell"    ? (u.CardData.IsSpell && !u.CardData.HasKeyword(CardKeyword.Reactive))
+                    : cardType == "equip"           ? u.CardData.IsEquipment
+                    : cardType == "reactive"        ? (u.CardData.IsSpell && u.CardData.HasKeyword(CardKeyword.Reactive))
                     : !u.CardData.IsSpell && !u.CardData.IsEquipment;
                 if (match) { found = u; break; }
             }
@@ -664,7 +667,8 @@ namespace FWTCG
             }
             else
             {
-                string typeName = cardType == "spell" ? "法术" : cardType == "equip" ? "装备" : "单位";
+                string typeName = cardType == "spell" ? "法术" : cardType == "equip" ? "装备"
+                    : cardType == "reactive" ? "反应" : "单位";
                 TurnManager.BroadcastMessage_Static($"[DEBUG] 牌库中已无{typeName}牌");
             }
 
