@@ -127,6 +127,9 @@ namespace FWTCG.Editor
                 out var mulliganTitleText, out var mulliganCardContainer,
                 out var mulliganConfirmButton, out var mulliganConfirmLabel);
 
+            // ── CardArt: ensure all PNGs are imported as Sprite ──────────────
+            EnsureCardArtImportedAsSprite();
+
             // ── CardData ScriptableObjects ────────────────────────────────────
             EnsureDirectory("Assets/Resources/Cards");
             CreateAllCardData();
@@ -729,6 +732,38 @@ namespace FWTCG.Editor
         }
 
         // Shorthand alias
+        /// <summary>
+        /// Sets TextureImporterType.Sprite on every PNG/JPG in Assets/Resources/CardArt/
+        /// so they can be loaded as Sprites via AssetDatabase.LoadAssetAtPath&lt;Sprite&gt;.
+        /// </summary>
+        private static void EnsureCardArtImportedAsSprite()
+        {
+            string artFolder = "Assets/Resources/CardArt";
+            if (!System.IO.Directory.Exists(artFolder)) return;
+
+            string[] guids = AssetDatabase.FindAssets("t:Texture2D", new[] { artFolder });
+            bool anyChanged = false;
+
+            foreach (string guid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+                if (importer == null) continue;
+
+                if (importer.textureType != TextureImporterType.Sprite)
+                {
+                    importer.textureType         = TextureImporterType.Sprite;
+                    importer.spriteImportMode    = SpriteImportMode.Single;
+                    importer.alphaIsTransparency = true;
+                    importer.SaveAndReimport();
+                    anyChanged = true;
+                    Debug.Log($"[SceneBuilder] 设为Sprite: {path}");
+                }
+            }
+
+            if (anyChanged) AssetDatabase.Refresh();
+        }
+
         private static CardData CD(string id, string name, int cost, int atk,
             RuneType runeType, int runeCost, string desc,
             CardKeyword kw = CardKeyword.None, string effectId = "",

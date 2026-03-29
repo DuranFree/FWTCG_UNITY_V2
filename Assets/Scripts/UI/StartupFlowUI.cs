@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -67,12 +68,15 @@ namespace FWTCG.UI
 
             if (_coinFlipOkButton != null)
             {
+                // Disable button briefly so player can read the result before clicking
+                _coinFlipOkButton.interactable = false;
                 _coinFlipOkButton.onClick.RemoveAllListeners();
                 _coinFlipOkButton.onClick.AddListener(() =>
                 {
                     if (_coinFlipPanel != null) _coinFlipPanel.SetActive(false);
                     tcs.TrySetResult(true);
                 });
+                StartCoroutine(EnableButtonAfterDelay(_coinFlipOkButton, 1.2f));
             }
             else
             {
@@ -169,6 +173,12 @@ namespace FWTCG.UI
                 bool selected = _selectedForSwap.Contains(_mulliganHand[i]);
                 _mulliganCardViews[i].SetSelected(selected);
             }
+        }
+
+        private IEnumerator EnableButtonAfterDelay(Button btn, float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            if (btn != null) btn.interactable = true;
         }
 
         private void PerformMulligan(GameState gs)

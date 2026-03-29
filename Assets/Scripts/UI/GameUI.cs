@@ -280,7 +280,7 @@ namespace FWTCG.UI
                     CardView cv = go.GetComponent<CardView>();
                     if (cv != null)
                     {
-                        // We don't call Setup with real data — leave blank (face-down)
+                        cv.SetFaceDown(true);
                         go.name = $"EnemyCard_{i}";
                     }
                 }

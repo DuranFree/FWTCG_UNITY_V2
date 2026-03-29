@@ -27,9 +27,11 @@ namespace FWTCG.UI
         private static readonly Color NormalColor = Color.white;
         private static readonly Color PlayerCardColor = new Color(0.85f, 0.92f, 1f, 1f);
         private static readonly Color EnemyCardColor = new Color(1f, 0.85f, 0.85f, 1f);
-        private static readonly Color SelectedColor = new Color(0.4f, 1f, 0.4f, 1f); // green highlight
+        private static readonly Color SelectedColor  = new Color(0.4f, 1f, 0.4f, 1f); // green highlight
+        private static readonly Color FaceDownColor  = new Color(0.12f, 0.16f, 0.25f, 1f); // dark blue-grey back
 
         private bool _selected;
+        private bool _faceDown;
 
         private void Awake()
         {
@@ -63,11 +65,33 @@ namespace FWTCG.UI
         }
 
         /// <summary>
+        /// Shows the card as face-down (enemy hand). Hides all unit data.
+        /// </summary>
+        public void SetFaceDown(bool faceDown)
+        {
+            _faceDown = faceDown;
+            RefreshFaceDown();
+        }
+
+        private void RefreshFaceDown()
+        {
+            bool hide = _faceDown;
+            if (_nameText != null) _nameText.gameObject.SetActive(!hide);
+            if (_costText != null) _costText.gameObject.SetActive(!hide);
+            if (_atkText  != null) _atkText.gameObject.SetActive(!hide);
+            if (_descText != null) _descText.gameObject.SetActive(!hide);
+            if (_artImage != null) _artImage.enabled = !hide;
+            if (_cardBg   != null) _cardBg.color = hide ? FaceDownColor : (_selected ? SelectedColor : (_unit != null && _unit.Exhausted ? ExhaustedColor : (_isPlayerCard ? PlayerCardColor : EnemyCardColor)));
+            if (_clickButton != null) _clickButton.interactable = !hide;
+        }
+
+        /// <summary>
         /// Re-reads the unit state and updates all displayed values.
         /// Call this when unit state changes (e.g., after taking damage).
         /// </summary>
         public void Refresh()
         {
+            if (_faceDown) { RefreshFaceDown(); return; }
             if (_unit == null) return;
 
             if (_nameText != null)
