@@ -71,8 +71,8 @@ namespace FWTCG.UI
         [SerializeField] private Button _restartButton;
 
         // ── Legend panels ──────────────────────────────────────────────────────
-        [SerializeField] private Text _playerLegendText;   // shows Kaisa name/HP/level
-        [SerializeField] private Text _enemyLegendText;    // shows Masteryi name/HP
+        [SerializeField] private Text _playerLegendText;   // shows Kaisa name / level / exhausted
+        [SerializeField] private Text _enemyLegendText;    // shows Masteryi name / exhausted
         [SerializeField] private Button _legendSkillBtn;   // 虚空感知 button
 
         // ── Banner overlay ────────────────────────────────────────────────────
@@ -277,8 +277,7 @@ namespace FWTCG.UI
                 {
                     string lvl = gs.PLegend.Level >= 2 ? " [Lv.2]" : "";
                     string ex  = gs.PLegend.Exhausted ? " [休眠]" : "";
-                    _playerLegendText.text =
-                        $"{gs.PLegend.Name}{lvl}\nHP {gs.PLegend.CurrentHp}/{gs.PLegend.MaxHp}{ex}";
+                    _playerLegendText.text = $"{gs.PLegend.Name}{lvl}{ex}";
                 }
                 else
                 {
@@ -286,11 +285,11 @@ namespace FWTCG.UI
                 }
             }
 
-            // Skill button: only usable when ability not yet used and legend alive
+            // Skill button: usable while legend is not exhausted (虚空感知 costs exhausting self)
             if (_legendSkillBtn != null)
             {
                 bool canUse = gs.PLegend != null
-                              && gs.PLegend.IsAlive
+                              && !gs.PLegend.Exhausted
                               && !gs.PLegend.AbilityUsedThisTurn
                               && !gs.GameOver;
                 _legendSkillBtn.interactable = canUse;
@@ -300,8 +299,7 @@ namespace FWTCG.UI
             if (_enemyLegendText != null)
             {
                 if (gs.ELegend != null)
-                    _enemyLegendText.text =
-                        $"{gs.ELegend.Name}\nHP {gs.ELegend.CurrentHp}/{gs.ELegend.MaxHp}";
+                    _enemyLegendText.text = gs.ELegend.Name;
                 else
                     _enemyLegendText.text = "传奇: -";
             }

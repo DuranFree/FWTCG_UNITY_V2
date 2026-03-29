@@ -48,7 +48,6 @@ namespace FWTCG.Core
         public const string SCORE_TYPE_BURNOUT = "burnout";
 
         // Legend
-        public const int LEGEND_HP = 20;
         public const int LEGEND_EVOLUTION_KEYWORDS = 4; // distinct keywords needed for Kaisa to evolve
 
         // Phase transition delay in ms (used in async turn flow)

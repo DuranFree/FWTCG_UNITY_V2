@@ -28,8 +28,8 @@ namespace FWTCG.Systems
         public LegendInstance CreateLegend(string legendId, string owner)
         {
             if (legendId == KAISA_LEGEND_ID)
-                return new LegendInstance(KAISA_LEGEND_ID, "卡莎·传奇", 3, GameRules.LEGEND_HP, owner);
-            return new LegendInstance(YI_LEGEND_ID, "易大师·传奇", 3, GameRules.LEGEND_HP, owner);
+                return new LegendInstance(KAISA_LEGEND_ID, "卡莎·传奇", owner);
+            return new LegendInstance(YI_LEGEND_ID, "易大师·传奇", owner);
         }
 
         // ── Per-turn reset (called in Awaken phase) ───────────────────────────
@@ -56,11 +56,6 @@ namespace FWTCG.Systems
             if (legend == null || legend.Id != KAISA_LEGEND_ID)
             {
                 Log("[传奇] 当前阵营传奇不是卡莎");
-                return false;
-            }
-            if (!legend.IsAlive)
-            {
-                Log("[传奇] 卡莎已阵亡，无法使用技能");
                 return false;
             }
             if (legend.AbilityUsedThisTurn)
@@ -92,7 +87,6 @@ namespace FWTCG.Systems
             LegendInstance legend = gs.GetLegend(kaisaOwner);
             if (legend == null || legend.Id != KAISA_LEGEND_ID) return;
             if (legend.Level >= 2) return;  // already evolved
-            if (!legend.IsAlive) return;
 
             int keywordMask = 0;
             CollectKeywords(gs.GetBase(kaisaOwner), ref keywordMask);
@@ -107,8 +101,8 @@ namespace FWTCG.Systems
             int distinctCount = CountBits(keywordMask);
             if (distinctCount >= GameRules.LEGEND_EVOLUTION_KEYWORDS)
             {
-                legend.Evolve(3, 3);
-                Log($"[传奇] 卡莎进化！盟友拥有{distinctCount}种关键词 — 等级→2，+3战力/+3生命上限");
+                legend.Evolve();
+                Log($"[传奇] 卡莎进化！盟友拥有{distinctCount}种关键词 — 升至等级2！");
                 TurnManager.ShowBanner_Static("⭐ 卡莎·进化！Lv.2");
             }
         }
@@ -137,7 +131,7 @@ namespace FWTCG.Systems
         {
             string defender = gs.Opponent(attacker);
             LegendInstance legend = gs.GetLegend(defender);
-            if (legend == null || legend.Id != YI_LEGEND_ID || !legend.IsAlive) return;
+            if (legend == null || legend.Id != YI_LEGEND_ID) return;
 
             List<UnitInstance> defenderUnits = defender == GameRules.OWNER_PLAYER
                 ? gs.BF[bfId].PlayerUnits
@@ -149,21 +143,6 @@ namespace FWTCG.Systems
                 Log($"[传奇] 易大师【独影剑鸣】— {defenderUnits[0].UnitName} 孤身作战，+2战力" +
                     $"（实际战力 {defenderUnits[0].EffectiveAtk()}）");
             }
-        }
-
-        // ── Legend death check ─────────────────────────────────────────────────
-
-        /// <summary>
-        /// Check if any legend's HP reached 0.
-        /// Returns a game-over message, or null if all legends are alive.
-        /// </summary>
-        public string CheckLegendDeaths(GameState gs)
-        {
-            if (gs.PLegend != null && !gs.PLegend.IsAlive)
-                return $"[传奇] {gs.PLegend.Name} 阵亡！AI 获胜！";
-            if (gs.ELegend != null && !gs.ELegend.IsAlive)
-                return $"[传奇] {gs.ELegend.Name} 阵亡！玩家 获胜！";
-            return null;
         }
 
         // ── Logging ───────────────────────────────────────────────────────────
