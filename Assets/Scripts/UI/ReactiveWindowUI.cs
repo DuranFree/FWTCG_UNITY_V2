@@ -7,19 +7,18 @@ using FWTCG.Core;
 namespace FWTCG.UI
 {
     /// <summary>
-    /// Reaction window: shown when the AI casts a spell (DEV-4).
-    /// Displays the player's reactive cards in hand + a Pass button.
-    /// The player can choose to play one reactive card or pass.
+    /// Reaction window: shown when the player clicks the React button.
+    /// Displays the player's reactive cards in hand.
+    /// The player MUST select one card — there is no pass/cancel option.
     ///
     /// Uses TaskCompletionSource for async/await integration.
-    /// Returns the chosen reactive UnitInstance, or null if the player passes.
+    /// Returns the chosen card. Auto-completes with null if no cards provided.
     /// </summary>
     public class ReactiveWindowUI : MonoBehaviour
     {
         [SerializeField] private GameObject _panel;
         [SerializeField] private Text _contextText;
         [SerializeField] private Transform _cardContainer;
-        [SerializeField] private Button _passButton;
         [SerializeField] private GameObject _cardViewPrefab;
 
         private TaskCompletionSource<UnitInstance> _tcs;
@@ -33,31 +32,25 @@ namespace FWTCG.UI
         // ── Public API ────────────────────────────────────────────────────────
 
         /// <summary>
-        /// Shows the reaction window with the given reactive cards.
-        /// Only shows cards the player can currently afford (cost ≤ gs.PMana).
-        /// Returns the card the player chose to play, or null if they passed.
-        /// If no affordable reactive cards exist or UI is not set up, returns null immediately.
+        /// Shows the reaction window with the given cards.
+        /// The caller is responsible for filtering to only valid/affordable cards.
+        /// Returns the card the player chose to play.
+        /// Auto-completes with null if the card list is empty or UI is not set up.
+        /// There is NO pass button — the player must select a card.
         /// </summary>
         public Task<UnitInstance> WaitForReaction(
-            List<UnitInstance> reactiveCards,
-            string triggerSpellName,
+            List<UnitInstance> cards,
+            string contextMsg,
             GameState gs)
         {
             _tcs = new TaskCompletionSource<UnitInstance>();
             _cardViews.Clear();
 
-            // Filter to only affordable cards
-            var affordable = new System.Collections.Generic.List<UnitInstance>();
-            if (reactiveCards != null)
-            {
-                foreach (var c in reactiveCards)
-                    if (c.CardData.Cost <= gs.PMana)
-                        affordable.Add(c);
-            }
-
-            // Update context text (show current mana so player knows what they can afford)
+            // Update context text
             if (_contextText != null)
-                _contextText.text = $"对手发动了【{triggerSpellName}】\n你是否要反应？（当前法力：{gs.PMana}）";
+                _contextText.text = string.IsNullOrEmpty(contextMsg)
+                    ? "选择要打出的反应牌（必须打出一张）"
+                    : contextMsg;
 
             // Clear any leftover card views
             if (_cardContainer != null)
@@ -66,47 +59,30 @@ namespace FWTCG.UI
                     Destroy(child.gameObject);
             }
 
-            // Auto-pass if no affordable cards available or UI missing
-            if (affordable.Count == 0 || _panel == null)
+            // Auto-complete if no cards or UI missing
+            if (cards == null || cards.Count == 0 || _panel == null)
             {
                 _tcs.TrySetResult(null);
                 return _tcs.Task;
             }
 
-            // Instantiate a CardView per affordable reactive card
+            // Instantiate a CardView per card
             if (_cardViewPrefab != null && _cardContainer != null)
             {
-                foreach (UnitInstance card in affordable)
+                foreach (UnitInstance card in cards)
                 {
                     UnitInstance captured = card;
                     var go = Instantiate(_cardViewPrefab, _cardContainer);
                     var cv = go.GetComponent<CardView>();
                     if (cv != null)
                     {
-                        cv.Setup(captured, true, OnReactiveCardClicked);
+                        cv.Setup(captured, true, OnCardClicked);
                         _cardViews.Add(cv);
                     }
                 }
             }
 
-            // Wire Pass button
-            if (_passButton != null)
-            {
-                _passButton.onClick.RemoveAllListeners();
-                _passButton.onClick.AddListener(() =>
-                {
-                    HidePanel();
-                    _tcs.TrySetResult(null);
-                });
-            }
-            else
-            {
-                // No pass button: auto-pass immediately
-                _tcs.TrySetResult(null);
-                return _tcs.Task;
-            }
-
-            // Show the panel
+            // Show the panel (no pass button — player must pick)
             if (_panel != null) _panel.SetActive(true);
 
             return _tcs.Task;
@@ -114,7 +90,7 @@ namespace FWTCG.UI
 
         // ── Private callbacks ─────────────────────────────────────────────────
 
-        private void OnReactiveCardClicked(UnitInstance card)
+        private void OnCardClicked(UnitInstance card)
         {
             HidePanel();
             _tcs?.TrySetResult(card);

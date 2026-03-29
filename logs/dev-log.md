@@ -4,20 +4,25 @@
 
 ## DEV-4：反应系统 — 2026-03-29
 
-**Status**: ✅ Completed
+**Status**: ✅ Completed（含收尾补丁）
 
 **新功能**:
 - `ReactiveSystem.cs`（新建）：9张反应法术效果（swindle/retreat_rune/guilty_pleasure/smoke_bomb + scoff/duel_stance/well_trained/wind_wall/flash_counter），自动选目标，支持无效化机制
-- `ReactiveWindowUI.cs`（新建）：TaskCompletionSource 异步窗口，AI施法后向玩家展示反应牌，玩家点选或通过
-- `SimpleAI.cs`：Step 3新增法术施放逻辑（非反应法术自动选目标，每张法术后开放玩家反应窗口）
+- `ReactiveWindowUI.cs`：TaskCompletionSource 异步窗口，玩家点选反应牌（无通过按钮，必须选择一张）
+- `SimpleAI.cs`：AI施法后广播消息 + 2000ms 等待窗口（替代原自动弹窗），玩家主动点击反应按钮响应
 - `TurnManager.cs`：Inject()扩展支持 SpellSystem/ReactiveSystem/ReactiveWindowUI 注入
-- `GameManager.cs`：新增 _reactiveSys/_reactiveWindowUI 字段，注入到TurnManager，订阅日志事件
-- `SceneBuilder.cs`：创建 ReactiveWindowPanel UI，添加9张反应卡 CardData，更新牌组，连线新组件
+- `GameManager.cs`：新增 _reactBtn 字段 + OnReactClicked() 异步方法（过滤可用反应牌→选牌→施放）
+- `SceneBuilder.cs`：BottomBar 新增橙色【反应】按钮，移除 ReactiveWindowPanel 的通过按钮，连线 _reactBtn
 - `GameRules.cs`：新增9张反应卡副本数配置
 
+**设计决定**:
+- 反应按钮始终可点击（不做状态门控），点击时实时过滤可用牌
+- 无法响应时显示提示消息，不弹窗
+- 倒计时 + 自动随机出牌推迟至 DEV-11
+
 **测试**:
-- `DEV4InteractionTests.cs`（新建）：16项反应系统交互测试（swindle/retreat_rune/guilty_pleasure/smoke_bomb/scoff/duel_stance/well_trained/wind_wall/flash_counter/负面用例）
-- 🟢 总计 96/96 全绿
+- `DEV4InteractionTests.cs`（新建）：16项反应系统交互测试，全绿
+- 🟢 总计 96/96 全绿，编译无 error CS
 
 **Files modified**:
 - `Assets/Scripts/AI/SimpleAI.cs`
@@ -25,6 +30,7 @@
 - `Assets/Scripts/GameManager.cs`
 - `Assets/Scripts/Core/GameRules.cs`
 - `Assets/Scripts/Editor/SceneBuilder.cs`
+- `Assets/Scripts/UI/ReactiveWindowUI.cs`
 - `plans/feature-checklist.md`
 - `plans/tech-debt.md`
 

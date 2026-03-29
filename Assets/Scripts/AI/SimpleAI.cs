@@ -19,6 +19,10 @@ namespace FWTCG.AI
     /// </summary>
     public class SimpleAI : MonoBehaviour
     {
+        // How long (ms) to pause after announcing a spell, giving the player
+        // a window to click the React button before the spell resolves.
+        private const int SPELL_REACTION_WINDOW_MS = 2000;
+
         public async Task TakeAction(GameState gs, TurnManager turnMgr,
                                      CombatSystem combat, ScoreManager score,
                                      EntryEffectSystem entryEffects = null,
@@ -116,43 +120,14 @@ namespace FWTCG.AI
                         gs.EMana -= card.CardData.Cost;
                         gs.CardsPlayedThisTurn++;
                         TurnManager.BroadcastMessage_Static(
-                            $"[AI] 发动法术 {card.UnitName}（费用{card.CardData.Cost}），剩余法力 {gs.EMana}");
+                            $"[AI] 发动法术 {card.UnitName}（费用{card.CardData.Cost}），剩余法力 {gs.EMana}　⚡ 可点击【反应】按钮响应！");
 
-                        // Open reaction window for player if applicable
-                        bool negated = false;
-                        if (reactiveWindow != null && reactiveWindow != null)
-                        {
-                            var playerReactives = GetReactiveCards(gs.GetHand(GameRules.OWNER_PLAYER));
-                            if (playerReactives.Count > 0)
-                            {
-                                var reaction = await reactiveWindow.WaitForReaction(
-                                    playerReactives, card.UnitName, gs);
+                        // Pause to give player a window to click the React button
+                        await Task.Delay(SPELL_REACTION_WINDOW_MS);
+                        if (gs.GameOver) { turnMgr.EndTurn(); return; }
 
-                                if (reaction != null && reactiveSys != null)
-                                {
-                                    // Deduct mana cost (rules 554–561: all cards cost mana to play)
-                                    gs.PMana -= reaction.CardData.Cost;
-                                    TurnManager.BroadcastMessage_Static(
-                                        $"[反应] 玩家打出 {reaction.UnitName}（费用{reaction.CardData.Cost}），剩余法力 {gs.PMana}");
-                                    negated = reactiveSys.ApplyReactive(
-                                        reaction, GameRules.OWNER_PLAYER, card, gs);
-                                }
-                            }
-                        }
-
-                        if (!negated)
-                        {
-                            // CastSpell handles hand→discard move internally
-                            spellSys.CastSpell(card, GameRules.OWNER_ENEMY, target, gs);
-                        }
-                        else
-                        {
-                            // Negated: move spell directly to discard without effect
-                            gs.GetHand(GameRules.OWNER_ENEMY).Remove(card);
-                            gs.GetDiscard(GameRules.OWNER_ENEMY).Add(card);
-                            TurnManager.BroadcastMessage_Static(
-                                $"[AI] {card.UnitName} 被玩家反应无效化，丢入废牌堆");
-                        }
+                        // Cast the spell (player reacts independently via the React button)
+                        spellSys.CastSpell(card, GameRules.OWNER_ENEMY, target, gs);
 
                         foundSpell = true;
                         await Task.Delay(GameRules.AI_ACTION_DELAY_MS);
@@ -231,20 +206,6 @@ namespace FWTCG.AI
             for (int i = 0; i < GameRules.BATTLEFIELD_COUNT; i++)
                 if (gs.BF[i].EnemyUnits.Count > 0) return gs.BF[i].EnemyUnits[0];
             return null;
-        }
-
-        /// <summary>
-        /// Collects all reactive spells from a hand.
-        /// </summary>
-        private static List<UnitInstance> GetReactiveCards(List<UnitInstance> hand)
-        {
-            var result = new List<UnitInstance>();
-            foreach (var c in hand)
-            {
-                if (c.CardData.IsSpell && c.CardData.HasKeyword(CardKeyword.Reactive))
-                    result.Add(c);
-            }
-            return result;
         }
 
         /// <summary>

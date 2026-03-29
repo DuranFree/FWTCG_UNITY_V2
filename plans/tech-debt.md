@@ -13,3 +13,4 @@
 - ✅ DEV-1/DEV-2 交互测试补写（EditMode）— 已补完：DEV1InteractionTests 22项 + DEV2InteractionTests 17项，全绿 — Phase DEV-3
 - [ ] 反应窗口仅在 AI 施法时触发（玩家施法时 AI 不反应）— DEV-4 简化，完整轮流响应待 DEV-5+ — Phase DEV-4
 - [ ] 反应牌自动选目标（无目标选择UI）— DEV-4 简化，完整目标选择待 DEV-5+ — Phase DEV-4
+- [ ] 反应按钮无倒计时（点击后玩家可无限等待）— DEV-4 简化，30秒倒计时+自动随机出牌待 DEV-11 — Phase DEV-4

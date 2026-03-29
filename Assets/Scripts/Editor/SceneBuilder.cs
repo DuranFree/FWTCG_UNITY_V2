@@ -77,7 +77,7 @@ namespace FWTCG.Editor
             // ── BottomBar ─────────────────────────────────────────────────────
             var bottomBar = CreateBottomBar(canvasGO.transform,
                 out var manaDisplay, out var phaseDisplay,
-                out var endTurnButton, out var schDisplay);
+                out var endTurnButton, out var schDisplay, out var reactBtn);
 
             // ── MessagePanel ──────────────────────────────────────────────────
             var messagePanel = CreateMessagePanel(canvasGO.transform, out var messageText);
@@ -134,8 +134,7 @@ namespace FWTCG.Editor
 
             // ── Reactive Window Panel ─────────────────────────────────────────
             var reactivePanel = CreateReactiveWindowPanel(canvasGO.transform,
-                out var reactiveContextText, out var reactiveCardContainer,
-                out var reactivePassButton);
+                out var reactiveContextText, out var reactiveCardContainer);
 
             // ── CardArt: ensure all PNGs are imported as Sprite ──────────────
             EnsureCardArtImportedAsSprite();
@@ -183,7 +182,7 @@ namespace FWTCG.Editor
                             mulliganPanel, mulliganTitleText, mulliganCardContainer,
                             mulliganConfirmButton, mulliganConfirmLabel, cardPrefab,
                             reactivePanel, reactiveContextText, reactiveCardContainer,
-                            reactivePassButton,
+                            reactBtn,
                             debugSpellBtn, debugEquipBtn, debugUnitBtn, debugReactiveBtn, debugManaBtn);
 
             // ── Save scene ────────────────────────────────────────────────────
@@ -401,7 +400,7 @@ namespace FWTCG.Editor
 
         private static GameObject CreateBottomBar(Transform parent,
             out Text manaDisplay, out Text phaseDisplay,
-            out Button endTurnButton, out Text schDisplay)
+            out Button endTurnButton, out Text schDisplay, out Button reactBtn)
         {
             var go = new GameObject("BottomBar");
             go.transform.SetParent(parent, false);
@@ -424,6 +423,9 @@ namespace FWTCG.Editor
             manaDisplay  = CreateTMPText(go.transform, "ManaDisplay", "法力: 0", Color.white, 20, TextAnchor.MiddleLeft);
             phaseDisplay = CreateTMPText(go.transform, "PhaseDisplay", "阶段: -", Color.white, 20, TextAnchor.MiddleCenter);
             endTurnButton = CreateButton(go.transform, "EndTurnButton", "结束回合");
+            reactBtn = CreateButton(go.transform, "ReactButton", "反应");
+            var reactImg = reactBtn.GetComponent<Image>();
+            if (reactImg != null) reactImg.color = new Color(1f, 0.55f, 0f, 1f); // orange
             schDisplay   = CreateTMPText(go.transform, "SchDisplay", "符能: -", Color.white, 20, TextAnchor.MiddleRight);
 
             return go;
@@ -641,7 +643,7 @@ namespace FWTCG.Editor
         // ── Reactive Window Panel ─────────────────────────────────────────────
 
         private static GameObject CreateReactiveWindowPanel(Transform parent,
-            out Text contextText, out Transform cardContainer, out Button passButton)
+            out Text contextText, out Transform cardContainer)
         {
             // Full-screen dark overlay
             var panel = CreateFullscreenPanel(parent, "ReactiveWindowPanel",
@@ -659,7 +661,7 @@ namespace FWTCG.Editor
             var ctGO = new GameObject("ContextText");
             ctGO.transform.SetParent(panel.transform, false);
             contextText = ctGO.AddComponent<Text>();
-            contextText.text = "对手发动了法术，你是否要反应？";
+            contextText.text = "选择要打出的反应牌（必须打出一张）";
             contextText.color = Color.white;
             contextText.fontSize = 22;
             contextText.alignment = TextAnchor.MiddleCenter;
@@ -684,12 +686,6 @@ namespace FWTCG.Editor
             hlg.spacing = 10f;
             hlg.childAlignment = TextAnchor.MiddleCenter;
             cardContainer = ccGO.transform;
-
-            // Pass button
-            passButton = CreateButton(panel.transform, "PassButton", "通过（不反应）");
-            var pbLE = passButton.gameObject.AddComponent<LayoutElement>();
-            pbLE.preferredWidth  = 240f;
-            pbLE.preferredHeight = 44f;
 
             panel.SetActive(false);
             return panel;
@@ -1184,7 +1180,7 @@ namespace FWTCG.Editor
             GameObject mulliganPanel, Text mulliganTitleText, Transform mulliganCardContainer,
             Button mulliganConfirmButton, Text mulliganConfirmLabel, GameObject cardPrefab,
             GameObject reactivePanel, Text reactiveContextText,
-            Transform reactiveCardContainer, Button reactivePassButton,
+            Transform reactiveCardContainer, Button reactBtn,
             Button debugSpellBtn, Button debugEquipBtn, Button debugUnitBtn, Button debugReactiveBtn, Button debugManaBtn)
         {
             var so = new SerializedObject(gameMgr);
@@ -1224,9 +1220,11 @@ namespace FWTCG.Editor
             reactiveWindowSO.FindProperty("_panel").objectReferenceValue       = reactivePanel;
             reactiveWindowSO.FindProperty("_contextText").objectReferenceValue = reactiveContextText;
             reactiveWindowSO.FindProperty("_cardContainer").objectReferenceValue = reactiveCardContainer;
-            reactiveWindowSO.FindProperty("_passButton").objectReferenceValue  = reactivePassButton;
             reactiveWindowSO.FindProperty("_cardViewPrefab").objectReferenceValue = cardPrefab;
             reactiveWindowSO.ApplyModifiedPropertiesWithoutUndo();
+
+            // Wire React button into GameManager
+            so.FindProperty("_reactBtn").objectReferenceValue = reactBtn;
 
             // Wire DeathwishSystem into CombatSystem
             var combatSO = new SerializedObject(combatSys);

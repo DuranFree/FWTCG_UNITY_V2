@@ -39,6 +39,9 @@ namespace FWTCG
         [SerializeField] private ReactiveSystem _reactiveSys;
         [SerializeField] private ReactiveWindowUI _reactiveWindowUI;
 
+        // ── React button (always visible, player clicks to play reactive cards) ─
+        [SerializeField] private Button _reactBtn;
+
         // ── DEBUG panel (left-bottom overlay, always visible in dev) ──────────
         [SerializeField] private Button _debugSpellBtn;
         [SerializeField] private Button _debugEquipBtn;
@@ -75,6 +78,9 @@ namespace FWTCG
             if (_spellSys == null) _spellSys = GetComponent<SpellSystem>();
             if (_reactiveSys == null) _reactiveSys = GetComponent<ReactiveSystem>();
             if (_reactiveWindowUI == null) _reactiveWindowUI = GetComponent<ReactiveWindowUI>();
+
+            // Wire react button
+            if (_reactBtn != null) _reactBtn.onClick.AddListener(OnReactClicked);
 
             // Wire debug buttons
             if (_debugSpellBtn != null)    _debugSpellBtn.onClick.AddListener(() => DebugDraw("spell"));
@@ -633,6 +639,57 @@ namespace FWTCG
             {
                 _ui.ShowGameOver(msg);
                 _ui.Refresh(_gs);
+            }
+        }
+
+        // ── React button ──────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Called when the player clicks the React button (any time, any turn).
+        /// Collects affordable reactive cards from hand.
+        /// If any exist → opens the reaction window (player must pick one, no cancel).
+        /// If none → shows a message.
+        /// </summary>
+        private async void OnReactClicked()
+        {
+            if (_gs == null || _gs.GameOver) return;
+            if (_reactiveWindowUI == null) return;
+
+            // Collect affordable reactive spells from player hand
+            var reactives = new List<UnitInstance>();
+            foreach (var c in _gs.PHand)
+            {
+                if (c.CardData.IsSpell &&
+                    c.CardData.HasKeyword(CardKeyword.Reactive) &&
+                    c.CardData.Cost <= _gs.PMana)
+                {
+                    reactives.Add(c);
+                }
+            }
+
+            if (reactives.Count == 0)
+            {
+                TurnManager.BroadcastMessage_Static(
+                    $"[反应] 当前没有可打出的反应牌（手牌无反应法术或法力不足，当前法力：{_gs.PMana}）");
+                return;
+            }
+
+            TurnManager.BroadcastMessage_Static(
+                $"[反应] 选择要打出的反应牌（{reactives.Count}张可用，当前法力：{_gs.PMana}）");
+
+            var picked = await _reactiveWindowUI.WaitForReaction(
+                reactives,
+                $"选择反应牌打出（必须打出一张，当前法力：{_gs.PMana}）",
+                _gs);
+
+            if (picked != null)
+            {
+                _gs.PMana -= picked.CardData.Cost;
+                TurnManager.BroadcastMessage_Static(
+                    $"[反应] 打出 {picked.UnitName}（费用{picked.CardData.Cost}），剩余法力 {_gs.PMana}");
+                // ApplyReactive handles hand→discard move internally
+                _reactiveSys?.ApplyReactive(picked, GameRules.OWNER_PLAYER, null, _gs);
+                RefreshUI();
             }
         }
 
