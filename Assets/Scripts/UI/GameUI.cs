@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -69,6 +70,11 @@ namespace FWTCG.UI
         [SerializeField] private Text _gameOverText;
         [SerializeField] private Button _restartButton;
 
+        // ── Banner overlay ────────────────────────────────────────────────────
+        [SerializeField] private GameObject _bannerPanel;
+        [SerializeField] private Text _bannerText;
+        private const float BANNER_DURATION = 1.8f;
+
         // ── Callbacks set by GameManager ──────────────────────────────────────
         private Action _onEndTurnClicked;
         private Action<int> _onBFClicked;
@@ -84,10 +90,12 @@ namespace FWTCG.UI
         private void Awake()
         {
             if (_gameOverPanel != null) _gameOverPanel.SetActive(false);
+            if (_bannerPanel != null) _bannerPanel.SetActive(false);
             if (_endTurnButton != null) _endTurnButton.onClick.AddListener(HandleEndTurn);
             if (_bf1Button != null) _bf1Button.onClick.AddListener(() => _onBFClicked?.Invoke(0));
             if (_bf2Button != null) _bf2Button.onClick.AddListener(() => _onBFClicked?.Invoke(1));
             if (_restartButton != null) _restartButton.onClick.AddListener(HandleRestart);
+            FWTCG.Systems.TurnManager.OnBannerRequest += ShowBanner;
         }
 
         private void OnDestroy()
@@ -96,6 +104,22 @@ namespace FWTCG.UI
             if (_bf1Button != null) _bf1Button.onClick.RemoveAllListeners();
             if (_bf2Button != null) _bf2Button.onClick.RemoveAllListeners();
             if (_restartButton != null) _restartButton.onClick.RemoveAllListeners();
+            FWTCG.Systems.TurnManager.OnBannerRequest -= ShowBanner;
+        }
+
+        public void ShowBanner(string text)
+        {
+            if (_bannerPanel == null) return;
+            if (_bannerText != null) _bannerText.text = text;
+            _bannerPanel.SetActive(true);
+            StopCoroutine(nameof(HideBannerCoroutine));
+            StartCoroutine(nameof(HideBannerCoroutine));
+        }
+
+        private IEnumerator HideBannerCoroutine()
+        {
+            yield return new WaitForSeconds(BANNER_DURATION);
+            if (_bannerPanel != null) _bannerPanel.SetActive(false);
         }
 
         // ── Setup ─────────────────────────────────────────────────────────────

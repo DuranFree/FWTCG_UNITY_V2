@@ -86,6 +86,9 @@ namespace FWTCG.Editor
             var gameOverPanel = CreateGameOverPanel(canvasGO.transform,
                 out var resultText, out var restartButton);
 
+            // ── BannerPanel ───────────────────────────────────────────────────
+            var bannerPanel = CreateBannerPanel(canvasGO.transform, out var bannerText);
+
             // Collect sub-references from TopBar
             var playerScoreText  = topBar.transform.Find("PlayerScore").GetComponent<Text>();
             var roundInfoText    = topBar.transform.Find("RoundInfo").GetComponent<Text>();
@@ -173,7 +176,8 @@ namespace FWTCG.Editor
                 messageText,
                 gameOverPanel,
                 resultText,
-                restartButton);
+                restartButton,
+                bannerPanel, bannerText);
 
             WireGameManager(gameMgr, turnMgr, combatSys, scoreMgr, simpleAI, gameUI,
                             entryEffects, deathwish, spellSys, reactiveSys,
@@ -486,6 +490,35 @@ namespace FWTCG.Editor
 
             go.SetActive(false);
 
+            return go;
+        }
+
+        // ── Banner Panel ──────────────────────────────────────────────────────
+
+        private static GameObject CreateBannerPanel(Transform parent, out Text bannerText)
+        {
+            // Non-blocking centered overlay — shows event name for ~1.8 s then hides
+            var go = new GameObject("BannerPanel");
+            go.transform.SetParent(parent, false);
+
+            var rt = go.AddComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.15f, 0.35f);
+            rt.anchorMax = new Vector2(0.85f, 0.65f);
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+
+            var img = go.AddComponent<Image>();
+            img.color = new Color(0f, 0f, 0f, 0.78f);
+
+            bannerText = CreateTMPText(go.transform, "BannerText", "", Color.yellow, 44, TextAnchor.MiddleCenter);
+            var btRT = bannerText.GetComponent<RectTransform>();
+            btRT.anchorMin = Vector2.zero;
+            btRT.anchorMax = Vector2.one;
+            btRT.offsetMin = Vector2.zero;
+            btRT.offsetMax = Vector2.zero;
+            bannerText.fontStyle = FontStyle.Bold;
+
+            go.SetActive(false);
             return go;
         }
 
@@ -1109,7 +1142,8 @@ namespace FWTCG.Editor
             Text messageTextPrefab,
             GameObject gameOverPanel,
             Text gameOverText,
-            Button restartButton)
+            Button restartButton,
+            GameObject bannerPanel, Text bannerText)
         {
             var so = new SerializedObject(gameUI);
 
@@ -1157,6 +1191,9 @@ namespace FWTCG.Editor
             so.FindProperty("_gameOverPanel").objectReferenceValue        = gameOverPanel;
             so.FindProperty("_gameOverText").objectReferenceValue         = gameOverText;
             so.FindProperty("_restartButton").objectReferenceValue        = restartButton;
+
+            so.FindProperty("_bannerPanel").objectReferenceValue          = bannerPanel;
+            so.FindProperty("_bannerText").objectReferenceValue           = bannerText;
 
             so.ApplyModifiedPropertiesWithoutUndo();
         }

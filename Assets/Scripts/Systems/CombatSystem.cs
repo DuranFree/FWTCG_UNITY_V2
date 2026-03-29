@@ -166,6 +166,7 @@ namespace FWTCG.Systems
             int defenderPower = bf.TotalPower(defender);
 
             Log($"[法术对决] 战场{bfId + 1}: {DisplayName(attacker)}({attackerPower}) vs {DisplayName(defender)}({defenderPower})");
+            TurnManager.ShowBanner_Static($"⚔ 法术对决！战场{bfId + 1}");
 
             // #4: Distribute damage individually
             List<UnitInstance> attackerUnits = GetBFUnits(attacker, bf);

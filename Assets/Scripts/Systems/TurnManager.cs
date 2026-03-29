@@ -19,6 +19,7 @@ namespace FWTCG.Systems
     {
         public static event Action<string> OnPhaseChanged;
         public static event Action<string> OnMessage;
+        public static event Action<string> OnBannerRequest;
 
         // ── Action-phase gate ─────────────────────────────────────────────────
         private bool _actionComplete = false;
@@ -97,11 +98,17 @@ namespace FWTCG.Systems
             await DoEndPhase(who, gs);
         }
 
-        // ── Static broadcast helper (used by ScoreManager without a reference) ─
+        // ── Static broadcast / banner helpers ────────────────────────────────
         public static void BroadcastMessage_Static(string msg)
         {
             OnMessage?.Invoke(msg);
             Debug.Log(msg);
+        }
+
+        public static void ShowBanner_Static(string text)
+        {
+            OnBannerRequest?.Invoke(text);
+            Debug.Log($"[Banner] {text}");
         }
 
         // ── Six phases ────────────────────────────────────────────────────────

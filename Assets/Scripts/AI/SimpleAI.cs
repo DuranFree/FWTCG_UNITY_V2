@@ -5,6 +5,7 @@ using FWTCG.Core;
 using FWTCG.Data;
 using FWTCG.Systems;
 using FWTCG.UI;
+using FWTCG;
 
 namespace FWTCG.AI
 {
@@ -122,8 +123,10 @@ namespace FWTCG.AI
                         TurnManager.BroadcastMessage_Static(
                             $"[AI] 发动法术 {card.UnitName}（费用{card.CardData.Cost}），剩余法力 {gs.EMana}　⚡ 可点击【反应】按钮响应！");
 
-                        // Pause to give player a window to click the React button
+                        // Pause to give player a window to click the React button,
+                        // then wait until any opened reaction window finishes resolving.
                         await Task.Delay(SPELL_REACTION_WINDOW_MS);
+                        await GameManager.WaitIfReactionActive();
                         if (gs.GameOver) { turnMgr.EndTurn(); return; }
 
                         // Cast the spell (player reacts independently via the React button)

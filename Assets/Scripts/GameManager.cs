@@ -42,6 +42,55 @@ namespace FWTCG
         // ── React button (always visible, player clicks to play reactive cards) ─
         [SerializeField] private Button _reactBtn;
 
+        // ── Reaction window freeze (static so SimpleAI can await without a ref) ─
+        // Player reaction window (player clicks React → AI waits)
+        private static bool _reactionWindowActive;
+        private static TaskCompletionSource<bool> _reactionTcs;
+
+        // AI reaction window (AI plays reactive card → player must wait)
+        private static bool _aiReactionWindowActive;
+        private static TaskCompletionSource<bool> _aiReactionTcs;
+
+        /// <summary>
+        /// SimpleAI calls this after the spell announcement delay.
+        /// Awaits until the player's reaction window closes.
+        /// </summary>
+        public static Task WaitIfReactionActive() =>
+            _reactionWindowActive && _reactionTcs != null
+                ? _reactionTcs.Task
+                : Task.CompletedTask;
+
+        /// <summary>
+        /// Called by SimpleAI (DEV-5+) when AI plays a reactive card.
+        /// Shows banner, freezes player's React button until AI resolves.
+        /// </summary>
+        public static void BeginAiReactionWindow(string cardName)
+        {
+            _aiReactionWindowActive = true;
+            _aiReactionTcs = new TaskCompletionSource<bool>();
+            TurnManager.ShowBanner_Static("⚡ [AI] 反应窗口触发！");
+            TurnManager.BroadcastMessage_Static($"[反应] AI 打出反应牌 {cardName}，等待结算…");
+        }
+
+        /// <summary>
+        /// Called by SimpleAI after the reactive card resolves.
+        /// Unblocks any code awaiting WaitIfAiReactionActive().
+        /// </summary>
+        public static void EndAiReactionWindow()
+        {
+            _aiReactionWindowActive = false;
+            _aiReactionTcs?.TrySetResult(true);
+            _aiReactionTcs = null;
+        }
+
+        /// <summary>
+        /// Future player-side code can await this to pause while AI is reacting.
+        /// </summary>
+        public static Task WaitIfAiReactionActive() =>
+            _aiReactionWindowActive && _aiReactionTcs != null
+                ? _aiReactionTcs.Task
+                : Task.CompletedTask;
+
         // ── DEBUG panel (left-bottom overlay, always visible in dev) ──────────
         [SerializeField] private Button _debugSpellBtn;
         [SerializeField] private Button _debugEquipBtn;
@@ -655,6 +704,13 @@ namespace FWTCG
             if (_gs == null || _gs.GameOver) return;
             if (_reactiveWindowUI == null) return;
 
+            // Block if AI is currently resolving its own reactive card
+            if (_aiReactionWindowActive)
+            {
+                TurnManager.BroadcastMessage_Static("[反应] AI 正在响应，请等待结算完毕…");
+                return;
+            }
+
             // Collect affordable reactive spells from player hand
             var reactives = new List<UnitInstance>();
             foreach (var c in _gs.PHand)
@@ -674,8 +730,12 @@ namespace FWTCG
                 return;
             }
 
+            // ── 反应窗口触发：冻结 AI 后续行动，直到反应牌结算完毕 ────────────
+            _reactionWindowActive = true;
+            _reactionTcs = new TaskCompletionSource<bool>();
+            TurnManager.ShowBanner_Static("⚡ 反应窗口触发！");
             TurnManager.BroadcastMessage_Static(
-                $"[反应] 选择要打出的反应牌（{reactives.Count}张可用，当前法力：{_gs.PMana}）");
+                $"[反应] 反应窗口开启，双方行动暂停（{reactives.Count}张可用，当前法力：{_gs.PMana}）");
 
             var picked = await _reactiveWindowUI.WaitForReaction(
                 reactives,
@@ -691,6 +751,11 @@ namespace FWTCG
                 _reactiveSys?.ApplyReactive(picked, GameRules.OWNER_PLAYER, null, _gs);
                 RefreshUI();
             }
+
+            // ── 反应结算完毕：解除冻结 ────────────────────────────────────────
+            _reactionWindowActive = false;
+            _reactionTcs?.TrySetResult(true);
+            _reactionTcs = null;
         }
 
         // ── DEBUG methods ─────────────────────────────────────────────────────
