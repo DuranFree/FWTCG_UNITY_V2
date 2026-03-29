@@ -61,9 +61,10 @@ namespace FWTCG.UI
 
             Refresh();
 
-            // Only player cards are clickable
+            // Clickable whenever an onClick callback is provided
+            // (enemy cards need to be clickable during spell targeting mode)
             if (_clickButton != null)
-                _clickButton.interactable = isPlayerCard && onClick != null;
+                _clickButton.interactable = onClick != null;
         }
 
         /// <summary>
