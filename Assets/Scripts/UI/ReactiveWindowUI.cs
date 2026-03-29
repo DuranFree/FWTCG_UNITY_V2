@@ -34,8 +34,9 @@ namespace FWTCG.UI
 
         /// <summary>
         /// Shows the reaction window with the given reactive cards.
+        /// Only shows cards the player can currently afford (cost ≤ gs.PMana).
         /// Returns the card the player chose to play, or null if they passed.
-        /// If no reactive cards exist or UI is not set up, returns null immediately.
+        /// If no affordable reactive cards exist or UI is not set up, returns null immediately.
         /// </summary>
         public Task<UnitInstance> WaitForReaction(
             List<UnitInstance> reactiveCards,
@@ -45,9 +46,18 @@ namespace FWTCG.UI
             _tcs = new TaskCompletionSource<UnitInstance>();
             _cardViews.Clear();
 
-            // Update context text
+            // Filter to only affordable cards
+            var affordable = new System.Collections.Generic.List<UnitInstance>();
+            if (reactiveCards != null)
+            {
+                foreach (var c in reactiveCards)
+                    if (c.CardData.Cost <= gs.PMana)
+                        affordable.Add(c);
+            }
+
+            // Update context text (show current mana so player knows what they can afford)
             if (_contextText != null)
-                _contextText.text = $"对手发动了【{triggerSpellName}】\n你是否要反应？";
+                _contextText.text = $"对手发动了【{triggerSpellName}】\n你是否要反应？（当前法力：{gs.PMana}）";
 
             // Clear any leftover card views
             if (_cardContainer != null)
@@ -56,17 +66,17 @@ namespace FWTCG.UI
                     Destroy(child.gameObject);
             }
 
-            // Auto-pass if no cards available or UI missing
-            if (reactiveCards == null || reactiveCards.Count == 0 || _panel == null)
+            // Auto-pass if no affordable cards available or UI missing
+            if (affordable.Count == 0 || _panel == null)
             {
                 _tcs.TrySetResult(null);
                 return _tcs.Task;
             }
 
-            // Instantiate a CardView per reactive card
+            // Instantiate a CardView per affordable reactive card
             if (_cardViewPrefab != null && _cardContainer != null)
             {
-                foreach (UnitInstance card in reactiveCards)
+                foreach (UnitInstance card in affordable)
                 {
                     UnitInstance captured = card;
                     var go = Instantiate(_cardViewPrefab, _cardContainer);

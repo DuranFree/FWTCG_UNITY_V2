@@ -130,6 +130,10 @@ namespace FWTCG.AI
 
                                 if (reaction != null && reactiveSys != null)
                                 {
+                                    // Deduct mana cost (rules 554–561: all cards cost mana to play)
+                                    gs.PMana -= reaction.CardData.Cost;
+                                    TurnManager.BroadcastMessage_Static(
+                                        $"[反应] 玩家打出 {reaction.UnitName}（费用{reaction.CardData.Cost}），剩余法力 {gs.PMana}");
                                     negated = reactiveSys.ApplyReactive(
                                         reaction, GameRules.OWNER_PLAYER, card, gs);
                                 }
