@@ -42,10 +42,12 @@ namespace FWTCG.Core
         }
 
         /// <summary>
-        /// Effective attack used during combat. Never drops below 1.
+        /// Effective attack used during combat.
+        /// Stunned units contribute 0 power. Otherwise minimum 1.
         /// </summary>
         public int EffectiveAtk()
         {
+            if (Stunned) return 0;
             return Mathf.Max(1, CurrentAtk);
         }
 

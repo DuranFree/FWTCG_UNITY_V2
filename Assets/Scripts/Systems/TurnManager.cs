@@ -165,8 +165,15 @@ namespace FWTCG.Systems
             List<RuneInstance> runeDeck = gs.GetRuneDeck(who);
             List<RuneInstance> runes = gs.GetRunes(who);
 
+            // Cap: max 12 runes in play
+            int slotsAvailable = GameRules.MAX_RUNES_IN_PLAY - runes.Count;
+            int actualDraw = Mathf.Min(drawCount, Mathf.Max(0, slotsAvailable));
+
+            if (slotsAvailable <= 0)
+                Broadcast($"[召符] {DisplayName(who)} 符文区已满（{runes.Count}/{GameRules.MAX_RUNES_IN_PLAY}）");
+
             int drawn = 0;
-            for (int i = 0; i < drawCount; i++)
+            for (int i = 0; i < actualDraw; i++)
             {
                 if (runeDeck.Count == 0)
                 {
@@ -271,8 +278,8 @@ namespace FWTCG.Systems
         {
             SetPhase(who, gs, GameRules.PHASE_END);
 
-            // Reset HP (clear marked damage) on all units
-            ResetAllUnitsForOwner(who, gs);
+            // Reset HP (clear marked damage) on ALL units for BOTH players (Rule 627.5)
+            ResetAllUnits(gs);
 
             // Clear mana and schematic energy
             gs.SetMana(who, 0);
@@ -315,18 +322,21 @@ namespace FWTCG.Systems
             await Task.Delay(ms);
         }
 
-        private void ResetAllUnitsForOwner(string who, GameState gs)
+        private void ResetAllUnits(GameState gs)
         {
-            foreach (UnitInstance u in gs.GetBase(who))
-                u.ResetEndOfTurn();
-
-            for (int i = 0; i < GameRules.BATTLEFIELD_COUNT; i++)
+            foreach (string owner in new[] { GameRules.OWNER_PLAYER, GameRules.OWNER_ENEMY })
             {
-                List<UnitInstance> bfUnits = who == GameRules.OWNER_PLAYER
-                    ? gs.BF[i].PlayerUnits
-                    : gs.BF[i].EnemyUnits;
-                foreach (UnitInstance u in bfUnits)
+                foreach (UnitInstance u in gs.GetBase(owner))
                     u.ResetEndOfTurn();
+
+                for (int i = 0; i < GameRules.BATTLEFIELD_COUNT; i++)
+                {
+                    List<UnitInstance> bfUnits = owner == GameRules.OWNER_PLAYER
+                        ? gs.BF[i].PlayerUnits
+                        : gs.BF[i].EnemyUnits;
+                    foreach (UnitInstance u in bfUnits)
+                        u.ResetEndOfTurn();
+                }
             }
         }
 

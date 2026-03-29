@@ -160,3 +160,20 @@
 **Technical debt**: 无新增
 
 **Problems encountered**: 无
+
+---
+
+## DEV-1 核心规则对齐（11项规则修正）— 2026-03-29
+
+**Status**: ✅ Completed
+
+**What was done**:
+- 基于5列规则对比表，用户逐条确认16项规则选择，11项需代码改动
+- #4 伤害逐一分配 / #5 眩晕=0 / #6 双方存活→攻方召回 / #10 全场HP重置
+- #3 移动自动触发战斗 / #9 空BF征服 / #8 征服条件（控制权改变+每BF一次）
+- #2 最后一分规则 / #11 符文12张上限 / #13 召回行动 / #14 AI多移动
+- 移除手动对决按钮（GameUI/GameManager/SceneBuilder）
+
+**Files changed**: CombatSystem.cs, ScoreManager.cs, TurnManager.cs, UnitInstance.cs, GameRules.cs, GameManager.cs, GameUI.cs, SimpleAI.cs, SceneBuilder.cs
+
+**Tests**: 编译通过 + 18个EditMode测试全绿

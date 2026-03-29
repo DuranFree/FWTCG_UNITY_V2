@@ -85,8 +85,7 @@ namespace FWTCG
                     onEndTurn: OnEndTurnClicked,
                     onBF: OnBattlefieldClicked,
                     onUnit: OnUnitClicked,
-                    onRune: OnRuneClicked,
-                    onDuel: OnDuelClicked
+                    onRune: OnRuneClicked
                 );
             }
 
@@ -171,7 +170,25 @@ namespace FWTCG
 
             if (_selectedUnit == unit)
             {
-                // Deselect
+                // #13: If unit is on a battlefield, recall to base (exhausted)
+                if (_selectedUnitLoc != null && _selectedUnitLoc != "base"
+                    && int.TryParse(_selectedUnitLoc, out int recallBF))
+                {
+                    if (_selectedUnit.Exhausted)
+                    {
+                        TurnManager.BroadcastMessage_Static($"[提示] {_selectedUnit.UnitName} 已休眠，无法召回");
+                    }
+                    else
+                    {
+                        _combatSys.RecallUnit(_selectedUnit, recallBF, GameRules.OWNER_PLAYER, _gs);
+                    }
+                    _selectedUnit = null;
+                    _selectedUnitLoc = null;
+                    RefreshUI();
+                    return;
+                }
+
+                // Otherwise deselect
                 _selectedUnit = null;
                 _selectedUnitLoc = null;
                 TurnManager.BroadcastMessage_Static($"[选择] 取消选择 {unit.UnitName}");
@@ -200,7 +217,7 @@ namespace FWTCG
                 if (_gs.BF[i].PlayerUnits.Contains(unit))
                 {
                     _selectedUnitLoc = i.ToString();
-                    TurnManager.BroadcastMessage_Static($"[选择] {unit.UnitName}（战场{i + 1}） — 点击目标战场移动");
+                    TurnManager.BroadcastMessage_Static($"[选择] {unit.UnitName}（战场{i + 1}） — 点击战场移动 / 再次点击召回基地");
                     return;
                 }
             }
@@ -297,28 +314,6 @@ namespace FWTCG
                     $"[横置] 符文 {rune.RuneType} 横置，法力 → {_gs.PMana}");
             }
 
-            RefreshUI();
-        }
-
-        /// <summary>
-        /// Called when the player clicks "开始法术对决" on a specific battlefield.
-        /// Resolves combat immediately for that battlefield. Player can keep acting after.
-        /// </summary>
-        public void OnDuelClicked(int bfId)
-        {
-            if (_gs.GameOver) return;
-            if (_gs.Turn != GameRules.OWNER_PLAYER) return;
-            if (_gs.Phase != GameRules.PHASE_ACTION) return;
-
-            BattlefieldState bf = _gs.BF[bfId];
-            if (!bf.HasUnits(GameRules.OWNER_PLAYER) || !bf.HasUnits(GameRules.OWNER_ENEMY))
-            {
-                TurnManager.BroadcastMessage_Static($"[提示] 战场{bfId + 1} 无对决：双方必须都有单位");
-                return;
-            }
-
-            TurnManager.BroadcastMessage_Static($"[法术对决] 战场{bfId + 1} 开始对决！");
-            _combatSys.TriggerCombat(bfId, GameRules.OWNER_PLAYER, _gs, _scoreMgr);
             RefreshUI();
         }
 

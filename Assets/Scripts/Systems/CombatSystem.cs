@@ -6,23 +6,26 @@ using FWTCG.Core;
 namespace FWTCG.Systems
 {
     /// <summary>
-    /// Handles all combat resolution.
+    /// Handles unit movement, combat resolution, and recall.
     ///
-    /// Combat rule: Attacker total power vs Defender total power.
-    /// Lower-power side is destroyed. Equal power → both sides destroyed.
-    /// Victor controls the battlefield and gains a conquest point.
+    /// Combat rules (per official Core Rules):
+    /// - Movement causing contested BF → auto spell duel (immediate combat)
+    /// - Damage distributed individually (sequential, barrier priority in future)
+    /// - Both sides survive → attacker recalled to base (exhausted)
+    /// - After each combat, ALL units everywhere have marked damage cleared
+    /// - Conquest requires control change + BF not already scored this turn
+    /// - Moving to empty BF with control change → conquest score
     /// </summary>
     public class CombatSystem : MonoBehaviour
     {
         public static event Action<string> OnCombatLog;
 
-        // ── Unit movement ──────────────────────────────────────────────────────
+        // ── Unit movement (#3, #9) ───────────────────────────────────────────
 
         /// <summary>
-        /// Moves a unit from a location to a battlefield slot.
-        /// fromLoc: "base", "0", or "1" (battlefield index as string).
-        /// Combat is NOT triggered here — call ResolveAllBattlefields at end of action phase
-        /// so the player can stack multiple units before fighting.
+        /// Moves a unit to a battlefield. If movement causes contested state,
+        /// combat auto-triggers immediately (Rule 546). If moving to empty BF
+        /// and control changes, conquest score is awarded (Rule 630).
         /// </summary>
         public void MoveUnit(UnitInstance unit, string fromLoc, int toBF,
                              string owner, GameState gs, ScoreManager score)
@@ -42,20 +45,33 @@ namespace FWTCG.Systems
 
             unit.Exhausted = true;
 
-            Log($"[移动] {unit.UnitName}({owner}) → 战场{toBF + 1}");
+            Log($"[移动] {unit.UnitName}({DisplayName(owner)}) → 战场{toBF + 1}");
 
-            // If no enemies here, claim control immediately
             string opponent = gs.Opponent(owner);
-            if (!bf.HasUnits(opponent))
+
+            if (bf.HasUnits(owner) && bf.HasUnits(opponent))
             {
+                // #3: Contested → auto spell duel (immediate combat)
+                TriggerCombat(toBF, owner, gs, score);
+            }
+            else
+            {
+                // #9: Uncontested — claim control, check conquest
+                string previousCtrl = bf.Ctrl;
                 bf.Ctrl = owner;
+
+                bool controlChanged = (previousCtrl != owner);
+                if (controlChanged && !gs.BFConqueredThisTurn.Contains(toBF))
+                {
+                    Log($"[征服] {DisplayName(owner)} 占领空战场{toBF + 1}");
+                    score.AddScore(owner, 1, GameRules.SCORE_TYPE_CONQUER, toBF, gs);
+                }
             }
         }
 
         /// <summary>
-        /// Resolves combat on every battlefield that has units from both sides.
-        /// Call this at the end of the action phase, after all moves are committed.
-        /// currentPlayer is the active turn owner (they are the "attacker").
+        /// Safety net: resolves any remaining contested battlefields at end of action phase.
+        /// With auto-combat on move, this should rarely trigger.
         /// </summary>
         public void ResolveAllBattlefields(string currentPlayer, GameState gs, ScoreManager score)
         {
@@ -65,16 +81,54 @@ namespace FWTCG.Systems
                 BattlefieldState bf = gs.BF[i];
                 if (bf.HasUnits(currentPlayer) && bf.HasUnits(gs.Opponent(currentPlayer)))
                 {
+                    Debug.LogWarning($"[CombatSystem] BF{i + 1} still contested at end of action — resolving");
                     TriggerCombat(i, currentPlayer, gs, score);
                 }
             }
         }
 
-        // ── Combat resolution ──────────────────────────────────────────────────
+        // ── Recall (#13) ─────────────────────────────────────────────────────
 
         /// <summary>
-        /// Resolves combat on a battlefield when the attacker moves in.
-        /// attacker: the owner who just moved a unit onto this battlefield.
+        /// Recalls a unit from battlefield to base. Unit becomes exhausted.
+        /// Does NOT count as a move, does NOT trigger combat.
+        /// If opponent now has uncontested presence, they gain control.
+        /// </summary>
+        public void RecallUnit(UnitInstance unit, int fromBF, string owner, GameState gs)
+        {
+            if (gs.GameOver) return;
+
+            BattlefieldState bf = gs.BF[fromBF];
+
+            // Remove from battlefield
+            if (owner == GameRules.OWNER_PLAYER)
+                bf.PlayerUnits.Remove(unit);
+            else
+                bf.EnemyUnits.Remove(unit);
+
+            // Add to base
+            gs.GetBase(owner).Add(unit);
+            unit.Exhausted = true;
+
+            Log($"[召回] {unit.UnitName}({DisplayName(owner)}) 从战场{fromBF + 1} → 基地（休眠）");
+
+            // Update control if opponent now uncontested
+            string opponent = gs.Opponent(owner);
+            if (bf.HasUnits(opponent) && !bf.HasUnits(owner))
+            {
+                bf.Ctrl = opponent;
+            }
+            else if (!bf.HasUnits(opponent) && !bf.HasUnits(owner))
+            {
+                // Both sides empty — control stays with current controller
+            }
+        }
+
+        // ── Combat resolution (#4, #5, #6, #8, #10) ─────────────────────────
+
+        /// <summary>
+        /// Resolves combat on a battlefield using individual damage distribution.
+        /// attacker: the owner who initiated combat (moved unit onto BF).
         /// </summary>
         public void TriggerCombat(int bfId, string attacker, GameState gs, ScoreManager score)
         {
@@ -82,42 +136,154 @@ namespace FWTCG.Systems
 
             BattlefieldState bf = gs.BF[bfId];
             string defender = gs.Opponent(attacker);
+            string previousCtrl = bf.Ctrl;
 
+            // Calculate total power per side (#5: stunned units contribute 0)
             int attackerPower = bf.TotalPower(attacker);
             int defenderPower = bf.TotalPower(defender);
 
-            Log($"[战斗] 战场{bfId + 1}: {DisplayName(attacker)}({attackerPower}) vs {DisplayName(defender)}({defenderPower})");
+            Log($"[法术对决] 战场{bfId + 1}: {DisplayName(attacker)}({attackerPower}) vs {DisplayName(defender)}({defenderPower})");
 
-            if (attackerPower > defenderPower)
+            // #4: Distribute damage individually
+            List<UnitInstance> attackerUnits = GetBFUnits(attacker, bf);
+            List<UnitInstance> defenderUnits = GetBFUnits(defender, bf);
+
+            List<UnitInstance> deadDefenders = DistributeDamage(attackerPower, defenderUnits);
+            List<UnitInstance> deadAttackers = DistributeDamage(defenderPower, attackerUnits);
+
+            // Remove dead units
+            RemoveDeadUnits(deadDefenders, bf, defender, gs);
+            RemoveDeadUnits(deadAttackers, bf, attacker, gs);
+
+            // Determine outcome
+            bool attackerSurvivors = bf.HasUnits(attacker);
+            bool defenderSurvivors = bf.HasUnits(defender);
+
+            if (attackerSurvivors && defenderSurvivors)
             {
-                // Attacker wins — destroy all defender units
-                DestroyAllUnits(defender, bf, gs);
+                // #6: Both survive → attacker recalled to base (exhausted)
+                RecallAllUnitsToBase(attacker, bf, gs);
+                Log($"[战斗] 双方存活，{DisplayName(attacker)}方单位召回基地");
+                // Control unchanged
+            }
+            else if (attackerSurvivors && !defenderSurvivors)
+            {
+                // Attacker wins — conquer
                 bf.Ctrl = attacker;
                 Log($"[战斗] {DisplayName(attacker)} 获胜，征服战场{bfId + 1}");
-                score.AddScore(attacker, 1, GameRules.SCORE_TYPE_CONQUER, bfId, gs);
+
+                // #8: Conquest requires control change + not already scored
+                bool controlChanged = (previousCtrl != attacker);
+                if (controlChanged && !gs.BFConqueredThisTurn.Contains(bfId))
+                {
+                    score.AddScore(attacker, 1, GameRules.SCORE_TYPE_CONQUER, bfId, gs);
+                }
             }
-            else if (defenderPower > attackerPower)
+            else if (!attackerSurvivors && defenderSurvivors)
             {
-                // Defender wins — destroy all attacker units
-                DestroyAllUnits(attacker, bf, gs);
+                // Defender wins
                 bf.Ctrl = defender;
                 Log($"[战斗] {DisplayName(defender)} 防守成功，保持战场{bfId + 1}");
-                // No score for defender holding — hold score is handled in DoStart phase
             }
             else
             {
-                // Tie — both sides destroyed
-                DestroyAllUnits(attacker, bf, gs);
-                DestroyAllUnits(defender, bf, gs);
+                // Both wiped out
                 bf.Ctrl = null;
                 Log($"[战斗] 同归于尽！战场{bfId + 1} 无人控制");
             }
 
-            // Reset HP for all surviving units on this battlefield
-            ResetSurvivors(bf);
+            // #10: Reset ALL units in ALL locations (Rule 627.5)
+            ResetAllUnits(gs);
         }
 
-        // ── Private helpers ────────────────────────────────────────────────────
+        // ── Private helpers ──────────────────────────────────────────────────
+
+        /// <summary>
+        /// Distributes damage sequentially among target units.
+        /// First unit absorbs damage until dead, excess carries to next unit.
+        /// Returns list of units with CurrentHp <= 0 (dead).
+        /// </summary>
+        private List<UnitInstance> DistributeDamage(int totalDamage, List<UnitInstance> targets)
+        {
+            List<UnitInstance> dead = new List<UnitInstance>();
+            int remaining = totalDamage;
+
+            foreach (UnitInstance u in targets)
+            {
+                if (remaining <= 0) break;
+
+                int dmg = Mathf.Min(remaining, u.CurrentHp);
+                u.CurrentHp -= dmg;
+                remaining -= dmg;
+
+                if (u.CurrentHp <= 0)
+                {
+                    dead.Add(u);
+                    // Excess damage carries over
+                    // (already subtracted only what was needed)
+                }
+            }
+
+            return dead;
+        }
+
+        private void RemoveDeadUnits(List<UnitInstance> dead, BattlefieldState bf,
+                                      string owner, GameState gs)
+        {
+            foreach (UnitInstance u in dead)
+            {
+                Log($"[阵亡] {u.UnitName}({DisplayName(owner)})");
+                gs.GetDiscard(owner).Add(u);
+
+                if (owner == GameRules.OWNER_PLAYER)
+                    bf.PlayerUnits.Remove(u);
+                else
+                    bf.EnemyUnits.Remove(u);
+            }
+        }
+
+        /// <summary>
+        /// Recalls all of an owner's units from a BF to base (exhausted).
+        /// Used when both sides survive combat (#6).
+        /// </summary>
+        private void RecallAllUnitsToBase(string owner, BattlefieldState bf, GameState gs)
+        {
+            List<UnitInstance> units = GetBFUnits(owner, bf);
+            List<UnitInstance> toRecall = new List<UnitInstance>(units);
+
+            foreach (UnitInstance u in toRecall)
+            {
+                gs.GetBase(owner).Add(u);
+                u.Exhausted = true;
+            }
+
+            units.Clear();
+        }
+
+        /// <summary>
+        /// Resets ALL units in ALL locations for BOTH players (Rule 627.5).
+        /// Clears all marked damage after each combat.
+        /// </summary>
+        private void ResetAllUnits(GameState gs)
+        {
+            foreach (string who in new[] { GameRules.OWNER_PLAYER, GameRules.OWNER_ENEMY })
+            {
+                foreach (UnitInstance u in gs.GetBase(who))
+                    u.ResetEndOfTurn();
+
+                for (int i = 0; i < GameRules.BATTLEFIELD_COUNT; i++)
+                {
+                    List<UnitInstance> bfUnits = GetBFUnits(who, gs.BF[i]);
+                    foreach (UnitInstance u in bfUnits)
+                        u.ResetEndOfTurn();
+                }
+            }
+        }
+
+        private List<UnitInstance> GetBFUnits(string owner, BattlefieldState bf)
+        {
+            return owner == GameRules.OWNER_PLAYER ? bf.PlayerUnits : bf.EnemyUnits;
+        }
 
         private void RemoveFromSource(UnitInstance unit, string fromLoc, string owner, GameState gs)
         {
@@ -137,32 +303,6 @@ namespace FWTCG.Systems
             {
                 Debug.LogWarning($"[CombatSystem] Unknown fromLoc: {fromLoc}");
             }
-        }
-
-        private void DestroyAllUnits(string owner, BattlefieldState bf, GameState gs)
-        {
-            List<UnitInstance> units = owner == GameRules.OWNER_PLAYER
-                ? new List<UnitInstance>(bf.PlayerUnits)
-                : new List<UnitInstance>(bf.EnemyUnits);
-
-            foreach (UnitInstance u in units)
-            {
-                Log($"[阵亡] {u.UnitName}({owner})");
-                gs.GetDiscard(owner).Add(u);
-            }
-
-            if (owner == GameRules.OWNER_PLAYER)
-                bf.PlayerUnits.Clear();
-            else
-                bf.EnemyUnits.Clear();
-        }
-
-        private void ResetSurvivors(BattlefieldState bf)
-        {
-            foreach (UnitInstance u in bf.PlayerUnits)
-                u.ResetEndOfTurn();
-            foreach (UnitInstance u in bf.EnemyUnits)
-                u.ResetEndOfTurn();
         }
 
         private void Log(string msg)

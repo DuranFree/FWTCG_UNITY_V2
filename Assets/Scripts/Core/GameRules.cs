@@ -23,6 +23,9 @@ namespace FWTCG.Core
         public const int RUNE_DECK_VERDANT = 6;
         public const int RUNE_DECK_CRUSHING = 6;
 
+        // Rune zone cap
+        public const int MAX_RUNES_IN_PLAY = 12;
+
         // Rune draw per turn
         public const int RUNES_PER_TURN = 2;
         public const int RUNES_FIRST_TURN_SECOND = 3; // second player draws 3 on their first turn

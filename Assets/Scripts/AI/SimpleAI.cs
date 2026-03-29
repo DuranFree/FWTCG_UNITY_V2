@@ -69,37 +69,32 @@ namespace FWTCG.AI
             await Task.Delay(GameRules.AI_ACTION_DELAY_MS);
             if (gs.GameOver) return;
 
-            // ── Step 3: Move first non-exhausted base unit to a battlefield ────
-            List<UnitInstance> eBase = gs.GetBase(GameRules.OWNER_ENEMY);
-            UnitInstance toMove = null;
-
-            foreach (UnitInstance u in eBase)
+            // ── Step 3: Move ALL non-exhausted base units to battlefields (#14) ──
+            bool movedAny = false;
+            while (!gs.GameOver)
             {
-                if (!u.Exhausted)
+                // Re-scan base each iteration (combat may modify lists via recall)
+                List<UnitInstance> eBase = gs.GetBase(GameRules.OWNER_ENEMY);
+                UnitInstance toMove = null;
+                foreach (UnitInstance u in eBase)
                 {
-                    toMove = u;
-                    break;
+                    if (!u.Exhausted) { toMove = u; break; }
                 }
-            }
+                if (toMove == null) break;
 
-            if (toMove != null)
-            {
                 int targetBF = ChooseBattlefield(gs);
-                if (targetBF >= 0)
-                {
-                    TurnManager.BroadcastMessage_Static(
-                        $"[AI] 移动 {toMove.UnitName} → 战场{targetBF + 1}");
-                    combat.MoveUnit(toMove, "base", targetBF, GameRules.OWNER_ENEMY, gs, score);
-                }
-                else
-                {
-                    TurnManager.BroadcastMessage_Static("[AI] 所有战场槽位已满，无法移动单位");
-                }
+                if (targetBF < 0) break;
+
+                TurnManager.BroadcastMessage_Static(
+                    $"[AI] 移动 {toMove.UnitName} → 战场{targetBF + 1}");
+                combat.MoveUnit(toMove, "base", targetBF, GameRules.OWNER_ENEMY, gs, score);
+                movedAny = true;
+
+                await Task.Delay(GameRules.AI_ACTION_DELAY_MS);
             }
-            else
-            {
+
+            if (!movedAny)
                 TurnManager.BroadcastMessage_Static("[AI] 基地无可移动的单位");
-            }
 
             await Task.Delay(GameRules.AI_ACTION_DELAY_MS);
 
