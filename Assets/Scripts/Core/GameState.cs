@@ -76,6 +76,13 @@ namespace FWTCG.Core
 
         public int CardsPlayedThisTurn { get; set; }
 
+        // ── Battlefield names (selected from faction pools at game start) ─────
+        public string[] BFNames { get; set; } = new string[GameRules.BATTLEFIELD_COUNT];
+
+        // ── Passive flags ──────────────────────────────────────────────────────
+        /// <summary>Tracks which owners have Tiyana Warden in play (blocks hold scoring).</summary>
+        public Dictionary<string, bool> TiyanasInPlay { get; set; } = new Dictionary<string, bool>();
+
         // ── Constructor ───────────────────────────────────────────────────────
         public GameState()
         {

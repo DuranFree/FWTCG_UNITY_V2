@@ -120,18 +120,28 @@ namespace FWTCG.Editor
             // ── Rune Prefab ───────────────────────────────────────────────────
             var runePrefab = CreateRunePrefab();
 
+            // ── Startup flow panels (coin flip + mulligan) ────────────────────
+            var coinFlipPanel = CreateCoinFlipPanel(canvasGO.transform,
+                out var coinFlipText, out var coinFlipOkButton);
+            var mulliganPanel = CreateMulliganPanel(canvasGO.transform,
+                out var mulliganTitleText, out var mulliganCardContainer,
+                out var mulliganConfirmButton, out var mulliganConfirmLabel);
+
             // ── CardData ScriptableObjects ────────────────────────────────────
             EnsureDirectory("Assets/Resources/Cards");
             CreateAllCardData();
 
             // ── GameManager GameObject ────────────────────────────────────────
             var gmGO = new GameObject("GameManager");
-            var gameMgr    = gmGO.AddComponent<FWTCG.GameManager>();
-            var turnMgr    = gmGO.AddComponent<FWTCG.Systems.TurnManager>();
-            var combatSys  = gmGO.AddComponent<FWTCG.Systems.CombatSystem>();
-            var scoreMgr   = gmGO.AddComponent<FWTCG.Systems.ScoreManager>();
-            var simpleAI   = gmGO.AddComponent<FWTCG.AI.SimpleAI>();
-            var gameUI     = gmGO.AddComponent<FWTCG.UI.GameUI>();
+            var gameMgr      = gmGO.AddComponent<FWTCG.GameManager>();
+            var turnMgr      = gmGO.AddComponent<FWTCG.Systems.TurnManager>();
+            var combatSys    = gmGO.AddComponent<FWTCG.Systems.CombatSystem>();
+            var scoreMgr     = gmGO.AddComponent<FWTCG.Systems.ScoreManager>();
+            var simpleAI     = gmGO.AddComponent<FWTCG.AI.SimpleAI>();
+            var gameUI       = gmGO.AddComponent<FWTCG.UI.GameUI>();
+            var entryEffects   = gmGO.AddComponent<FWTCG.Systems.EntryEffectSystem>();
+            var deathwish      = gmGO.AddComponent<FWTCG.Systems.DeathwishSystem>();
+            var startupFlowUI  = gmGO.AddComponent<FWTCG.UI.StartupFlowUI>();
 
             // ── Wire UI references via SerializedObject ───────────────────────
             WireGameUI(gameUI, cardPrefab, runePrefab,
@@ -150,7 +160,11 @@ namespace FWTCG.Editor
                 resultText,
                 restartButton);
 
-            WireGameManager(gameMgr, turnMgr, combatSys, scoreMgr, simpleAI, gameUI);
+            WireGameManager(gameMgr, turnMgr, combatSys, scoreMgr, simpleAI, gameUI,
+                            entryEffects, deathwish, startupFlowUI,
+                            coinFlipPanel, coinFlipText, coinFlipOkButton,
+                            mulliganPanel, mulliganTitleText, mulliganCardContainer,
+                            mulliganConfirmButton, mulliganConfirmLabel, cardPrefab);
 
             // ── Save scene ────────────────────────────────────────────────────
             EnsureDirectory("Assets/Scenes");
@@ -451,6 +465,66 @@ namespace FWTCG.Editor
             return go;
         }
 
+        // ── Startup panels ────────────────────────────────────────────────────
+
+        private static GameObject CreateCoinFlipPanel(Transform parent,
+            out Text coinFlipText, out Button okButton)
+        {
+            var go = CreateFullscreenPanel(parent, "CoinFlipPanel", new Color(0f, 0f, 0f, 0.85f));
+
+            var vlg = go.AddComponent<VerticalLayoutGroup>();
+            vlg.childControlWidth = false;
+            vlg.childControlHeight = false;
+            vlg.childForceExpandWidth = false;
+            vlg.childForceExpandHeight = false;
+            vlg.childAlignment = TextAnchor.MiddleCenter;
+            vlg.spacing = 30f;
+
+            coinFlipText = CreateTMPText(go.transform, "CoinFlipText", "掷硬币",
+                Color.white, 40, TextAnchor.MiddleCenter);
+            okButton = CreateButton(go.transform, "OkButton", "开始");
+
+            go.SetActive(false);
+            return go;
+        }
+
+        private static GameObject CreateMulliganPanel(Transform parent,
+            out Text titleText, out Transform cardContainer,
+            out Button confirmButton, out Text confirmLabel)
+        {
+            var go = CreateFullscreenPanel(parent, "MulliganPanel", new Color(0f, 0f, 0f, 0.85f));
+
+            var vlg = go.AddComponent<VerticalLayoutGroup>();
+            vlg.childControlWidth = false;
+            vlg.childControlHeight = false;
+            vlg.childForceExpandWidth = false;
+            vlg.childForceExpandHeight = false;
+            vlg.childAlignment = TextAnchor.MiddleCenter;
+            vlg.spacing = 20f;
+
+            titleText = CreateTMPText(go.transform, "MulliganTitle", "梦想手牌调度",
+                Color.white, 28, TextAnchor.MiddleCenter);
+
+            // Card container (horizontal layout for up to 4 cards)
+            var containerGO = new GameObject("MulliganCardContainer");
+            containerGO.transform.SetParent(go.transform, false);
+            var containerRT = containerGO.AddComponent<RectTransform>();
+            containerRT.sizeDelta = new Vector2(500f, 150f);
+            var hlg = containerGO.AddComponent<HorizontalLayoutGroup>();
+            hlg.childAlignment = TextAnchor.MiddleCenter;
+            hlg.spacing = 12f;
+            hlg.childControlWidth = false;
+            hlg.childControlHeight = false;
+            cardContainer = containerGO.transform;
+
+            // Confirm button with label
+            confirmButton = CreateButton(go.transform, "ConfirmButton", "确认");
+            confirmLabel  = confirmButton.GetComponentInChildren<Text>();
+
+            go.SetActive(false);
+            return go;
+        }
+
         // ── Card Prefab ───────────────────────────────────────────────────────
 
         private static GameObject CreateCardPrefab()
@@ -556,37 +630,135 @@ namespace FWTCG.Editor
 
         private static void CreateAllCardData()
         {
-            // Kaisa deck — RuneType.Blazing
-            CreateCardData("kaisa_vanguard",        "先锋哨兵", 2, 2, RuneType.Blazing,  0, "先锋哨兵");
-            CreateCardData("kaisa_void_sentinel",   "虚空哨兵", 3, 3, RuneType.Blazing,  0, "虚空哨兵");
-            CreateCardData("kaisa_blazing_warrior", "炽烈战士", 4, 4, RuneType.Blazing,  0, "炽烈战士");
-            CreateCardData("kaisa_radiant_guard",   "灵光守护", 3, 2, RuneType.Blazing,  0, "灵光守护");
-            CreateCardData("kaisa_void_scout",      "虚空游击", 5, 5, RuneType.Blazing,  0, "虚空游击");
+            // ── Kaisa (虚空) deck ─────────────────────────────────────────────
+            // noxus_recruit x2
+            CD("noxus_recruit",      "诺克萨斯新兵", 4, 4, RuneType.Blazing, 0,
+               "鼓舞：其他盟友入场时手牌费用-1（最低0）",
+               CardKeyword.Inspire, "noxus_recruit_enter");
 
-            // Yi deck — RuneType.Verdant
-            CreateCardData("yi_dawn_warrior",       "晨曦武士", 2, 2, RuneType.Verdant,  0, "晨曦武士");
-            CreateCardData("yi_verdant_swordsman",  "碧绿剑客", 3, 3, RuneType.Verdant,  0, "碧绿剑客");
-            CreateCardData("yi_crushing_vanguard",  "摧破战将", 4, 4, RuneType.Verdant,  0, "摧破战将");
-            CreateCardData("yi_order_mage",         "序理法师", 3, 2, RuneType.Verdant,  0, "序理法师");
-            CreateCardData("yi_leaf_fighter",       "翠叶斗士", 5, 5, RuneType.Verdant,  0, "翠叶斗士");
+            // alert_sentinel x3
+            CD("alert_sentinel",     "警觉的哨兵",   2, 2, RuneType.Blazing, 0,
+               "绝念：阵亡时摸1张牌",
+               CardKeyword.Deathwish, "alert_sentinel_die");
+
+            // yordel_instructor x3
+            CD("yordel_instructor",  "约德尔教官",   3, 2, RuneType.Blazing, 0,
+               "壁垒。入场：摸1张牌",
+               CardKeyword.Barrier, "yordel_instructor_enter");
+
+            // bad_poro x2
+            CD("bad_poro",           "坏坏魄罗",     2, 2, RuneType.Blazing, 0,
+               "征服：生成1张已横置的「硬币」装备牌",
+               CardKeyword.Conquest, "bad_poro_conquer");
+
+            // rengar x2
+            CD("rengar",             "雷恩加尔·暴起", 3, 3, RuneType.Blazing, 1,
+               "反应。强攻：进攻时额外+2战力",
+               CardKeyword.Reactive | CardKeyword.StrongAtk, "");
+
+            // kaisa_hero x1
+            CD("kaisa_hero",         "卡莎·九死一生", 4, 4, RuneType.Blazing, 1,
+               "急速（支付1炽烈符能进场时为活跃状态）。征服：本回合可额外打出1张牌",
+               CardKeyword.Haste | CardKeyword.Conquest, "kaisa_hero_conquer");
+
+            // darius x1
+            CD("darius",             "德莱厄斯",     5, 5, RuneType.Blazing, 1,
+               "入场：若本回合已打出其他牌，+2战力并变为活跃状态",
+               CardKeyword.None, "darius_second_card");
+
+            // thousand_tail x3
+            CD("thousand_tail",      "千尾监视者",   7, 7, RuneType.Radiant, 1,
+               "急速（支付1灵光符能进场时为活跃状态）。入场：所有敌方单位-3战力（最低1）",
+               CardKeyword.Haste, "thousand_tail_enter");
+
+            // foresight_mech x2
+            CD("foresight_mech",     "先见机甲",     2, 2, RuneType.Blazing, 0,
+               "预知：入场时查看牌库顶1张牌，可选择将其置底",
+               CardKeyword.Foresight, "foresight_mech_enter");
+
+            // ── MasterYi (伊欧尼亚) deck ──────────────────────────────────────
+            // yi_hero x1
+            CD("yi_hero",            "易·锋芒毕现",  7, 6, RuneType.Crushing, 1,
+               "游走。急速（支付1摧破符能进场时为活跃状态）",
+               CardKeyword.Roam | CardKeyword.Haste, "");
+
+            // jax x2
+            CD("jax",                "贾克斯·万般皆武", 5, 5, RuneType.Verdant, 1,
+               "法盾（敌方法术需额外1符能才能选中）。入场：手牌装备获得反应关键词",
+               CardKeyword.SpellShield, "jax_enter");
+
+            // tiyana_warden x2
+            CD("tiyana_warden",      "缇亚娜·冕卫",  7, 4, RuneType.Verdant, 2,
+               "法盾。在场时对手无法获得据守分",
+               CardKeyword.SpellShield, "tiyana_enter");
+
+            // wailing_poro x3
+            CD("wailing_poro",       "哀哀魄罗",     2, 2, RuneType.Verdant, 0,
+               "绝念：独自阵亡时摸1张牌",
+               CardKeyword.Deathwish, "wailing_poro_die");
+
+            // sandshoal_deserter x2
+            CD("sandshoal_deserter", "沙塔啸匪",     6, 5, RuneType.Verdant, 0,
+               "无法被敌方法术或技能选中",
+               CardKeyword.SpellShield, "");
+
+            // ── Yi Equipment ──────────────────────────────────────────────────
+            CD("zhonya",             "中娅沙漏",     2, 0, RuneType.Verdant, 0,
+               "待命（可以面朝下，0费用反应）。保护附着单位免于阵亡，改为休眠返回基地",
+               CardKeyword.Standby | CardKeyword.Reactive, "",
+               isEquipment: true, equipAtkBonus: 0,
+               equipRuneType: RuneType.Verdant, equipRuneCost: 0);
+
+            CD("trinity_force",      "三相之力",     4, 0, RuneType.Crushing, 0,
+               "附着单位据守时额外+1分。+2战力",
+               CardKeyword.None, "trinity_equip",
+               isEquipment: true, equipAtkBonus: 2,
+               equipRuneType: RuneType.Crushing, equipRuneCost: 1);
+
+            CD("guardian_angel",     "守护天使",     2, 0, RuneType.Verdant, 0,
+               "附着单位阵亡时改为休眠返回基地。+1战力",
+               CardKeyword.None, "guardian_equip",
+               isEquipment: true, equipAtkBonus: 1,
+               equipRuneType: RuneType.Verdant, equipRuneCost: 1);
+
+            CD("dorans_blade",       "多兰之刃",     2, 0, RuneType.Crushing, 0,
+               "+2战力",
+               CardKeyword.None, "dorans_equip",
+               isEquipment: true, equipAtkBonus: 2,
+               equipRuneType: RuneType.Crushing, equipRuneCost: 1);
+        }
+
+        // Shorthand alias
+        private static CardData CD(string id, string name, int cost, int atk,
+            RuneType runeType, int runeCost, string desc,
+            CardKeyword kw = CardKeyword.None, string effectId = "",
+            bool isEquipment = false, int equipAtkBonus = 0,
+            RuneType equipRuneType = RuneType.Blazing, int equipRuneCost = 0)
+        {
+            return CreateCardData(id, name, cost, atk, runeType, runeCost, desc,
+                                  kw, effectId, isEquipment, equipAtkBonus, equipRuneType, equipRuneCost);
         }
 
         private static CardData CreateCardData(string id, string cardName,
-            int cost, int atk, RuneType runeType, int runeCost, string description)
+            int cost, int atk, RuneType runeType, int runeCost, string description,
+            CardKeyword keywords = CardKeyword.None, string effectId = "",
+            bool isEquipment = false, int equipAtkBonus = 0,
+            RuneType equipRuneType = RuneType.Blazing, int equipRuneCost = 0)
         {
             string path = $"Assets/Resources/Cards/{id}.asset";
 
-            // Reuse if exists
             var existing = AssetDatabase.LoadAssetAtPath<CardData>(path);
             if (existing != null)
             {
-                existing.EditorSetup(id, cardName, cost, atk, runeType, runeCost, description);
+                existing.EditorSetup(id, cardName, cost, atk, runeType, runeCost, description,
+                                     keywords, effectId, isEquipment, equipAtkBonus, equipRuneType, equipRuneCost);
                 EditorUtility.SetDirty(existing);
                 return existing;
             }
 
             var data = ScriptableObject.CreateInstance<CardData>();
-            data.EditorSetup(id, cardName, cost, atk, runeType, runeCost, description);
+            data.EditorSetup(id, cardName, cost, atk, runeType, runeCost, description,
+                             keywords, effectId, isEquipment, equipAtkBonus, equipRuneType, equipRuneCost);
             AssetDatabase.CreateAsset(data, path);
             return data;
         }
@@ -670,31 +842,65 @@ namespace FWTCG.Editor
             FWTCG.Systems.CombatSystem combatSys,
             FWTCG.Systems.ScoreManager scoreMgr,
             FWTCG.AI.SimpleAI simpleAI,
-            FWTCG.UI.GameUI gameUI)
+            FWTCG.UI.GameUI gameUI,
+            FWTCG.Systems.EntryEffectSystem entryEffects,
+            FWTCG.Systems.DeathwishSystem deathwish,
+            FWTCG.UI.StartupFlowUI startupFlowUI,
+            GameObject coinFlipPanel, Text coinFlipText, Button coinFlipOkButton,
+            GameObject mulliganPanel, Text mulliganTitleText, Transform mulliganCardContainer,
+            Button mulliganConfirmButton, Text mulliganConfirmLabel, GameObject cardPrefab)
         {
             var so = new SerializedObject(gameMgr);
-            so.FindProperty("_turnMgr").objectReferenceValue   = turnMgr;
-            so.FindProperty("_combatSys").objectReferenceValue = combatSys;
-            so.FindProperty("_scoreMgr").objectReferenceValue  = scoreMgr;
-            so.FindProperty("_ai").objectReferenceValue        = simpleAI;
-            so.FindProperty("_ui").objectReferenceValue        = gameUI;
+            so.FindProperty("_turnMgr").objectReferenceValue        = turnMgr;
+            so.FindProperty("_combatSys").objectReferenceValue      = combatSys;
+            so.FindProperty("_scoreMgr").objectReferenceValue       = scoreMgr;
+            so.FindProperty("_ai").objectReferenceValue             = simpleAI;
+            so.FindProperty("_ui").objectReferenceValue             = gameUI;
+            so.FindProperty("_entryEffects").objectReferenceValue   = entryEffects;
+            so.FindProperty("_startupFlowUI").objectReferenceValue  = startupFlowUI;
 
-            // Wire CardData arrays — load from Resources/Cards
+            // Wire StartupFlowUI panels
+            var startupSO = new SerializedObject(startupFlowUI);
+            startupSO.FindProperty("_coinFlipPanel").objectReferenceValue      = coinFlipPanel;
+            startupSO.FindProperty("_coinFlipText").objectReferenceValue       = coinFlipText;
+            startupSO.FindProperty("_coinFlipOkButton").objectReferenceValue   = coinFlipOkButton;
+            startupSO.FindProperty("_mulliganPanel").objectReferenceValue      = mulliganPanel;
+            startupSO.FindProperty("_mulliganTitleText").objectReferenceValue  = mulliganTitleText;
+            startupSO.FindProperty("_mulliganCardContainer").objectReferenceValue = mulliganCardContainer;
+            startupSO.FindProperty("_cardViewPrefab").objectReferenceValue     = cardPrefab;
+            startupSO.FindProperty("_mulliganConfirmButton").objectReferenceValue = mulliganConfirmButton;
+            startupSO.FindProperty("_mulliganConfirmLabel").objectReferenceValue  = mulliganConfirmLabel;
+            startupSO.ApplyModifiedPropertiesWithoutUndo();
+
+            // Wire DeathwishSystem into CombatSystem
+            var combatSO = new SerializedObject(combatSys);
+            combatSO.FindProperty("_deathwish").objectReferenceValue = deathwish;
+            combatSO.ApplyModifiedPropertiesWithoutUndo();
+
+            // Wire CardData arrays — full decks (unique card types; copies handled at runtime)
             var kaisaCards = new CardData[]
             {
-                LoadCard("kaisa_vanguard"),
-                LoadCard("kaisa_void_sentinel"),
-                LoadCard("kaisa_blazing_warrior"),
-                LoadCard("kaisa_radiant_guard"),
-                LoadCard("kaisa_void_scout")
+                LoadCard("noxus_recruit"),
+                LoadCard("alert_sentinel"),
+                LoadCard("yordel_instructor"),
+                LoadCard("bad_poro"),
+                LoadCard("rengar"),
+                LoadCard("kaisa_hero"),
+                LoadCard("darius"),
+                LoadCard("thousand_tail"),
+                LoadCard("foresight_mech"),
             };
             var yiCards = new CardData[]
             {
-                LoadCard("yi_dawn_warrior"),
-                LoadCard("yi_verdant_swordsman"),
-                LoadCard("yi_crushing_vanguard"),
-                LoadCard("yi_order_mage"),
-                LoadCard("yi_leaf_fighter")
+                LoadCard("yi_hero"),
+                LoadCard("jax"),
+                LoadCard("tiyana_warden"),
+                LoadCard("wailing_poro"),
+                LoadCard("sandshoal_deserter"),
+                LoadCard("zhonya"),
+                LoadCard("trinity_force"),
+                LoadCard("guardian_angel"),
+                LoadCard("dorans_blade"),
             };
 
             var kaisaProp = so.FindProperty("_kaisaDeck");

@@ -26,6 +26,18 @@ namespace FWTCG.Systems
         {
             if (gs.GameOver) return false;
 
+            // Tiyana passive: opponent can't gain hold score while Tiyana is in play
+            if (type == GameRules.SCORE_TYPE_HOLD)
+            {
+                string opponent = gs.Opponent(who);
+                if (gs.TiyanasInPlay.TryGetValue(opponent, out bool active) && active)
+                {
+                    TurnManager.BroadcastMessage_Static(
+                        $"[蒂亚娜] {DisplayName(who)} 的据守分被阻止（对手有蒂亚娜守卫在场）");
+                    return false;
+                }
+            }
+
             // #2: Last-point rule for conquest scoring
             if (type == GameRules.SCORE_TYPE_CONQUER)
             {

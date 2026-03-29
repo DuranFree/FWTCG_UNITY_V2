@@ -31,7 +31,7 @@
 - [ ] 增益指示物系统（buffToken，+1/+1，不可叠加）
 - ✅ 休眠（exhausted）/ 眩晕（stunned）状态 — DEV-1（基础字段）
 - [ ] 临时战力加成（tb.atk，回合结束清零）
-- [ ] 绝念触发系统（deathwish：voidling / void_sentinel / alert_sentinel / wailing_poro）
+- ✅ 绝念触发系统（DeathwishSystem：alert_sentinel_die / wailing_poro_die）— DEV-2
 
 ### 战斗系统
 - ✅ 单位移动（基地↔战场，多选→批量同时移动）— DEV-1 + 修正
@@ -59,14 +59,14 @@
 
 ### 数据结构
 - ✅ CardData ScriptableObject（id/cardName/cost/atk/runeType/runeCost/description）— DEV-1（简化版，完整字段 DEV-2）
-- [ ] 关键词枚举（迅捷/迅捷攻击/急速/反应/回响/壁垒/法盾/强攻/坚守/游走/鼓舞/征服等）
+- ✅ 关键词枚举（Haste/Barrier/SpellShield/Inspire/Conquest/Deathwish/Reactive/StrongAtk/Roam/Foresight/Standby/Stun）— DEV-2
 - [ ] 装备卡数据结构（附着机制）
 - [ ] 传奇卡数据结构（独立HP、技能系统）
 
 ### 卡组数据
 - ✅ DEV-1 简化卡组（10张：卡莎×5 + 易大师×5，无特殊效果）— DEV-1
-- [ ] 卡莎主卡组（40张，含所有id和参数）
-- [ ] 易大师主卡组（30张，含所有id和参数）
+- ✅ 卡莎主卡组（19张唯一卡，含全部id/参数/关键词/effectId）— DEV-2
+- ✅ 易大师主卡组（10张唯一卡，含单位+装备）— DEV-2
 - [ ] 卡莎传奇卡（kaisa，cost:5/atk:5/hp:14）
 - [ ] 易大师传奇卡（masteryi，cost:5/atk:5/hp:12）
 
@@ -180,9 +180,9 @@
 - [ ] 战斗动画（单位冲向目标，伤害数字飘出）
 
 ### 特殊界面
-- [ ] 掷硬币界面（硬币动画1800ms，正/反面）
-- [ ] 战场选择界面（showBFSelect）
-- [ ] 梦想手牌调度界面（mulligan，选≤2张换牌）
+- ✅ 掷硬币界面（显示先手结果 + 战场名 + OK按钮）— DEV-2（无动画，DEV-3添加）
+- ✅ 战场随机选择（各方从牌池随机1个，在掷硬币界面显示）— DEV-2
+- ✅ 梦想手牌调度界面（mulligan，选≤2张换牌，StartupFlowUI）— DEV-2
 - [ ] 游戏结束界面（得分显示 + 再来一局按钮）
 - [ ] 横幅提示（showBanner：回合开始/得分事件）
 - [ ] 对决界面（法术对决期间的特殊 UI）
@@ -233,15 +233,15 @@
 
 ## 八、游戏启动流程（main.js → GameBootstrap.cs）
 
-- [ ] 随机阵营分配（50%卡莎先手/易大师先手）
+- ✅ 随机阵营分配（50%卡莎先手/易大师先手）— DEV-1
 - [ ] 卡组初始化（含英雄卡单独提取）
 - [ ] 软加权开局手牌（seedPlayerOpeningHand，67%触发，抽≤2费单位）
-- [ ] 符文牌堆初始化
+- ✅ 符文牌堆初始化 — DEV-1
 - [ ] 传奇初始化
-- [ ] 初始手牌抽取（各4张）
-- [ ] 掷硬币先手决定
-- [ ] 战场随机选择（各方从己方牌池抽1个）
-- [ ] 梦想手牌调度（换牌系统）
+- ✅ 初始手牌抽取（各4张）— DEV-1
+- ✅ 掷硬币先手决定（StartupFlowUI 显示结果）— DEV-2
+- ✅ 战场随机选择（各方从己方牌池抽1个，GameRules.PickBattlefield）— DEV-2
+- ✅ 梦想手牌调度（StartupFlowUI，选≤2张换牌）— DEV-2
 
 ---
 

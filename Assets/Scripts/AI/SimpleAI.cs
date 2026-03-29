@@ -17,7 +17,8 @@ namespace FWTCG.AI
     public class SimpleAI : MonoBehaviour
     {
         public async Task TakeAction(GameState gs, TurnManager turnMgr,
-                                     CombatSystem combat, ScoreManager score)
+                                     CombatSystem combat, ScoreManager score,
+                                     EntryEffectSystem entryEffects = null)
         {
             if (gs.GameOver) return;
 
@@ -60,6 +61,8 @@ namespace FWTCG.AI
                 gs.CardsPlayedThisTurn++;
                 TurnManager.BroadcastMessage_Static(
                     $"[AI] 打出 {toPlay.UnitName}（费用{toPlay.CardData.Cost}），剩余法力 {gs.EMana}");
+
+                entryEffects?.OnUnitEntered(toPlay, GameRules.OWNER_ENEMY, gs);
             }
             else
             {

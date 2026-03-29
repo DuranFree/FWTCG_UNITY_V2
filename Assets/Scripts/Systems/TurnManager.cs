@@ -30,13 +30,16 @@ namespace FWTCG.Systems
         private ScoreManager _scoreMgr;
         private CombatSystem _combatSys;
         private SimpleAI _ai;
+        private EntryEffectSystem _entryEffects;
 
-        public void Inject(GameState gs, ScoreManager score, CombatSystem combat, SimpleAI ai)
+        public void Inject(GameState gs, ScoreManager score, CombatSystem combat, SimpleAI ai,
+                           EntryEffectSystem entryEffects = null)
         {
             _gs = gs;
             _scoreMgr = score;
             _combatSys = combat;
             _ai = ai;
+            _entryEffects = entryEffects;
         }
 
         // ── Public API ────────────────────────────────────────────────────────
@@ -260,7 +263,7 @@ namespace FWTCG.Systems
             else
             {
                 Broadcast("[行动] AI 回合思考中…");
-                await _ai.TakeAction(gs, this, _combatSys, _scoreMgr);
+                await _ai.TakeAction(gs, this, _combatSys, _scoreMgr, _entryEffects);
             }
 
             // If any contested battlefields remain when turn ends, auto-resolve them

@@ -32,6 +32,8 @@ namespace FWTCG
         [SerializeField] private ScoreManager _scoreMgr;
         [SerializeField] private SimpleAI _ai;
         [SerializeField] private GameUI _ui;
+        [SerializeField] private EntryEffectSystem _entryEffects;
+        [SerializeField] private StartupFlowUI _startupFlowUI;
 
         // ── Game state ────────────────────────────────────────────────────────
         private GameState _gs;
@@ -57,6 +59,7 @@ namespace FWTCG
             if (_combatSys == null) _combatSys = GetComponent<CombatSystem>();
             if (_scoreMgr == null) _scoreMgr = GetComponent<ScoreManager>();
             if (_ai == null) _ai = GetComponent<SimpleAI>();
+            if (_entryEffects == null) _entryEffects = GetComponent<EntryEffectSystem>();
         }
 
         private void OnEnable()
@@ -91,7 +94,7 @@ namespace FWTCG
             }
 
             InitGame();
-            StartCoroutine(GameLoop());
+            StartCoroutine(RunWithStartup());
         }
 
         // ── Initialisation ────────────────────────────────────────────────────
@@ -102,7 +105,7 @@ namespace FWTCG
             _gs = new GameState();
 
             // Inject dependencies into systems
-            _turnMgr.Inject(_gs, _scoreMgr, _combatSys, _ai);
+            _turnMgr.Inject(_gs, _scoreMgr, _combatSys, _ai, _entryEffects);
 
             // Random first player
             _gs.First = Random.value > 0.5f ? GameRules.OWNER_PLAYER : GameRules.OWNER_ENEMY;
@@ -124,10 +127,30 @@ namespace FWTCG
             BuildRuneDeck(GameRules.OWNER_ENEMY, RuneType.Verdant, GameRules.RUNE_DECK_VERDANT,
                                                  RuneType.Crushing, GameRules.RUNE_DECK_CRUSHING);
 
+            // Random battlefield selection from faction pools
+            _gs.BFNames[0] = GameRules.PickBattlefield(GameRules.KAISA_BF_POOL);
+            _gs.BFNames[1] = GameRules.PickBattlefield(GameRules.YI_BF_POOL);
+
             string firstLabel = _gs.First == GameRules.OWNER_PLAYER ? "玩家" : "AI";
-            TurnManager.BroadcastMessage_Static($"[开局] {firstLabel} 先手。发牌完成。");
+            TurnManager.BroadcastMessage_Static(
+                $"[开局] {firstLabel} 先手。战场：{_gs.BFNames[0]} / {_gs.BFNames[1]}。发牌完成。");
 
             RefreshUI();
+        }
+
+        // ── Startup flow then game loop ───────────────────────────────────────
+
+        private IEnumerator RunWithStartup()
+        {
+            if (_startupFlowUI != null)
+            {
+                System.Threading.Tasks.Task startupTask = _startupFlowUI.RunStartupFlow(_gs);
+                yield return new WaitUntil(() => startupTask.IsCompleted);
+                if (startupTask.IsFaulted)
+                    Debug.LogError($"[StartupFlow] 异常: {startupTask.Exception}");
+                RefreshUI();
+            }
+            StartCoroutine(GameLoop());
         }
 
         // ── Game loop (coroutine wrapper for async turn) ───────────────────────
@@ -379,6 +402,11 @@ namespace FWTCG
 
             TurnManager.BroadcastMessage_Static(
                 $"[打出] {unit.UnitName}（费用{unit.CardData.Cost}），剩余法力 {_gs.PMana}");
+
+            // Trigger entry effects
+            if (_entryEffects != null)
+                _entryEffects.OnUnitEntered(unit, GameRules.OWNER_PLAYER, _gs);
+
             _selectedUnit = null;
             _selectedUnitLoc = "base";
             RefreshUI();
@@ -395,12 +423,13 @@ namespace FWTCG
             List<UnitInstance> deck = _gs.GetDeck(owner);
             deck.Clear();
 
-            // Add 2 copies of each card (10-card deck, 5 unique)
+            // Add correct number of copies per card based on GameRules
             foreach (CardData data in cardDatas)
             {
                 if (data == null) continue;
-                deck.Add(_gs.MakeUnit(data, owner));
-                deck.Add(_gs.MakeUnit(data, owner));
+                int copies = GameRules.GetCardCopies(data.Id);
+                for (int c = 0; c < copies; c++)
+                    deck.Add(_gs.MakeUnit(data, owner));
             }
 
             // Fisher-Yates shuffle

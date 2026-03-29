@@ -50,5 +50,58 @@ namespace FWTCG.Core
         // Phase transition delay in ms (used in async turn flow)
         public const int PHASE_DELAY_MS = 650;
         public const int AI_ACTION_DELAY_MS = 700;
+
+        // Battlefield pools per faction (each player randomly picks 1 from their pool)
+        // Format: display name only; special abilities are implemented in DEV-3+
+        public static readonly string[] KAISA_BF_POOL =
+        {
+            "虚空之门", "星峰", "雷文符石"
+        };
+
+        public static readonly string[] YI_BF_POOL =
+        {
+            "磨难高阶", "力量碑文", "忘却纪念碑"
+        };
+
+        /// <summary>
+        /// Picks a random battlefield name from a faction pool.
+        /// </summary>
+        public static string PickBattlefield(string[] pool)
+        {
+            int idx = UnityEngine.Random.Range(0, pool.Length);
+            return pool[idx];
+        }
+
+        // Card copy counts per id (BuildDeck uses this)
+        private static readonly System.Collections.Generic.Dictionary<string, int> CardCopies =
+            new System.Collections.Generic.Dictionary<string, int>
+        {
+            // Kaisa deck (19 total)
+            { "noxus_recruit",      2 },
+            { "alert_sentinel",     3 },
+            { "yordel_instructor",  3 },
+            { "bad_poro",           2 },
+            { "rengar",             2 },
+            { "kaisa_hero",         1 },
+            { "darius",             1 },
+            { "thousand_tail",      3 },
+            { "foresight_mech",     2 },
+            // Yi deck (units: 11 + equipment: 8 = 19)
+            { "yi_hero",            1 },
+            { "jax",                2 },
+            { "tiyana_warden",      2 },
+            { "wailing_poro",       3 },
+            { "sandshoal_deserter", 2 },
+            { "zhonya",             1 },
+            { "trinity_force",      2 },
+            { "guardian_angel",     2 },
+            { "dorans_blade",       3 },
+        };
+
+        /// <summary>Returns how many copies of a card appear in its deck.</summary>
+        public static int GetCardCopies(string cardId)
+        {
+            return CardCopies.TryGetValue(cardId, out int n) ? n : 1;
+        }
     }
 }

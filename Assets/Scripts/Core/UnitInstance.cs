@@ -16,7 +16,7 @@ namespace FWTCG.Core
         /// <summary>Base attack/HP value (does not change during combat).</summary>
         public int Atk { get; private set; }
 
-        /// <summary>Current effective attack (may include buffs/debuffs).</summary>
+        /// <summary>Current effective attack (may include buffs/debuffs + temp bonuses).</summary>
         public int CurrentAtk { get; set; }
 
         /// <summary>Current HP. Equals CurrentAtk at start of each turn (atk=HP rule).</summary>
@@ -24,6 +24,15 @@ namespace FWTCG.Core
 
         public bool Exhausted { get; set; }
         public bool Stunned { get; set; }
+
+        /// <summary>Buff tokens (+1/+1 each, non-stackable beyond 1).</summary>
+        public int BuffTokens { get; set; }
+
+        /// <summary>Temporary attack bonus (e.g. Darius entry effect). Cleared end of turn.</summary>
+        public int TempAtkBonus { get; set; }
+
+        /// <summary>Whether this unit currently has a spell shield charge.</summary>
+        public bool HasSpellShield { get; set; }
 
         /// <summary>"player" or "enemy"</summary>
         public string Owner { get; private set; }
@@ -38,27 +47,34 @@ namespace FWTCG.Core
             CurrentHp = data.Atk;   // atk = HP core rule
             Exhausted = false;
             Stunned = false;
+            BuffTokens = 0;
+            TempAtkBonus = 0;
+            HasSpellShield = data.HasKeyword(CardKeyword.SpellShield);
             Owner = owner;
         }
 
         /// <summary>
         /// Effective attack used during combat.
         /// Stunned units contribute 0 power. Otherwise minimum 1.
+        /// Includes TempAtkBonus (e.g. Darius entry, StrongAtk).
         /// </summary>
         public int EffectiveAtk()
         {
             if (Stunned) return 0;
-            return Mathf.Max(1, CurrentAtk);
+            return Mathf.Max(1, CurrentAtk + TempAtkBonus);
         }
 
         /// <summary>
-        /// Called at end of turn: restore HP to current attack value, clear stun.
-        /// This implements the "marked damage reset" rule.
+        /// Called at end of turn: restore HP, clear stun, clear temp bonuses.
         /// </summary>
         public void ResetEndOfTurn()
         {
+            // Re-apply buff tokens to base atk before resetting HP
+            int baseWithBuffs = Atk + BuffTokens;
+            if (CurrentAtk < baseWithBuffs) CurrentAtk = baseWithBuffs;
             CurrentHp = CurrentAtk;
             Stunned = false;
+            TempAtkBonus = 0;
         }
 
         public override string ToString()

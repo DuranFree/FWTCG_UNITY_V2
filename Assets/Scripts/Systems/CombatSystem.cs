@@ -20,6 +20,8 @@ namespace FWTCG.Systems
     {
         public static event Action<string> OnCombatLog;
 
+        [SerializeField] private DeathwishSystem _deathwish;
+
         // ── Unit movement (#3, #9) ───────────────────────────────────────────
 
         /// <summary>
@@ -172,9 +174,15 @@ namespace FWTCG.Systems
             List<UnitInstance> deadDefenders = DistributeDamage(attackerPower, defenderUnits);
             List<UnitInstance> deadAttackers = DistributeDamage(defenderPower, attackerUnits);
 
-            // Remove dead units
+            // Remove dead units and trigger deathwish
             RemoveDeadUnits(deadDefenders, bf, defender, gs);
             RemoveDeadUnits(deadAttackers, bf, attacker, gs);
+
+            if (_deathwish != null)
+            {
+                _deathwish.OnUnitsDied(deadDefenders, bfId, gs);
+                _deathwish.OnUnitsDied(deadAttackers, bfId, gs);
+            }
 
             // Determine outcome
             bool attackerSurvivors = bf.HasUnits(attacker);
@@ -260,6 +268,10 @@ namespace FWTCG.Systems
                     bf.PlayerUnits.Remove(u);
                 else
                     bf.EnemyUnits.Remove(u);
+
+                // Clear Tiyana passive flag if she dies
+                if (u.CardData.EffectId == "tiyana_enter" && gs.TiyanasInPlay.ContainsKey(owner))
+                    gs.TiyanasInPlay[owner] = false;
             }
         }
 

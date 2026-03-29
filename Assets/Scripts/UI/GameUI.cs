@@ -208,9 +208,15 @@ namespace FWTCG.UI
             RefreshUnitList(_bf2EnemyContainer, gs.BF[1].EnemyUnits, false, null);
 
             if (_bf1CtrlText != null)
-                _bf1CtrlText.text = CtrlLabel(gs.BF[0].Ctrl);
+            {
+                string bf1Name = gs.BFNames != null && gs.BFNames.Length > 0 ? gs.BFNames[0] : "战场1";
+                _bf1CtrlText.text = $"{bf1Name}\n{CtrlLabel(gs.BF[0].Ctrl)}";
+            }
             if (_bf2CtrlText != null)
-                _bf2CtrlText.text = CtrlLabel(gs.BF[1].Ctrl);
+            {
+                string bf2Name = gs.BFNames != null && gs.BFNames.Length > 1 ? gs.BFNames[1] : "战场2";
+                _bf2CtrlText.text = $"{bf2Name}\n{CtrlLabel(gs.BF[1].Ctrl)}";
+            }
 
         }
 

@@ -200,3 +200,38 @@
 **Technical debt**: 无新增
 
 **Problems encountered**: 无
+
+---
+
+## DEV-2: 卡牌数据完整 + 入场/绝念系统 + 启动流程 UI — 2026-03-29
+
+**Status**: ✅ Completed
+
+**What was done**:
+- CardKeyword.cs 新增 [Flags] 枚举（12个关键词）
+- CardData.cs 扩展字段：keywords, effectId, isEquipment, equipAtkBonus, equipRuneType, equipRuneCost
+- UnitInstance.cs 新增运行时字段：BuffTokens, TempAtkBonus, HasSpellShield
+- SceneBuilder.CreateAllCardData() 重写：19张卡莎卡 + 10张易大师卡（含装备）全量数据
+- GameRules.GetCardCopies() + 完整 CardCopies 字典
+- EntryEffectSystem.cs 新建（6种入场效果：yordel/darius/thousand_tail/foresight/jax/tiyana）
+- DeathwishSystem.cs 新建（2种绝念：alert_sentinel_die/wailing_poro_die）
+- GameState.cs 新增 TiyanasInPlay 字典 + BFNames 数组
+- GameRules.cs 新增战场牌池（KAISA_BF_POOL/YI_BF_POOL）+ PickBattlefield()
+- ScoreManager.cs：Tiyana 被动检查（阻止对手据守得分）
+- CombatSystem.cs：绝念触发（RemoveDeadUnits 后调用 DeathwishSystem）+ Tiyana 死亡清除标志
+- GameManager.cs：_entryEffects 注入、TryPlayCard 触发入场效果、RunWithStartup 协程
+- SimpleAI.cs：打出卡后触发入场效果
+- TurnManager.cs：Inject 接收 EntryEffectSystem，传给 AI.TakeAction
+- StartupFlowUI.cs 新建：掷硬币面板 + Mulligan换牌面板（最多2张）
+- SceneBuilder.cs：CreateCoinFlipPanel/CreateMulliganPanel + WireGameManager 全量连线
+
+**Decisions made**:
+- 掷硬币界面无动画（文字显示）：动画推迟到 DEV-3
+- 战场选择纯随机：玩家无选择权，在掷硬币界面展示结果
+- Mulligan 最多换2张：与 JS 原版一致
+- 卡牌图片跳过：tempPic/cards/ 文件名无法映射到卡牌ID，需用户手动处理
+
+**Technical debt**: StartupFlowUI无动画 / 卡牌图片未导入
+
+**Problems encountered**:
+- 卡牌图片文件名（hash/OGN-xxx.png）无法自动映射到卡牌ID，需要用户提供映射表
