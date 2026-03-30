@@ -65,6 +65,20 @@ namespace FWTCG.UI
         // ── Rune tapped state ─────────────────────────────────────────────────
         public static readonly Color RuneTapped = new Color(0.5f, 0.5f, 0.5f, 1f);
 
+        public static Color GetRuneColor(FWTCG.Data.RuneType rt)
+        {
+            switch (rt)
+            {
+                case Data.RuneType.Blazing:  return RuneBlazing;
+                case Data.RuneType.Radiant:  return RuneRadiant;
+                case Data.RuneType.Verdant:  return RuneVerdant;
+                case Data.RuneType.Crushing: return RuneCrushing;
+                case Data.RuneType.Chaos:    return RuneChaos;
+                case Data.RuneType.Order:    return RuneOrder;
+                default: return Color.white;
+            }
+        }
+
         // ── Score track ──────────────────────────────────────────────────────
         public static readonly Color ScoreCircleInactive = new Color(0.47f, 0.35f, 0.16f, 0.4f); // dim gold border
         public static readonly Color ScoreCirclePlayer   = new Color(0.29f, 0.87f, 0.5f, 1f);    // green achieved

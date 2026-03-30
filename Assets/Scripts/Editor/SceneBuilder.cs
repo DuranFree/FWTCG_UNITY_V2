@@ -1850,36 +1850,81 @@ namespace FWTCG.Editor
         private static GameObject CreateRunePrefab()
         {
             var root = new GameObject("RunePrefab");
+            var rootRT = root.AddComponent<RectTransform>();
+            rootRT.sizeDelta = new Vector2(52f, 72f);
 
-            var rootImg = root.AddComponent<Image>();
-            rootImg.color = new Color(0.7f, 0.85f, 0.7f, 1f);
+            // Vertical layout: circle + label + recycle button
+            var vlg = root.AddComponent<VerticalLayoutGroup>();
+            vlg.childControlWidth = false;
+            vlg.childControlHeight = false;
+            vlg.childForceExpandWidth = false;
+            vlg.childForceExpandHeight = false;
+            vlg.childAlignment = TextAnchor.UpperCenter;
+            vlg.spacing = 1f;
+            vlg.padding = new RectOffset(2, 2, 1, 1);
 
-            var rootRT = root.GetComponent<RectTransform>();
-            rootRT.sizeDelta = new Vector2(40f, 60f);
+            // ── Circular rune image (tap button) ──
+            var circleGO = new GameObject("RuneCircle");
+            circleGO.transform.SetParent(root.transform, false);
+            var circleRT = circleGO.AddComponent<RectTransform>();
+            circleRT.sizeDelta = new Vector2(44f, 44f);
 
-            root.AddComponent<Button>();
+            // Circular mask
+            var mask = circleGO.AddComponent<Mask>();
+            mask.showMaskGraphic = true;
+            var circleImg = circleGO.AddComponent<Image>();
+            circleImg.color = new Color(0.4f, 0.6f, 0.3f, 1f); // default green tint, overridden at runtime
 
-            // RuneTypeText
-            var runeTypeText = CreateTMPText(root.transform, "RuneTypeText", "符", Color.black, 12, TextAnchor.MiddleCenter);
-            var runeRT = runeTypeText.GetComponent<RectTransform>();
-            runeRT.anchorMin = new Vector2(0f, 0.3f);
-            runeRT.anchorMax = new Vector2(1f, 1f);
-            runeRT.offsetMin = Vector2.zero;
-            runeRT.offsetMax = Vector2.zero;
+            // Art image inside circle (filled by runtime based on rune type)
+            var artGO = new GameObject("RuneArt");
+            artGO.transform.SetParent(circleGO.transform, false);
+            var artImg = artGO.AddComponent<Image>();
+            artImg.color = Color.white;
+            artImg.preserveAspect = false; // fill circle
+            artImg.raycastTarget = false;
+            var artRT = artGO.GetComponent<RectTransform>();
+            artRT.anchorMin = Vector2.zero;
+            artRT.anchorMax = Vector2.one;
+            artRT.offsetMin = Vector2.zero;
+            artRT.offsetMax = Vector2.zero;
 
-            // TappedIndicator
-            var tappedGO = new GameObject("TappedIndicator");
-            tappedGO.transform.SetParent(root.transform, false);
-            var tappedImg = tappedGO.AddComponent<Image>();
-            tappedImg.color = new Color(0.9f, 0.3f, 0.3f, 0.8f);
-            var tappedRT = tappedGO.GetComponent<RectTransform>();
-            tappedRT.anchorMin = new Vector2(0f, 0f);
-            tappedRT.anchorMax = new Vector2(1f, 0.3f);
-            tappedRT.offsetMin = Vector2.zero;
-            tappedRT.offsetMax = Vector2.zero;
-            // Rotate 90 degrees to indicate tapped
-            tappedGO.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
-            tappedGO.SetActive(false);
+            // Border ring (outline)
+            var borderGO = new GameObject("RuneBorder");
+            borderGO.transform.SetParent(circleGO.transform, false);
+            var borderImg = borderGO.AddComponent<Image>();
+            borderImg.color = new Color(0f, 0f, 0f, 0f); // transparent center
+            borderImg.raycastTarget = false;
+            var borderRT = borderGO.GetComponent<RectTransform>();
+            borderRT.anchorMin = Vector2.zero;
+            borderRT.anchorMax = Vector2.one;
+            borderRT.offsetMin = Vector2.zero;
+            borderRT.offsetMax = Vector2.zero;
+            var borderOutline = borderGO.AddComponent<Outline>();
+            borderOutline.effectColor = GameColors.GoldDark;
+            borderOutline.effectDistance = new Vector2(2f, -2f);
+
+            // Tap button on circle
+            circleGO.AddComponent<Button>();
+
+            // ── Label text (type + status) ──
+            var labelText = CreateTMPText(root.transform, "RuneTypeText", "炽\n就绪", Color.white, 8, TextAnchor.MiddleCenter);
+            var labelRT = labelText.GetComponent<RectTransform>();
+            labelRT.sizeDelta = new Vector2(50f, 16f);
+
+            // ── Recycle button ──
+            var recycleGO = new GameObject("RecycleButton");
+            recycleGO.transform.SetParent(root.transform, false);
+            var recycleRT = recycleGO.AddComponent<RectTransform>();
+            recycleRT.sizeDelta = new Vector2(40f, 13f);
+            var recycleImg = recycleGO.AddComponent<Image>();
+            recycleImg.color = new Color(0.47f, 0.35f, 0.16f, 0.5f);
+            var recycleBtn = recycleGO.AddComponent<Button>();
+            var recycleLbl = CreateTMPText(recycleGO.transform, "RecycleLabel", "♻回收", GameColors.GoldLight, 7, TextAnchor.MiddleCenter);
+            var recycleLblRT = recycleLbl.GetComponent<RectTransform>();
+            recycleLblRT.anchorMin = Vector2.zero;
+            recycleLblRT.anchorMax = Vector2.one;
+            recycleLblRT.offsetMin = Vector2.zero;
+            recycleLblRT.offsetMax = Vector2.zero;
 
             var prefab = PrefabUtility.SaveAsPrefabAsset(root, "Assets/Prefabs/RunePrefab.prefab");
             Object.DestroyImmediate(root);

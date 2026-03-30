@@ -542,6 +542,29 @@ namespace FWTCG.UI
 
         // ── Rune zone renderer ────────────────────────────────────────────────
 
+        // ── Rune art cache (loaded once from Resources/CardArt) ─────────────
+        private static readonly Dictionary<Data.RuneType, Sprite> _runeArtCache = new Dictionary<Data.RuneType, Sprite>();
+
+        private static Sprite GetRuneArt(Data.RuneType rt)
+        {
+            if (_runeArtCache.TryGetValue(rt, out Sprite cached) && cached != null)
+                return cached;
+
+            string artName;
+            switch (rt)
+            {
+                case Data.RuneType.Blazing:  artName = "rune_blazing";  break;
+                case Data.RuneType.Radiant:  artName = "rune_radiant";  break;
+                case Data.RuneType.Verdant:  artName = "rune_verdant";  break;
+                case Data.RuneType.Crushing: artName = "rune_crushing"; break;
+                default: return null;
+            }
+
+            var sprite = Resources.Load<Sprite>($"CardArt/{artName}");
+            if (sprite != null) _runeArtCache[rt] = sprite;
+            return sprite;
+        }
+
         private void RefreshRuneZone(Transform container, List<RuneInstance> runes, bool isPlayer)
         {
             if (container == null) return;
@@ -553,37 +576,62 @@ namespace FWTCG.UI
 
             for (int i = 0; i < runes.Count; i++)
             {
-                int idx = i; // capture for lambda
+                int idx = i;
                 RuneInstance r = runes[i];
 
                 GameObject go = Instantiate(_runeButtonPrefab, container);
                 go.name = $"Rune_{r.RuneType}_{i}";
 
-                Text label = go.GetComponentInChildren<Text>();
-                if (label != null)
-                    label.text = $"{RuneTypeShortName(r.RuneType)}\n{(r.Tapped ? "[横置]" : "[就绪]")}";
-
-                // Left-click: tap (mana)
-                Button btn = go.GetComponent<Button>();
-                if (btn != null)
+                // Set rune art on circle
+                Transform circleT = go.transform.Find("RuneCircle");
+                if (circleT != null)
                 {
-                    btn.interactable = isPlayer && !r.Tapped;
-                    btn.onClick.AddListener(() => _onRuneClicked?.Invoke(idx, false));
+                    // Circle background color by rune type
+                    Image circleImg = circleT.GetComponent<Image>();
+                    if (circleImg != null)
+                        circleImg.color = r.Tapped ? GameColors.RuneTapped : GameColors.GetRuneColor(r.RuneType);
+
+                    // Art image inside circle
+                    Transform artT = circleT.Find("RuneArt");
+                    if (artT != null)
+                    {
+                        Image artImg = artT.GetComponent<Image>();
+                        Sprite runeSprite = GetRuneArt(r.RuneType);
+                        if (artImg != null && runeSprite != null)
+                        {
+                            artImg.sprite = runeSprite;
+                            artImg.color = r.Tapped ? new Color(0.5f, 0.5f, 0.5f, 0.6f) : Color.white;
+                        }
+                    }
+
+                    // Tap button on circle
+                    Button tapBtn = circleT.GetComponent<Button>();
+                    if (tapBtn != null)
+                    {
+                        tapBtn.interactable = isPlayer && !r.Tapped;
+                        tapBtn.onClick.AddListener(() => _onRuneClicked?.Invoke(idx, false));
+                    }
                 }
 
-                // Right-click: recycle (implemented via separate button or context menu)
-                // For DEV-1 we add a small "回收" sub-button if present
+                // Label text
+                Transform labelT = go.transform.Find("RuneTypeText");
+                if (labelT != null)
+                {
+                    Text label = labelT.GetComponent<Text>();
+                    if (label != null)
+                    {
+                        label.text = $"{RuneTypeShortName(r.RuneType)}\n{(r.Tapped ? "横置" : "就绪")}";
+                        label.color = r.Tapped ? GameColors.RuneTapped : GameColors.GetRuneColor(r.RuneType);
+                    }
+                }
+
+                // Recycle button
                 Button recycleBtn = FindChildButton(go, "RecycleButton");
                 if (recycleBtn != null)
                 {
-                    recycleBtn.interactable = isPlayer;
+                    recycleBtn.interactable = isPlayer && !r.Tapped;
                     recycleBtn.onClick.AddListener(() => _onRuneClicked?.Invoke(idx, true));
                 }
-
-                // Visual tint for tapped state
-                Image img = go.GetComponent<Image>();
-                if (img != null)
-                    img.color = r.Tapped ? GameColors.RuneTapped : Color.white;
             }
         }
 
