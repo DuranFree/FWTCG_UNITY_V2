@@ -853,15 +853,14 @@ namespace FWTCG.Editor
             outline.effectColor = ZoneBorderColor;
             outline.effectDistance = new Vector2(1f, -1f);
 
-            // Card slot — centered, card aspect ratio (2:3)
+            // Card slot — fills entire zone (same size as legend zone)
             var slotGO = new GameObject("HeroSlot");
             slotGO.transform.SetParent(go.transform, false);
             var slotRT = slotGO.AddComponent<RectTransform>();
-            // Center in parent, fixed card-shaped size
-            slotRT.anchorMin = new Vector2(0.5f, 0.5f);
-            slotRT.anchorMax = new Vector2(0.5f, 0.5f);
-            slotRT.pivot = new Vector2(0.5f, 0.5f);
-            slotRT.sizeDelta = new Vector2(76f, 110f); // CSS card size
+            slotRT.anchorMin = Vector2.zero;
+            slotRT.anchorMax = Vector2.one;
+            slotRT.offsetMin = Vector2.zero;
+            slotRT.offsetMax = Vector2.zero;
 
             heroContainer = slotGO.transform;
         }
