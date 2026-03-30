@@ -104,13 +104,18 @@ namespace FWTCG.Editor
                 ehRT.offsetMin = new Vector2(0f, -86f);  // 36 (top bar) + 50
                 ehRT.offsetMax = new Vector2(-200f, -36f);
 
+                // CSS: .hand-zone bg linear-gradient(135deg, rgba(3,14,25,0.85), rgba(1,10,19,0.9))
+                var ehImg = enemyHandZone.AddComponent<Image>();
+                ehImg.color = new Color(2f/255f, 12f/255f, 22f/255f, 0.87f);
+
                 var ehHLG = enemyHandZone.AddComponent<HorizontalLayoutGroup>();
                 ehHLG.childControlWidth = false;
                 ehHLG.childControlHeight = true;
                 ehHLG.childForceExpandWidth = false;
                 ehHLG.childForceExpandHeight = true;
                 ehHLG.childAlignment = TextAnchor.MiddleCenter;
-                ehHLG.spacing = 4f;
+                ehHLG.spacing = 4f; // CSS: gap 4px
+                ehHLG.padding = new RectOffset(10, 10, 4, 4); // CSS: padding 6px 10px
             }
 
             // ── BoardWrapper (main game board) ──────────────────────────────
@@ -146,13 +151,21 @@ namespace FWTCG.Editor
                 phRT.offsetMin = new Vector2(0f, 80f);    // above bottom bar
                 phRT.offsetMax = new Vector2(-200f, 200f); // 80 + 120
 
+                // CSS: .hand-zone bg + border
+                var phImg = playerHandZone.AddComponent<Image>();
+                phImg.color = new Color(2f/255f, 12f/255f, 22f/255f, 0.87f);
+                var phOutline = playerHandZone.AddComponent<Outline>();
+                phOutline.effectColor = new Color(200f/255f, 170f/255f, 110f/255f, 0.2f);
+                phOutline.effectDistance = new Vector2(1f, -1f);
+
                 var phHLG = playerHandZone.AddComponent<HorizontalLayoutGroup>();
                 phHLG.childControlWidth = false;
                 phHLG.childControlHeight = true;
                 phHLG.childForceExpandWidth = false;
                 phHLG.childForceExpandHeight = true;
                 phHLG.childAlignment = TextAnchor.MiddleCenter;
-                phHLG.spacing = 4f;
+                phHLG.spacing = 4f; // CSS: gap 4px
+                phHLG.padding = new RectOffset(10, 10, 6, 4); // CSS: padding 6px 10px
             }
 
             // ── BottomBar (PlayerInfoStrip + ActionPanel) ─────────────────
@@ -689,10 +702,25 @@ namespace FWTCG.Editor
             return go;
         }
 
+        // CSS reference colors for zones:
+        // Base zones: rgba(4,16,28,0.9)  |  Other zones: rgba(3,14,26,0.88)
+        // All zone border: 1px solid rgba(200,155,60,0.18)
+        private static readonly Color ZoneBgBase = new Color(4f/255f, 16f/255f, 28f/255f, 0.9f);
+        private static readonly Color ZoneBgDefault = new Color(3f/255f, 14f/255f, 26f/255f, 0.88f);
+        private static readonly Color ZoneBorderColor = new Color(200f/255f, 155f/255f, 60f/255f, 0.18f);
+
         private static void CreateHorizontalZoneAnchored(Transform parent, string name,
             float xMin, float xMax, float yMin, float yMax)
         {
             var go = CreateAnchoredZone(parent, name, xMin, xMax, yMin, yMax);
+
+            // CSS: background rgba(4,16,28,0.9), border 1px solid rgba(200,155,60,0.18)
+            bool isBase = name.Contains("Base");
+            var img = go.AddComponent<Image>();
+            img.color = isBase ? ZoneBgBase : ZoneBgDefault;
+            var outline = go.AddComponent<Outline>();
+            outline.effectColor = ZoneBorderColor;
+            outline.effectDistance = new Vector2(1f, -1f);
 
             var hlg = go.AddComponent<HorizontalLayoutGroup>();
             hlg.childControlWidth = false;
@@ -701,6 +729,7 @@ namespace FWTCG.Editor
             hlg.childForceExpandHeight = true;
             hlg.childAlignment = TextAnchor.MiddleCenter;
             hlg.spacing = 4f;
+            hlg.padding = new RectOffset(2, 2, 2, 2);
         }
 
         // ── Score track (DEV-9) ──────────────────────────────────────────────
@@ -728,8 +757,8 @@ namespace FWTCG.Editor
                 circleGO.transform.SetParent(go.transform, false);
 
                 var le = circleGO.AddComponent<LayoutElement>();
-                le.preferredWidth = 26f;
-                le.preferredHeight = 26f;
+                le.preferredWidth = 28f;  // CSS: max-width 28px
+                le.preferredHeight = 28f;
 
                 var img = circleGO.AddComponent<Image>();
                 img.color = GameColors.ScoreCircleInactive;
@@ -754,8 +783,12 @@ namespace FWTCG.Editor
         {
             var go = CreateAnchoredZone(parent, $"{prefix}DiscardExile", xMin, xMax, yMin, yMax);
 
+            // CSS: rgba(3,14,26,0.88), border 1px solid rgba(200,155,60,0.18)
             var img = go.AddComponent<Image>();
-            img.color = GameColors.PileBackground;
+            img.color = ZoneBgDefault;
+            var outline = go.AddComponent<Outline>();
+            outline.effectColor = ZoneBorderColor;
+            outline.effectDistance = new Vector2(1f, -1f);
 
             var hlg = go.AddComponent<HorizontalLayoutGroup>();
             hlg.childControlWidth = true;
@@ -812,8 +845,12 @@ namespace FWTCG.Editor
         {
             var go = CreateAnchoredZone(parent, name, xMin, xMax, yMin, yMax);
 
+            // CSS: rgba(3,14,26,0.88), border rgba(200,155,60,0.18)
             var img = go.AddComponent<Image>();
-            img.color = GameColors.PileBackground;
+            img.color = ZoneBgDefault;
+            var outline = go.AddComponent<Outline>();
+            outline.effectColor = ZoneBorderColor;
+            outline.effectDistance = new Vector2(1f, -1f);
 
             // Card slot — centered, card aspect ratio (2:3)
             var slotGO = new GameObject("HeroSlot");
@@ -823,7 +860,7 @@ namespace FWTCG.Editor
             slotRT.anchorMin = new Vector2(0.5f, 0.5f);
             slotRT.anchorMax = new Vector2(0.5f, 0.5f);
             slotRT.pivot = new Vector2(0.5f, 0.5f);
-            slotRT.sizeDelta = new Vector2(80f, 120f);
+            slotRT.sizeDelta = new Vector2(76f, 110f); // CSS card size
 
             heroContainer = slotGO.transform;
         }
@@ -835,8 +872,12 @@ namespace FWTCG.Editor
         {
             var go = CreateAnchoredZone(parent, name, xMin, xMax, yMin, yMax);
 
+            // CSS: rgba(3,14,26,0.88), border 1px solid rgba(200,155,60,0.18)
             var img = go.AddComponent<Image>();
-            img.color = GameColors.PileBackground;
+            img.color = ZoneBgDefault;
+            var outline = go.AddComponent<Outline>();
+            outline.effectColor = ZoneBorderColor;
+            outline.effectDistance = new Vector2(1f, -1f);
 
             var vlg = go.AddComponent<VerticalLayoutGroup>();
             vlg.childControlWidth = true;
@@ -845,7 +886,7 @@ namespace FWTCG.Editor
             vlg.childForceExpandHeight = false;
             vlg.childAlignment = TextAnchor.MiddleCenter;
             vlg.spacing = 1f;
-            vlg.padding = new RectOffset(2, 2, 2, 2);
+            vlg.padding = new RectOffset(3, 3, 3, 3);
 
             CreateTMPText(go.transform, "PileLabel", label, GameColors.GoldDark, 10, TextAnchor.MiddleCenter);
 
@@ -869,8 +910,12 @@ namespace FWTCG.Editor
         {
             var go = CreateAnchoredZone(parent, name, xMin, xMax, yMin, yMax);
 
+            // CSS: rgba(3,14,26,0.88), border rgba(200,155,60,0.18)
             var img = go.AddComponent<Image>();
-            img.color = isPlayer ? new Color(0.1f, 0.05f, 0.2f, 0.9f) : new Color(0.2f, 0.05f, 0.05f, 0.9f);
+            img.color = ZoneBgDefault;
+            var lgOutline = go.AddComponent<Outline>();
+            lgOutline.effectColor = ZoneBorderColor;
+            lgOutline.effectDistance = new Vector2(1f, -1f);
 
             // Card-shaped area centered (same 80x120 as hand cards)
             // -- LegendArt will be overlaid at runtime by RefreshLegendArt (ignoreLayout)
@@ -1687,7 +1732,7 @@ namespace FWTCG.Editor
             rootImg.color = new Color(0.85f, 0.85f, 0.85f, 1f);
 
             var rootRT = root.GetComponent<RectTransform>();
-            rootRT.sizeDelta = new Vector2(80f, 120f);
+            rootRT.sizeDelta = new Vector2(76f, 110f); // CSS: .card { width:76px; height:110px }
 
             // Button on root
             root.AddComponent<Button>();
@@ -1851,7 +1896,7 @@ namespace FWTCG.Editor
         {
             var root = new GameObject("RunePrefab");
             var rootRT = root.AddComponent<RectTransform>();
-            rootRT.sizeDelta = new Vector2(52f, 72f);
+            rootRT.sizeDelta = new Vector2(38f, 56f); // CSS rune: 26px circle + label + recycle btn
 
             // Vertical layout: circle + label + recycle button
             var vlg = root.AddComponent<VerticalLayoutGroup>();
@@ -1867,7 +1912,7 @@ namespace FWTCG.Editor
             var circleGO = new GameObject("RuneCircle");
             circleGO.transform.SetParent(root.transform, false);
             var circleRT = circleGO.AddComponent<RectTransform>();
-            circleRT.sizeDelta = new Vector2(44f, 44f);
+            circleRT.sizeDelta = new Vector2(26f, 26f); // CSS: .rune { width:26px; height:26px }
 
             // Circular mask
             var mask = circleGO.AddComponent<Mask>();
@@ -1907,15 +1952,15 @@ namespace FWTCG.Editor
             circleGO.AddComponent<Button>();
 
             // ── Label text (type + status) ──
-            var labelText = CreateTMPText(root.transform, "RuneTypeText", "炽\n就绪", Color.white, 8, TextAnchor.MiddleCenter);
+            var labelText = CreateTMPText(root.transform, "RuneTypeText", "炽 就绪", Color.white, 7, TextAnchor.MiddleCenter);
             var labelRT = labelText.GetComponent<RectTransform>();
-            labelRT.sizeDelta = new Vector2(50f, 16f);
+            labelRT.sizeDelta = new Vector2(36f, 12f);
 
             // ── Recycle button ──
             var recycleGO = new GameObject("RecycleButton");
             recycleGO.transform.SetParent(root.transform, false);
             var recycleRT = recycleGO.AddComponent<RectTransform>();
-            recycleRT.sizeDelta = new Vector2(40f, 13f);
+            recycleRT.sizeDelta = new Vector2(32f, 11f);
             var recycleImg = recycleGO.AddComponent<Image>();
             recycleImg.color = new Color(0.47f, 0.35f, 0.16f, 0.5f);
             var recycleBtn = recycleGO.AddComponent<Button>();
