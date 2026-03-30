@@ -110,8 +110,13 @@ namespace FWTCG.UI
         [SerializeField] private RectTransform _boardWrapperOuter;
         [SerializeField] private RectTransform _playerHandZoneRT;
         [SerializeField] private RectTransform _enemyHandZoneRT;
-        private bool _logCollapsed = false;
+        private bool _logCollapsed = true; // default collapsed
         private Coroutine _logAnimCoroutine;
+
+        // ── Debug panel toggle (DEV-10) ──────────────────────────────────────
+        [SerializeField] private GameObject _debugPanel;
+        [SerializeField] private Button _debugToggleBtn;
+        private bool _debugCollapsed = true;
 
         // ── Discard/Exile viewer (DEV-10) ────────────────────────────────────
         [SerializeField] private GameObject _viewerPanel;
@@ -172,6 +177,19 @@ namespace FWTCG.UI
             if (_viewerCloseBtn != null) _viewerCloseBtn.onClick.AddListener(CloseViewer);
             if (_viewerPanel != null) _viewerPanel.SetActive(false);
             if (_timerDisplay != null) _timerDisplay.SetActive(false);
+            if (_debugToggleBtn != null) _debugToggleBtn.onClick.AddListener(ToggleDebug);
+
+            // Default: log collapsed, debug collapsed
+            if (_logPanel != null) _logPanel.SetActive(false);
+            if (_logToggleText != null) _logToggleText.text = ">";
+            // Set board/hand to full width (no log margin)
+            if (_boardWrapperOuter != null)
+                _boardWrapperOuter.offsetMax = new Vector2(0f, _boardWrapperOuter.offsetMax.y);
+            if (_playerHandZoneRT != null)
+                _playerHandZoneRT.offsetMax = new Vector2(0f, _playerHandZoneRT.offsetMax.y);
+            if (_enemyHandZoneRT != null)
+                _enemyHandZoneRT.offsetMax = new Vector2(0f, _enemyHandZoneRT.offsetMax.y);
+
             FWTCG.Systems.TurnManager.OnBannerRequest += ShowBanner;
         }
 
@@ -899,6 +917,32 @@ namespace FWTCG.UI
             // Final: hide log panel when collapsed
             if (collapse && _logPanel != null)
                 _logPanel.SetActive(false);
+        }
+
+        // ── Debug panel toggle (DEV-10) ──────────────────────────────────────
+
+        public void ToggleDebug()
+        {
+            if (_debugPanel == null) return;
+            _debugCollapsed = !_debugCollapsed;
+
+            // Toggle all children except first (title bar)
+            for (int i = 1; i < _debugPanel.transform.childCount; i++)
+                _debugPanel.transform.GetChild(i).gameObject.SetActive(!_debugCollapsed);
+
+            // Resize panel
+            var rt = _debugPanel.GetComponent<RectTransform>();
+            if (rt != null)
+                rt.sizeDelta = _debugCollapsed ? new Vector2(130f, 30f) : new Vector2(130f, 215f);
+
+            // Update title text
+            var titleText = _debugPanel.transform.Find("DebugTitle/TitleText");
+            if (titleText != null)
+            {
+                var txt = titleText.GetComponent<Text>();
+                if (txt != null)
+                    txt.text = _debugCollapsed ? "▶ DEBUG" : "── DEBUG ──";
+            }
         }
 
         // ── Discard / Exile viewer (DEV-10) ──────────────────────────────────

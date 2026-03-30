@@ -438,6 +438,15 @@ namespace FWTCG.Editor
                 gmSO.ApplyModifiedPropertiesWithoutUndo();
             }
 
+            // Wire debug panel toggle into GameUI (DEV-10)
+            {
+                var guiSO2 = new SerializedObject(gameUI);
+                guiSO2.FindProperty("_debugPanel").objectReferenceValue = debugPanel;
+                var debugTitleBtn = debugPanel.transform.Find("DebugTitle")?.GetComponent<Button>();
+                guiSO2.FindProperty("_debugToggleBtn").objectReferenceValue = debugTitleBtn;
+                guiSO2.ApplyModifiedPropertiesWithoutUndo();
+            }
+
             // ── Save scene ────────────────────────────────────────────────────
             EnsureDirectory("Assets/Scenes");
             EditorSceneManager.SaveScene(scene, "Assets/Scenes/GameScene.unity");
@@ -1260,8 +1269,9 @@ namespace FWTCG.Editor
             go.transform.SetParent(parent, false);
 
             var rt = go.AddComponent<RectTransform>();
-            rt.anchorMin = new Vector2(0.15f, 0.35f);
-            rt.anchorMax = new Vector2(0.85f, 0.65f);
+            // Centered in battlefield area (between top bar ~8% and player hand ~18%)
+            rt.anchorMin = new Vector2(0.2f, 0.4f);
+            rt.anchorMax = new Vector2(0.8f, 0.6f);
             rt.offsetMin = Vector2.zero;
             rt.offsetMax = Vector2.zero;
 
@@ -1435,17 +1445,16 @@ namespace FWTCG.Editor
             reactiveBtn = CreateDebugButton(go.transform, "摸反应牌", new Color(0.8f, 0.4f, 0.1f, 1f));
             manaBtn     = CreateDebugButton(go.transform, "+5 法力",  new Color(0.7f, 0.4f, 0.1f, 1f));
 
-            // Wire title click to toggle debug panel content visibility
-            titleBtn.onClick.AddListener(() =>
-            {
-                // Toggle all children except title
-                for (int i = 1; i < go.transform.childCount; i++)
-                    go.transform.GetChild(i).gameObject.SetActive(!go.transform.GetChild(i).gameObject.activeSelf);
-                // Collapse/expand height
-                bool collapsed = !go.transform.GetChild(1).gameObject.activeSelf;
-                rt.sizeDelta = collapsed ? new Vector2(130f, 30f) : new Vector2(130f, 215f);
-                titleT.text = collapsed ? "▶ DEBUG" : "── DEBUG ──";
-            });
+            // Default: collapsed (only title visible)
+            spellBtn.gameObject.SetActive(false);
+            equipBtn.gameObject.SetActive(false);
+            unitBtn.gameObject.SetActive(false);
+            reactiveBtn.gameObject.SetActive(false);
+            manaBtn.gameObject.SetActive(false);
+            rt.sizeDelta = new Vector2(130f, 30f);
+            titleT.text = "▶ DEBUG";
+
+            // Runtime toggle is wired in GameUI.Awake via _debugToggleBtn
 
             return go;
         }
