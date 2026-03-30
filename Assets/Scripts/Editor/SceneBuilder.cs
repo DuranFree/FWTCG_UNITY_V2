@@ -1055,41 +1055,77 @@ namespace FWTCG.Editor
             // CardView component
             var cardView = root.AddComponent<FWTCG.UI.CardView>();
 
-            // CardName — top
-            var cardName = CreateTMPText(root.transform, "CardName", "卡名", Color.black, 12, TextAnchor.MiddleCenter);
+            // CardName — top banner (semi-transparent dark strip)
+            var nameBannerGO = new GameObject("NameBanner");
+            nameBannerGO.transform.SetParent(root.transform, false);
+            var nameBannerImg = nameBannerGO.AddComponent<Image>();
+            nameBannerImg.color = new Color(0f, 0f, 0f, 0.6f);
+            nameBannerImg.raycastTarget = false;
+            var nameBannerRT = nameBannerGO.GetComponent<RectTransform>();
+            nameBannerRT.anchorMin = new Vector2(0f, 0.8f);
+            nameBannerRT.anchorMax = new Vector2(1f, 1f);
+            nameBannerRT.offsetMin = Vector2.zero;
+            nameBannerRT.offsetMax = Vector2.zero;
+
+            var cardName = CreateTMPText(nameBannerGO.transform, "CardName", "卡名", Color.white, 11, TextAnchor.MiddleCenter);
             var nameRT = cardName.GetComponent<RectTransform>();
-            nameRT.anchorMin = new Vector2(0f, 0.8f);
-            nameRT.anchorMax = new Vector2(1f, 1f);
+            nameRT.anchorMin = Vector2.zero;
+            nameRT.anchorMax = Vector2.one;
             nameRT.offsetMin = Vector2.zero;
             nameRT.offsetMax = Vector2.zero;
 
-            // CostText — top-left
-            var costText = CreateTMPText(root.transform, "CostText", "0", Color.black, 14, TextAnchor.MiddleLeft);
-            var costRT = costText.GetComponent<RectTransform>();
-            costRT.anchorMin = new Vector2(0f, 0.8f);
-            costRT.anchorMax = new Vector2(0.35f, 1f);
-            costRT.offsetMin = new Vector2(2f, 0f);
-            costRT.offsetMax = new Vector2(0f, 0f);
+            // CostText — top-left cost badge (gold circle)
+            var costBadgeGO = new GameObject("CostBadge");
+            costBadgeGO.transform.SetParent(root.transform, false);
+            var costBadgeImg = costBadgeGO.AddComponent<Image>();
+            costBadgeImg.color = new Color(0.78f, 0.67f, 0.43f, 0.9f);
+            costBadgeImg.raycastTarget = false;
+            var costBadgeRT = costBadgeGO.GetComponent<RectTransform>();
+            costBadgeRT.anchorMin = new Vector2(0f, 0.8f);
+            costBadgeRT.anchorMax = new Vector2(0.3f, 1f);
+            costBadgeRT.offsetMin = new Vector2(1f, 1f);
+            costBadgeRT.offsetMax = new Vector2(-1f, -1f);
 
-            // AtkText — bottom
-            var atkText = CreateTMPText(root.transform, "AtkText", "0", Color.black, 16, TextAnchor.MiddleCenter);
+            var costText = CreateTMPText(costBadgeGO.transform, "CostText", "0", Color.white, 13, TextAnchor.MiddleCenter);
+            costText.fontStyle = FontStyle.Bold;
+            var costRT = costText.GetComponent<RectTransform>();
+            costRT.anchorMin = Vector2.zero;
+            costRT.anchorMax = Vector2.one;
+            costRT.offsetMin = Vector2.zero;
+            costRT.offsetMax = Vector2.zero;
+
+            // AtkText — bottom banner (semi-transparent dark strip)
+            var atkBannerGO = new GameObject("AtkBanner");
+            atkBannerGO.transform.SetParent(root.transform, false);
+            var atkBannerImg = atkBannerGO.AddComponent<Image>();
+            atkBannerImg.color = new Color(0f, 0f, 0f, 0.6f);
+            atkBannerImg.raycastTarget = false;
+            var atkBannerRT = atkBannerGO.GetComponent<RectTransform>();
+            atkBannerRT.anchorMin = new Vector2(0f, 0f);
+            atkBannerRT.anchorMax = new Vector2(1f, 0.2f);
+            atkBannerRT.offsetMin = Vector2.zero;
+            atkBannerRT.offsetMax = Vector2.zero;
+
+            var atkText = CreateTMPText(atkBannerGO.transform, "AtkText", "0", Color.white, 15, TextAnchor.MiddleCenter);
+            atkText.fontStyle = FontStyle.Bold;
             var atkRT = atkText.GetComponent<RectTransform>();
-            atkRT.anchorMin = new Vector2(0f, 0f);
-            atkRT.anchorMax = new Vector2(1f, 0.2f);
+            atkRT.anchorMin = Vector2.zero;
+            atkRT.anchorMax = Vector2.one;
             atkRT.offsetMin = Vector2.zero;
             atkRT.offsetMax = Vector2.zero;
 
-            // ArtImage — middle area (between name row and atk row)
+            // ArtImage — fills entire card (text overlays on top)
             var artGO = new GameObject("ArtImage");
             artGO.transform.SetParent(root.transform, false);
             var artImg = artGO.AddComponent<Image>();
-            artImg.preserveAspect = true;
+            artImg.preserveAspect = false; // stretch to fill card
             artImg.color = Color.white;
+            artImg.raycastTarget = false;
             var artRT = artGO.GetComponent<RectTransform>();
-            artRT.anchorMin = new Vector2(0f, 0.2f);
-            artRT.anchorMax = new Vector2(1f, 0.8f);
-            artRT.offsetMin = new Vector2(2f, 2f);
-            artRT.offsetMax = new Vector2(-2f, -2f);
+            artRT.anchorMin = Vector2.zero;
+            artRT.anchorMax = Vector2.one;
+            artRT.offsetMin = new Vector2(3f, 3f);
+            artRT.offsetMax = new Vector2(-3f, -3f);
 
             // Description text — below art area (small)
             var descText = CreateTMPText(root.transform, "DescText", "", new Color(0.3f, 0.3f, 0.3f, 1f), 8, TextAnchor.UpperCenter);
@@ -1153,7 +1189,7 @@ namespace FWTCG.Editor
                 shineGO.transform.SetParent(root.transform, false);
                 var shineImg = shineGO.AddComponent<Image>();
                 shineImg.raycastTarget = false;
-                shineImg.color = new Color(1f, 1f, 1f, 0f);
+                shineImg.color = Color.white; // shader controls visibility via _ShineIntensity
                 if (shineMat != null)
                 {
                     shineMat.SetFloat("_ShineIntensity", 0f);

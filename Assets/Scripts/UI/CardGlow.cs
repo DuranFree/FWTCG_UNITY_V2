@@ -46,8 +46,8 @@ namespace FWTCG.UI
             if (playable)
             {
                 _mat.SetColor(PropGlowColor, GameColors.GlowPlayable);
-                _mat.SetFloat(PropGlowIntensity, 1.2f);
-                _mat.SetFloat(PropAnimSpeed, 1.5f);
+                _mat.SetFloat(PropGlowIntensity, 2.5f);
+                _mat.SetFloat(PropAnimSpeed, 1.0f);
             }
             else
             {
@@ -61,8 +61,8 @@ namespace FWTCG.UI
             if (hovered)
             {
                 _mat.SetColor(PropGlowColor, GameColors.GlowHover);
-                _mat.SetFloat(PropGlowIntensity, 0.8f);
-                _mat.SetFloat(PropAnimSpeed, 0.5f);
+                _mat.SetFloat(PropGlowIntensity, 2.0f);
+                _mat.SetFloat(PropAnimSpeed, 0.3f);
             }
         }
 

@@ -10,9 +10,9 @@ namespace FWTCG.UI
     /// </summary>
     public class CardTilt : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
-        private const float MAX_TILT = 18f;
-        private const float LERP_IN  = 0.12f;
-        private const float LERP_OUT = 0.08f;
+        private const float MAX_TILT = 30f;  // higher than original 18° to compensate for no perspective
+        private const float LERP_IN  = 0.18f;
+        private const float LERP_OUT = 0.12f;
         private const float EPSILON  = 0.01f;
 
         private RectTransform _rectTransform;

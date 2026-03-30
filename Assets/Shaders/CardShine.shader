@@ -7,7 +7,7 @@ Shader "UI/CardShine"
         _ShineX ("Shine X", Range(0, 1)) = 0.5
         _ShineY ("Shine Y", Range(0, 1)) = 0.5
         _ShineIntensity ("Shine Intensity", Range(0, 1)) = 0
-        _ShineRadius ("Shine Radius", Range(0.05, 0.6)) = 0.25
+        _ShineRadius ("Shine Radius", Range(0.05, 1.0)) = 0.4
 
         _StencilComp ("Stencil Comparison", Float) = 8
         _Stencil ("Stencil ID", Float) = 0
@@ -108,8 +108,8 @@ Shader "UI/CardShine"
                 shine = shine * shine; // quadratic falloff for softness
                 shine *= _ShineIntensity;
 
-                // Output as additive white glow
-                fixed4 color = fixed4(1, 1, 1, shine * 0.18);
+                // Output as additive white glow (strong enough to be visible)
+                fixed4 color = fixed4(1, 1, 1, shine * 0.55);
 
                 #ifdef UNITY_UI_CLIP_RECT
                 color.a *= UnityGet2DClipping(IN.worldPosition.xy, _ClipRect);

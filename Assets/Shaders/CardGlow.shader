@@ -5,8 +5,8 @@ Shader "UI/CardGlow"
         [PerRendererData] _MainTex ("Sprite Texture", 2D) = "white" {}
         _Color ("Tint", Color) = (1,1,1,1)
         _GlowColor ("Glow Color", Color) = (0.29, 0.87, 0.5, 0.75)
-        _GlowIntensity ("Glow Intensity", Range(0, 2)) = 0
-        _GlowWidth ("Glow Width", Range(0, 0.15)) = 0.06
+        _GlowIntensity ("Glow Intensity", Range(0, 4)) = 0
+        _GlowWidth ("Glow Width", Range(0, 0.25)) = 0.12
         _AnimSpeed ("Animation Speed", Float) = 1.5
 
         _StencilComp ("Stencil Comparison", Float) = 8
@@ -114,15 +114,19 @@ Shader "UI/CardGlow"
                     float normalizedAngle = (angle + 3.14159265) / 6.28318530; // 0..1
                     float animAngle = frac(normalizedAngle - _Time.y * _AnimSpeed);
 
-                    // Trail: bright head, fading tail
-                    float trail = saturate(1.0 - animAngle * 4.0); // head = 1, tail fades over 25%
-                    trail = trail * trail; // sharpen
+                    // Trail: bright head, long fading tail (50% of circumference)
+                    float trail = saturate(1.0 - animAngle * 2.0);
+                    trail = trail * trail * trail; // cubic for sharp head + long tail
 
-                    // Edge falloff
+                    // Edge falloff — brighter near edge, softer fade inward
                     float edgeFactor = 1.0 - (distFromEdge / _GlowWidth);
-                    edgeFactor = edgeFactor * edgeFactor;
+                    edgeFactor = sqrt(edgeFactor); // softer falloff
 
-                    float glowStrength = trail * edgeFactor * _GlowIntensity;
+                    // Constant base glow along all edges (so border is always visible)
+                    float baseGlow = edgeFactor * 0.3;
+                    float animGlow = trail * edgeFactor;
+                    float glowStrength = (baseGlow + animGlow) * _GlowIntensity;
+
                     color.rgb += _GlowColor.rgb * glowStrength;
                     color.a = max(color.a, _GlowColor.a * glowStrength);
                 }
