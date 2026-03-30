@@ -815,29 +815,15 @@ namespace FWTCG.Editor
             var img = go.AddComponent<Image>();
             img.color = GameColors.PileBackground;
 
-            // Tag label — top center
-            var tagGO = new GameObject("HeroTag");
-            tagGO.transform.SetParent(go.transform, false);
-            var tagRT = tagGO.AddComponent<RectTransform>();
-            tagRT.anchorMin = new Vector2(0f, 0.88f);
-            tagRT.anchorMax = new Vector2(1f, 1f);
-            tagRT.offsetMin = Vector2.zero;
-            tagRT.offsetMax = Vector2.zero;
-            var tagText = tagGO.AddComponent<Text>();
-            tagText.text = "英雄位";
-            tagText.color = GameColors.Gold;
-            tagText.fontSize = 10;
-            tagText.alignment = TextAnchor.MiddleCenter;
-            if (_font != null) tagText.font = _font;
-
-            // Card slot — centered in remaining area
+            // Card slot — centered, card aspect ratio (2:3)
             var slotGO = new GameObject("HeroSlot");
             slotGO.transform.SetParent(go.transform, false);
             var slotRT = slotGO.AddComponent<RectTransform>();
-            slotRT.anchorMin = new Vector2(0.1f, 0.05f);
-            slotRT.anchorMax = new Vector2(0.9f, 0.85f);
-            slotRT.offsetMin = Vector2.zero;
-            slotRT.offsetMax = Vector2.zero;
+            // Center in parent, fixed card-shaped size
+            slotRT.anchorMin = new Vector2(0.5f, 0.5f);
+            slotRT.anchorMax = new Vector2(0.5f, 0.5f);
+            slotRT.pivot = new Vector2(0.5f, 0.5f);
+            slotRT.sizeDelta = new Vector2(80f, 120f);
 
             heroContainer = slotGO.transform;
         }
@@ -886,58 +872,68 @@ namespace FWTCG.Editor
             var img = go.AddComponent<Image>();
             img.color = isPlayer ? new Color(0.1f, 0.05f, 0.2f, 0.9f) : new Color(0.2f, 0.05f, 0.05f, 0.9f);
 
-            var vlg = go.AddComponent<VerticalLayoutGroup>();
-            vlg.childControlWidth = true;
-            vlg.childControlHeight = false;
-            vlg.childForceExpandWidth = true;
-            vlg.childForceExpandHeight = false;
-            vlg.padding = new RectOffset(4, 4, 2, 2);
-            vlg.spacing = 2f;
+            // Card-shaped area centered (same 80x120 as hand cards)
+            // -- LegendArt will be overlaid at runtime by RefreshLegendArt (ignoreLayout)
 
-            // Title
-            string titleStr = isPlayer ? "传奇" : "AI传奇";
-            Color titleColor = isPlayer ? new Color(1f, 0.85f, 0.3f, 1f) : new Color(1f, 0.5f, 0.5f, 1f);
-            var titleGO = new GameObject("LegendTitle");
-            titleGO.transform.SetParent(go.transform, false);
-            var titleLE = titleGO.AddComponent<LayoutElement>();
-            titleLE.preferredHeight = 14f;
-            var titleT = titleGO.AddComponent<Text>();
-            titleT.text = titleStr;
-            titleT.color = titleColor;
-            titleT.fontSize = 10;
-            titleT.alignment = TextAnchor.MiddleCenter;
-            titleT.horizontalOverflow = HorizontalWrapMode.Overflow;
-            titleT.verticalOverflow   = VerticalWrapMode.Overflow;
-            if (_font != null) titleT.font = _font;
-
-            // Legend info text (NO HP — legends are indestructible, Rule 167.3)
+            // Legend name text — top overlay
             var textGO = new GameObject(isPlayer ? "LegendText" : "EnemyLegendText");
             textGO.transform.SetParent(go.transform, false);
-            var textLE = textGO.AddComponent<LayoutElement>();
-            textLE.preferredHeight = 22f;
+            var textRT = textGO.AddComponent<RectTransform>();
+            textRT.anchorMin = new Vector2(0f, 0.78f);
+            textRT.anchorMax = new Vector2(1f, 0.95f);
+            textRT.offsetMin = Vector2.zero;
+            textRT.offsetMax = Vector2.zero;
             legendText = textGO.AddComponent<Text>();
             legendText.text = isPlayer ? "卡莎" : "易大师";
             legendText.color = Color.white;
-            legendText.fontSize = 11;
+            legendText.fontSize = 10;
             legendText.alignment = TextAnchor.MiddleCenter;
             legendText.horizontalOverflow = HorizontalWrapMode.Wrap;
             legendText.verticalOverflow   = VerticalWrapMode.Overflow;
             if (_font != null) legendText.font = _font;
+            // Shadow for readability over art
+            var textShadow = textGO.AddComponent<Shadow>();
+            textShadow.effectColor = new Color(0f, 0f, 0f, 0.9f);
+            textShadow.effectDistance = new Vector2(1f, -1f);
 
-            // Skill button (player only)
+            // Skill button (player only) — bottom overlay
             skillBtn = null;
             if (isPlayer)
             {
-                skillBtn = CreateDebugButton(go.transform, "虚空感知", new Color(0.4f, 0.1f, 0.8f, 1f));
-                var skillLE = skillBtn.GetComponent<LayoutElement>();
-                if (skillLE != null) skillLE.preferredHeight = 22f;
+                var skillGO = new GameObject("SkillBtn");
+                skillGO.transform.SetParent(go.transform, false);
+                var skillRT = skillGO.AddComponent<RectTransform>();
+                skillRT.anchorMin = new Vector2(0.05f, 0.02f);
+                skillRT.anchorMax = new Vector2(0.95f, 0.18f);
+                skillRT.offsetMin = Vector2.zero;
+                skillRT.offsetMax = Vector2.zero;
+                var skillImg = skillGO.AddComponent<Image>();
+                skillImg.color = new Color(0.4f, 0.1f, 0.8f, 1f);
+                skillBtn = skillGO.AddComponent<Button>();
+                var skillLabel = new GameObject("Label");
+                skillLabel.transform.SetParent(skillGO.transform, false);
+                var skillLabelRT = skillLabel.AddComponent<RectTransform>();
+                skillLabelRT.anchorMin = Vector2.zero;
+                skillLabelRT.anchorMax = Vector2.one;
+                skillLabelRT.offsetMin = Vector2.zero;
+                skillLabelRT.offsetMax = Vector2.zero;
+                var skillText = skillLabel.AddComponent<Text>();
+                skillText.text = "虚空感知";
+                skillText.color = Color.white;
+                skillText.fontSize = 10;
+                skillText.alignment = TextAnchor.MiddleCenter;
+                if (_font != null) skillText.font = _font;
             }
             else
             {
+                // Enemy passive text — bottom overlay
                 var passiveGO = new GameObject("PassiveText");
                 passiveGO.transform.SetParent(go.transform, false);
-                var passiveLE = passiveGO.AddComponent<LayoutElement>();
-                passiveLE.preferredHeight = 16f;
+                var passiveRT = passiveGO.AddComponent<RectTransform>();
+                passiveRT.anchorMin = new Vector2(0f, 0.02f);
+                passiveRT.anchorMax = new Vector2(1f, 0.18f);
+                passiveRT.offsetMin = Vector2.zero;
+                passiveRT.offsetMax = Vector2.zero;
                 var passiveT = passiveGO.AddComponent<Text>();
                 passiveT.text = "[被动] 无极剑道";
                 passiveT.color = new Color(0.7f, 0.7f, 0.7f, 1f);
@@ -946,6 +942,9 @@ namespace FWTCG.Editor
                 passiveT.horizontalOverflow = HorizontalWrapMode.Wrap;
                 passiveT.verticalOverflow   = VerticalWrapMode.Overflow;
                 if (_font != null) passiveT.font = _font;
+                var passiveShadow = passiveGO.AddComponent<Shadow>();
+                passiveShadow.effectColor = new Color(0f, 0f, 0f, 0.9f);
+                passiveShadow.effectDistance = new Vector2(1f, -1f);
             }
 
             return go;
@@ -1272,7 +1271,7 @@ namespace FWTCG.Editor
         private static GameObject CreateCoinFlipPanel(Transform parent,
             out Text coinFlipText, out Button okButton)
         {
-            var go = CreateFullscreenPanel(parent, "CoinFlipPanel", new Color(0f, 0f, 0f, 0.85f));
+            var go = CreateFullscreenPanel(parent, "CoinFlipPanel", new Color(0.02f, 0.04f, 0.07f, 0.97f));
 
             var vlg = go.AddComponent<VerticalLayoutGroup>();
             vlg.childControlWidth = false;
