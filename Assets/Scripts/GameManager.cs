@@ -160,6 +160,7 @@ namespace FWTCG
             TurnManager.OnMessage += HandleMessage;
             TurnManager.OnPhaseChanged += HandlePhaseChanged;
             CombatSystem.OnCombatLog += HandleMessage;
+            CombatSystem.OnCombatResult += HandleCombatResult;
             ScoreManager.OnGameOver += HandleGameOver;
             ScoreManager.OnScoreChanged += HandleMessage;
             SpellSystem.OnSpellLog += HandleMessage;
@@ -172,6 +173,7 @@ namespace FWTCG
             TurnManager.OnMessage -= HandleMessage;
             TurnManager.OnPhaseChanged -= HandlePhaseChanged;
             CombatSystem.OnCombatLog -= HandleMessage;
+            CombatSystem.OnCombatResult -= HandleCombatResult;
             ScoreManager.OnGameOver -= HandleGameOver;
             ScoreManager.OnScoreChanged -= HandleMessage;
             SpellSystem.OnSpellLog -= HandleMessage;
@@ -856,6 +858,11 @@ namespace FWTCG
                 _ui.ShowDiscardViewer(_gs.GetDiscard(owner), owner == GameRules.OWNER_PLAYER ? "玩家弃牌堆" : "敌方弃牌堆");
             else if (pileType == "exile")
                 _ui.ShowExileViewer(_gs.GetExile(owner), owner == GameRules.OWNER_PLAYER ? "玩家放逐堆" : "敌方放逐堆");
+        }
+
+        private void HandleCombatResult(CombatSystem.CombatResult result)
+        {
+            if (_ui != null) _ui.ShowCombatResult(result);
         }
 
         private void HandleGameOver(string msg)

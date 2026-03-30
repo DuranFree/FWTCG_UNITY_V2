@@ -1155,6 +1155,50 @@ namespace FWTCG.UI
                 _timerText.color = timerColor;
         }
 
+        // ── Combat result display (DEV-10) ───────────────────────────────────
+        [SerializeField] private GameObject _combatResultPanel;
+        [SerializeField] private Text _crAttackerText;
+        [SerializeField] private Text _crDefenderText;
+        [SerializeField] private Text _crVsText;
+        [SerializeField] private Text _crOutcomeText;
+        [SerializeField] private Text _crBfNameText;
+
+        public void ShowCombatResult(Systems.CombatSystem.CombatResult result)
+        {
+            if (_combatResultPanel == null) return;
+
+            if (_crBfNameText != null) _crBfNameText.text = $"⚔ {result.BFName}";
+            if (_crAttackerText != null)
+            {
+                _crAttackerText.text = $"{result.AttackerName}\n⚔ {result.AttackerPower}";
+                _crAttackerText.color = result.AttackerName == "玩家" ? GameColors.PlayerGreen : GameColors.EnemyRed;
+            }
+            if (_crDefenderText != null)
+            {
+                _crDefenderText.text = $"{result.DefenderName}\n🛡 {result.DefenderPower}";
+                _crDefenderText.color = result.DefenderName == "玩家" ? GameColors.PlayerGreen : GameColors.EnemyRed;
+            }
+            if (_crOutcomeText != null)
+            {
+                switch (result.Outcome)
+                {
+                    case "attacker_win": _crOutcomeText.text = $"🏆 {result.AttackerName} 征服！"; _crOutcomeText.color = GameColors.PlayerGreen; break;
+                    case "defender_win": _crOutcomeText.text = $"🛡 {result.DefenderName} 防守成功"; _crOutcomeText.color = GameColors.EnemyRed; break;
+                    case "both_survive": _crOutcomeText.text = "⚖ 双方存活，攻方召回"; _crOutcomeText.color = GameColors.GoldLight; break;
+                    case "both_dead": _crOutcomeText.text = "💀 同归于尽"; _crOutcomeText.color = new Color(0.7f, 0.7f, 0.7f, 1f); break;
+                }
+            }
+
+            _combatResultPanel.SetActive(true);
+            StartCoroutine(HideCombatResult());
+        }
+
+        private IEnumerator HideCombatResult()
+        {
+            yield return new WaitForSeconds(2.5f);
+            if (_combatResultPanel != null) _combatResultPanel.SetActive(false);
+        }
+
         // ── Discard/Exile click setup (DEV-10) ──────────────────────────────
 
         private Action<string, string> _onPileClicked; // (owner, pileType)

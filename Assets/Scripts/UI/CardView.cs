@@ -32,6 +32,9 @@ namespace FWTCG.UI
         [SerializeField] private Text _schCostText;
         [SerializeField] private Image _schCostBg;
 
+        // DEV-10: exhausted overlay (gray dimming)
+        [SerializeField] private Image _exhaustedOverlay;
+
         private UnitInstance _unit;
         private bool _isPlayerCard;
         private Action<UnitInstance> _onClick;
@@ -184,6 +187,10 @@ namespace FWTCG.UI
                     _stunPulse = null;
                 }
             }
+
+            // Exhausted overlay (gray dim)
+            if (_exhaustedOverlay != null)
+                _exhaustedOverlay.gameObject.SetActive(_unit.Exhausted && !_unit.Stunned);
 
             // Glow border (playable = affordable + not exhausted for hand cards)
             if (_cardGlow != null)

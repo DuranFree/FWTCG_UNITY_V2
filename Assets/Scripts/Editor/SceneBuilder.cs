@@ -186,6 +186,11 @@ namespace FWTCG.Editor
             // ── BannerPanel ───────────────────────────────────────────────────
             var bannerPanel = CreateBannerPanel(canvasGO.transform, out var bannerText);
 
+            // ── CombatResultPanel (DEV-10: shows power comparison after combat) ──
+            var combatResultPanel = CreateCombatResultPanel(canvasGO.transform,
+                out var crAttackerText, out var crDefenderText,
+                out var crVsText, out var crOutcomeText, out var crBfNameText);
+
             // ── ToastPanel ────────────────────────────────────────────────────
             var toastPanel = CreateToastPanel(canvasGO.transform, out var toastText);
 
@@ -444,6 +449,15 @@ namespace FWTCG.Editor
                 guiSO2.FindProperty("_debugPanel").objectReferenceValue = debugPanel;
                 var debugTitleBtn = debugPanel.transform.Find("DebugTitle")?.GetComponent<Button>();
                 guiSO2.FindProperty("_debugToggleBtn").objectReferenceValue = debugTitleBtn;
+
+                // Combat result panel
+                guiSO2.FindProperty("_combatResultPanel").objectReferenceValue = combatResultPanel;
+                guiSO2.FindProperty("_crAttackerText").objectReferenceValue = crAttackerText;
+                guiSO2.FindProperty("_crDefenderText").objectReferenceValue = crDefenderText;
+                guiSO2.FindProperty("_crVsText").objectReferenceValue = crVsText;
+                guiSO2.FindProperty("_crOutcomeText").objectReferenceValue = crOutcomeText;
+                guiSO2.FindProperty("_crBfNameText").objectReferenceValue = crBfNameText;
+
                 guiSO2.ApplyModifiedPropertiesWithoutUndo();
             }
 
@@ -1929,6 +1943,19 @@ namespace FWTCG.Editor
             stunnedRT.offsetMax = Vector2.zero;
             stunnedGO.SetActive(false);
 
+            // ── DEV-10: Exhausted overlay (gray dim, starts inactive) ──
+            var exhaustedGO = new GameObject("ExhaustedOverlay");
+            exhaustedGO.transform.SetParent(root.transform, false);
+            var exhaustedImg = exhaustedGO.AddComponent<Image>();
+            exhaustedImg.color = new Color(0.15f, 0.15f, 0.2f, 0.55f); // dark gray semi-transparent
+            exhaustedImg.raycastTarget = false;
+            var exhaustedRT = exhaustedGO.GetComponent<RectTransform>();
+            exhaustedRT.anchorMin = Vector2.zero;
+            exhaustedRT.anchorMax = Vector2.one;
+            exhaustedRT.offsetMin = Vector2.zero;
+            exhaustedRT.offsetMax = Vector2.zero;
+            exhaustedGO.SetActive(false);
+
             // ── DEV-8: Buff token icon (top-right corner, gold) ──
             var buffGO = new GameObject("BuffTokenIcon");
             buffGO.transform.SetParent(root.transform, false);
@@ -1977,6 +2004,7 @@ namespace FWTCG.Editor
             so.FindProperty("_buffTokenText").objectReferenceValue  = buffText;
             so.FindProperty("_schCostText").objectReferenceValue    = schText;
             so.FindProperty("_schCostBg").objectReferenceValue      = schBgImg;
+            so.FindProperty("_exhaustedOverlay").objectReferenceValue = exhaustedImg;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             // Save as prefab
@@ -2691,6 +2719,81 @@ namespace FWTCG.Editor
         }
 
         // ── Helpers ───────────────────────────────────────────────────────────
+
+        // ── DEV-10: Combat Result Panel ──────────────────────────────────────
+
+        private static GameObject CreateCombatResultPanel(Transform parent,
+            out Text attackerText, out Text defenderText,
+            out Text vsText, out Text outcomeText, out Text bfNameText)
+        {
+            var go = new GameObject("CombatResultPanel");
+            go.transform.SetParent(parent, false);
+
+            var rt = go.AddComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.2f, 0.35f);
+            rt.anchorMax = new Vector2(0.8f, 0.65f);
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+
+            var img = go.AddComponent<Image>();
+            img.color = new Color(0.02f, 0.06f, 0.12f, 0.92f);
+
+            var outline = go.AddComponent<Outline>();
+            outline.effectColor = new Color(0.78f, 0.67f, 0.43f, 0.6f);
+            outline.effectDistance = new Vector2(2f, -2f);
+
+            // BF name (top)
+            bfNameText = CreateTMPText(go.transform, "CRBFName", "战场", GameColors.Gold, 16, TextAnchor.MiddleCenter);
+            bfNameText.fontStyle = FontStyle.Bold;
+            var bfRT = bfNameText.GetComponent<RectTransform>();
+            bfRT.anchorMin = new Vector2(0.1f, 0.8f);
+            bfRT.anchorMax = new Vector2(0.9f, 0.95f);
+            bfRT.offsetMin = Vector2.zero;
+            bfRT.offsetMax = Vector2.zero;
+
+            // Attacker (left)
+            attackerText = CreateTMPText(go.transform, "CRAttacker", "玩家\n⚔ 0", GameColors.PlayerGreen, 28, TextAnchor.MiddleCenter);
+            attackerText.fontStyle = FontStyle.Bold;
+            attackerText.gameObject.AddComponent<Shadow>().effectColor = new Color(0f, 0f, 0f, 1f);
+            var atkTextRT = attackerText.GetComponent<RectTransform>();
+            atkTextRT.anchorMin = new Vector2(0.05f, 0.25f);
+            atkTextRT.anchorMax = new Vector2(0.4f, 0.78f);
+            atkTextRT.offsetMin = Vector2.zero;
+            atkTextRT.offsetMax = Vector2.zero;
+
+            // VS
+            vsText = CreateTMPText(go.transform, "CRVS", "VS", GameColors.GoldLight, 32, TextAnchor.MiddleCenter);
+            vsText.fontStyle = FontStyle.Bold;
+            vsText.gameObject.AddComponent<Shadow>().effectColor = new Color(0f, 0f, 0f, 1f);
+            var vsRT = vsText.GetComponent<RectTransform>();
+            vsRT.anchorMin = new Vector2(0.4f, 0.3f);
+            vsRT.anchorMax = new Vector2(0.6f, 0.7f);
+            vsRT.offsetMin = Vector2.zero;
+            vsRT.offsetMax = Vector2.zero;
+
+            // Defender (right)
+            defenderText = CreateTMPText(go.transform, "CRDefender", "AI\n🛡 0", GameColors.EnemyRed, 28, TextAnchor.MiddleCenter);
+            defenderText.fontStyle = FontStyle.Bold;
+            defenderText.gameObject.AddComponent<Shadow>().effectColor = new Color(0f, 0f, 0f, 1f);
+            var defRT = defenderText.GetComponent<RectTransform>();
+            defRT.anchorMin = new Vector2(0.6f, 0.25f);
+            defRT.anchorMax = new Vector2(0.95f, 0.78f);
+            defRT.offsetMin = Vector2.zero;
+            defRT.offsetMax = Vector2.zero;
+
+            // Outcome (bottom)
+            outcomeText = CreateTMPText(go.transform, "CROutcome", "结果", GameColors.GoldLight, 18, TextAnchor.MiddleCenter);
+            outcomeText.fontStyle = FontStyle.Bold;
+            outcomeText.gameObject.AddComponent<Shadow>().effectColor = new Color(0f, 0f, 0f, 1f);
+            var outRT = outcomeText.GetComponent<RectTransform>();
+            outRT.anchorMin = new Vector2(0.1f, 0.05f);
+            outRT.anchorMax = new Vector2(0.9f, 0.25f);
+            outRT.offsetMin = Vector2.zero;
+            outRT.offsetMax = Vector2.zero;
+
+            go.SetActive(false);
+            return go;
+        }
 
         // ── DEV-10: Viewer Panel (discard/exile card browser) ────────────────
 

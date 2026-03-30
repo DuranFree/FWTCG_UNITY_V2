@@ -20,6 +20,19 @@ namespace FWTCG.Systems
     {
         public static event Action<string> OnCombatLog;
 
+        /// <summary>Fired after combat resolves with structured result data.</summary>
+        public static event Action<CombatResult> OnCombatResult;
+
+        public struct CombatResult
+        {
+            public string BFName;
+            public string AttackerName;
+            public string DefenderName;
+            public int AttackerPower;
+            public int DefenderPower;
+            public string Outcome; // "attacker_win", "defender_win", "both_survive", "both_dead"
+        }
+
         [SerializeField] private DeathwishSystem _deathwish;
         [SerializeField] private LegendSystem _legendSys;
         [SerializeField] private BattlefieldSystem _bfSys;
@@ -189,8 +202,9 @@ namespace FWTCG.Systems
             int attackerPower = ComputeCombatPower(attackerUnits, isAttacking: true);
             int defenderPower = ComputeCombatPower(defenderUnits, isAttacking: false);
 
-            Log($"[法术对决] 战场{bfId + 1}: {DisplayName(attacker)}({attackerPower}) vs {DisplayName(defender)}({defenderPower})");
-            TurnManager.ShowBanner_Static($"⚔ 法术对决！战场{bfId + 1}");
+            string rawBfId = (gs.BFNames != null && gs.BFNames.Length > bfId && gs.BFNames[bfId] != null) ? gs.BFNames[bfId] : null;
+            string bfDisplayName = rawBfId != null ? GameRules.GetBattlefieldDisplayName(rawBfId) : $"战场{bfId + 1}";
+            Log($"[法术对决] {bfDisplayName}: {DisplayName(attacker)}({attackerPower}) vs {DisplayName(defender)}({defenderPower})");
 
             List<UnitInstance> deadDefenders = DistributeDamage(attackerPower, defenderUnits);
             List<UnitInstance> deadAttackers = DistributeDamage(defenderPower, attackerUnits);
@@ -247,6 +261,21 @@ namespace FWTCG.Systems
                 bf.Ctrl = null;
                 Log($"[战斗] 同归于尽！战场{bfId + 1} 无人控制");
             }
+
+            // Fire combat result event for UI display
+            string outcome = (attackerSurvivors && defenderSurvivors) ? "both_survive"
+                : (attackerSurvivors && !defenderSurvivors) ? "attacker_win"
+                : (!attackerSurvivors && defenderSurvivors) ? "defender_win"
+                : "both_dead";
+            OnCombatResult?.Invoke(new CombatResult
+            {
+                BFName = bfDisplayName,
+                AttackerName = DisplayName(attacker),
+                DefenderName = DisplayName(defender),
+                AttackerPower = attackerPower,
+                DefenderPower = defenderPower,
+                Outcome = outcome
+            });
 
             // #10: Reset ALL units in ALL locations (Rule 627.5)
             ResetAllUnits(gs);
