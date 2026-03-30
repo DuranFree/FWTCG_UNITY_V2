@@ -352,6 +352,41 @@ namespace FWTCG.UI
                 _bf2CtrlText.text = $"{bf2Name}\n{CtrlLabel(gs.BF[1].Ctrl)}";
             }
 
+            // Load battlefield card art (landscape images)
+            if (gs.BFNames != null)
+            {
+                LoadBFCardArt(_bf1PlayerContainer, gs.BFNames.Length > 0 ? gs.BFNames[0] : null);
+                LoadBFCardArt(_bf2PlayerContainer, gs.BFNames.Length > 1 ? gs.BFNames[1] : null);
+            }
+        }
+
+        private static readonly Dictionary<string, Sprite> _bfArtCache = new Dictionary<string, Sprite>();
+
+        private void LoadBFCardArt(Transform bfPlayerContainer, string bfId)
+        {
+            if (bfPlayerContainer == null || string.IsNullOrEmpty(bfId)) return;
+
+            // BFCardArt is a sibling of BF*PlayerUnits inside the BF panel
+            Transform panel = bfPlayerContainer.parent;
+            if (panel == null) return;
+            Transform artSlot = panel.Find("BFCardArt");
+            if (artSlot == null) return;
+
+            Image artImg = artSlot.GetComponent<Image>();
+            if (artImg == null) return;
+
+            // Load from cache or Resources
+            if (!_bfArtCache.TryGetValue(bfId, out Sprite sprite) || sprite == null)
+            {
+                sprite = Resources.Load<Sprite>($"CardArt/bf_{bfId}");
+                if (sprite != null) _bfArtCache[bfId] = sprite;
+            }
+
+            if (sprite != null)
+            {
+                artImg.sprite = sprite;
+                artImg.color = Color.white;
+            }
         }
 
         private void RefreshRunes(GameState gs)
