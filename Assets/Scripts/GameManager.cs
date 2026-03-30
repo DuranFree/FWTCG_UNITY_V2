@@ -192,6 +192,7 @@ namespace FWTCG
                     onCardRightClick: OnCardRightClicked
                 );
                 _ui.SetPileClickCallback(OnPileClicked);
+                _ui.WirePileButtons();
             }
 
             InitGame();

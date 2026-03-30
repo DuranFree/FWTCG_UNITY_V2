@@ -609,11 +609,13 @@ namespace FWTCG.Editor
                 0.825f, 0.955f, 0.75f, 0.87f, out enemyDeckCount);
 
             // ── PLAYER SIDE (bottom) — diagonal mirror ──
+            // CSS: #p-main-pile { grid-column: 2; grid-row: 5; }
             CreateDeckPile(go.transform, "PlayerMainPile", "主牌堆",
-                0.045f, 0.175f, 0.13f, 0.25f, out playerDeckCount);
+                0.045f, 0.175f, 0.00f, 0.12f, out playerDeckCount);
 
+            // CSS: #p-rune-pile { grid-column: 3; grid-row: 5; }
             CreateDeckPile(go.transform, "PlayerRunePile", "符文堆",
-                0.175f, 0.305f, 0.13f, 0.25f, out playerRunePileCount);
+                0.175f, 0.305f, 0.00f, 0.12f, out playerRunePileCount);
 
             // CSS: #pdiscard-exile-wrap { grid-column: 2/4; grid-row: 4; }
             CreateDiscardExileZone(go.transform, "Player",
@@ -1060,24 +1062,33 @@ namespace FWTCG.Editor
             badgeTextRT.offsetMin = Vector2.zero;
             badgeTextRT.offsetMax = Vector2.zero;
 
-            // BF name label
-            var lbl = CreateTMPText(labelRow.transform, labelName, labelText, Color.white, 14, TextAnchor.MiddleCenter);
-            var lblShadow = lbl.gameObject.AddComponent<Shadow>();
-            lblShadow.effectColor = new Color(0f, 0f, 0f, 0.9f);
-            lblShadow.effectDistance = new Vector2(1f, -1f);
-
-            // BF card art (horizontal/landscape, below label)
-            var bfArtRow = new GameObject("BFArtRow");
-            bfArtRow.transform.SetParent(panel.transform, false);
-            bfArtRow.AddComponent<RectTransform>();
-            var bfArtLE = bfArtRow.AddComponent<LayoutElement>();
-            bfArtLE.preferredHeight = 50f;
-            bfArtLE.flexibleHeight = 0f;
-            var bfArtImg = bfArtRow.AddComponent<Image>();
-            bfArtImg.color = new Color(0.1f, 0.15f, 0.2f, 0.5f); // placeholder; runtime loads real art
-            bfArtImg.preserveAspect = true;
+            // BF card art — BEHIND label text (art fills label row, text overlays)
+            var bfArtGO = new GameObject("BFCardArt");
+            bfArtGO.transform.SetParent(labelRow.transform, false);
+            var bfArtRT = bfArtGO.AddComponent<RectTransform>();
+            // Fill entire label row as background
+            bfArtRT.anchorMin = Vector2.zero;
+            bfArtRT.anchorMax = Vector2.one;
+            bfArtRT.offsetMin = Vector2.zero;
+            bfArtRT.offsetMax = Vector2.zero;
+            bfArtRT.SetAsFirstSibling(); // behind text
+            var bfArtLE2 = bfArtGO.AddComponent<LayoutElement>();
+            bfArtLE2.ignoreLayout = true; // don't participate in HLG
+            var bfArtImg = bfArtGO.AddComponent<Image>();
+            bfArtImg.color = new Color(1f, 1f, 1f, 0.4f); // semi-transparent so text readable
+            bfArtImg.preserveAspect = false; // stretch to fill (landscape)
             bfArtImg.raycastTarget = false;
-            bfArtRow.name = "BFCardArt";
+
+            // BF name label (on top of art)
+            var lbl = CreateTMPText(labelRow.transform, labelName, labelText, Color.white, 14, TextAnchor.MiddleCenter);
+            lbl.fontStyle = FontStyle.Bold;
+            var lblShadow = lbl.gameObject.AddComponent<Shadow>();
+            lblShadow.effectColor = new Color(0f, 0f, 0f, 1f);
+            lblShadow.effectDistance = new Vector2(1f, -1f);
+            // Double shadow for better readability
+            var lblOutline = lbl.gameObject.AddComponent<Outline>();
+            lblOutline.effectColor = new Color(0f, 0f, 0f, 0.8f);
+            lblOutline.effectDistance = new Vector2(1f, -1f);
 
             // Player units zone
             CreateHorizontalZone(panel.transform, playerZoneName);
@@ -1964,7 +1975,7 @@ namespace FWTCG.Editor
         {
             var root = new GameObject("RunePrefab");
             var rootRT = root.AddComponent<RectTransform>();
-            rootRT.sizeDelta = new Vector2(38f, 56f); // CSS rune: 26px circle + label + recycle btn
+            rootRT.sizeDelta = new Vector2(40f, 50f); // circle + label (no recycle btn)
 
             // Vertical layout: circle + label + recycle button
             var vlg = root.AddComponent<VerticalLayoutGroup>();
@@ -1980,7 +1991,7 @@ namespace FWTCG.Editor
             var circleGO = new GameObject("RuneCircle");
             circleGO.transform.SetParent(root.transform, false);
             var circleRT = circleGO.AddComponent<RectTransform>();
-            circleRT.sizeDelta = new Vector2(26f, 26f); // CSS: .rune { width:26px; height:26px }
+            circleRT.sizeDelta = new Vector2(34f, 34f); // bigger without recycle btn
 
             // Circular mask
             var mask = circleGO.AddComponent<Mask>();
@@ -2020,24 +2031,10 @@ namespace FWTCG.Editor
             circleGO.AddComponent<Button>();
 
             // ── Label text (type + status) ──
-            var labelText = CreateTMPText(root.transform, "RuneTypeText", "炽 就绪", Color.white, 7, TextAnchor.MiddleCenter);
+            var labelText = CreateTMPText(root.transform, "RuneTypeText", "炽 就绪", Color.white, 8, TextAnchor.MiddleCenter);
+            labelText.gameObject.AddComponent<Shadow>().effectColor = new Color(0f, 0f, 0f, 1f);
             var labelRT = labelText.GetComponent<RectTransform>();
-            labelRT.sizeDelta = new Vector2(36f, 12f);
-
-            // ── Recycle button ──
-            var recycleGO = new GameObject("RecycleButton");
-            recycleGO.transform.SetParent(root.transform, false);
-            var recycleRT = recycleGO.AddComponent<RectTransform>();
-            recycleRT.sizeDelta = new Vector2(32f, 11f);
-            var recycleImg = recycleGO.AddComponent<Image>();
-            recycleImg.color = new Color(0.47f, 0.35f, 0.16f, 0.5f);
-            var recycleBtn = recycleGO.AddComponent<Button>();
-            var recycleLbl = CreateTMPText(recycleGO.transform, "RecycleLabel", "♻回收", GameColors.GoldLight, 7, TextAnchor.MiddleCenter);
-            var recycleLblRT = recycleLbl.GetComponent<RectTransform>();
-            recycleLblRT.anchorMin = Vector2.zero;
-            recycleLblRT.anchorMax = Vector2.one;
-            recycleLblRT.offsetMin = Vector2.zero;
-            recycleLblRT.offsetMax = Vector2.zero;
+            labelRT.sizeDelta = new Vector2(40f, 14f);
 
             var prefab = PrefabUtility.SaveAsPrefabAsset(root, "Assets/Prefabs/RunePrefab.prefab");
             Object.DestroyImmediate(root);

@@ -366,10 +366,11 @@ namespace FWTCG.UI
         {
             if (bfPlayerContainer == null || string.IsNullOrEmpty(bfId)) return;
 
-            // BFCardArt is a sibling of BF*PlayerUnits inside the BF panel
+            // BFCardArt is inside LabelRow inside the BF panel
             Transform panel = bfPlayerContainer.parent;
             if (panel == null) return;
-            Transform artSlot = panel.Find("BFCardArt");
+            Transform labelRow = panel.Find("LabelRow");
+            Transform artSlot = labelRow != null ? labelRow.Find("BFCardArt") : panel.Find("BFCardArt");
             if (artSlot == null) return;
 
             Image artImg = artSlot.GetComponent<Image>();
@@ -718,12 +719,27 @@ namespace FWTCG.UI
                     }
                 }
 
-                // Recycle button
-                Button recycleBtn = FindChildButton(go, "RecycleButton");
-                if (recycleBtn != null)
+                // Right-click = recycle (via EventTrigger on root)
+                if (isPlayer)
                 {
-                    recycleBtn.interactable = isPlayer && !r.Tapped;
-                    recycleBtn.onClick.AddListener(() => _onRuneClicked?.Invoke(idx, true));
+                    var et = go.AddComponent<UnityEngine.EventSystems.EventTrigger>();
+                    var entry = new UnityEngine.EventSystems.EventTrigger.Entry();
+                    entry.eventID = UnityEngine.EventSystems.EventTriggerType.PointerClick;
+                    int capturedIdx = idx;
+                    entry.callback.AddListener((data) =>
+                    {
+                        var pd = (UnityEngine.EventSystems.PointerEventData)data;
+                        if (pd.button == UnityEngine.EventSystems.PointerEventData.InputButton.Right)
+                            _onRuneClicked?.Invoke(capturedIdx, true); // recycle
+                    });
+                    et.triggers.Add(entry);
+
+                    // Need an Image on root for raycast
+                    if (go.GetComponent<Image>() == null)
+                    {
+                        var rootImg = go.AddComponent<Image>();
+                        rootImg.color = new Color(0f, 0f, 0f, 0.01f);
+                    }
                 }
             }
         }
@@ -1107,6 +1123,27 @@ namespace FWTCG.UI
         public void SetPileClickCallback(Action<string, string> callback)
         {
             _onPileClicked = callback;
+        }
+
+        /// <summary>Wire discard/exile pile buttons (call once after scene loads).</summary>
+        public void WirePileButtons()
+        {
+            // Find discard/exile buttons by traversing the count text parents
+            WireSinglePileButton(_playerDiscardCountText, GameRules.OWNER_PLAYER, "discard");
+            WireSinglePileButton(_playerExileCountText, GameRules.OWNER_PLAYER, "exile");
+            WireSinglePileButton(_enemyDiscardCountText, GameRules.OWNER_ENEMY, "discard");
+            WireSinglePileButton(_enemyExileCountText, GameRules.OWNER_ENEMY, "exile");
+        }
+
+        private void WireSinglePileButton(Text countText, string owner, string pileType)
+        {
+            if (countText == null) return;
+            // The count text's grandparent (Discard/Exile GO) has a Button
+            Transform pileGO = countText.transform.parent;
+            if (pileGO == null) return;
+            Button btn = pileGO.GetComponent<Button>();
+            if (btn == null) return;
+            btn.onClick.AddListener(() => _onPileClicked?.Invoke(owner, pileType));
         }
 
         // ── Utility ───────────────────────────────────────────────────────────
