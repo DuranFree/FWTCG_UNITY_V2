@@ -2,6 +2,29 @@
 
 ---
 
+## DEV-12：AI符文回收 + 征服触发 + 系统确认 — 2026-03-31
+
+**Status**: ✅ Completed
+
+**技术决策**:
+- AI符文回收：优先回收已横置同类型符文，不足时再牺牲未横置符文
+- bad_poro征服触发：CombatSystem.CheckUnitConquestTriggers 在征服后遍历攻方所有Conquest关键词单位
+- 游戏结束和横幅系统已在DEV-9存在，确认标记完成
+
+**新功能**:
+- SimpleAI: AiRecycleRunes（智能回收符文获取符能，优先tapped→untapped）
+- CombatSystem: CheckUnitConquestTriggers（征服后触发bad_poro等Conquest效果）
+- bad_poro征服效果：摸1张牌
+
+**修改文件**:
+- `Assets/Scripts/AI/SimpleAI.cs`（+AiRecycleRunes方法+step 1b调用）
+- `Assets/Scripts/Systems/CombatSystem.cs`（+CheckUnitConquestTriggers方法）
+- `Assets/Tests/EditMode/DEV12AITests.cs`（新建，8个测试）
+
+**测试结果**: 242 全绿（8 新 + 234 现有），0 失败
+
+---
+
 ## DEV-11：符文Bug修复 + 剩余法术效果 + 入场效果 — 2026-03-31
 
 **Status**: ✅ Completed

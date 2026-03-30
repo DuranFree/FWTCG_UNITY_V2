@@ -60,6 +60,11 @@ namespace FWTCG.AI
             await Delay(GameRules.AI_ACTION_DELAY_MS);
             if (gs.GameOver) return;
 
+            // ── 1b. Recycle runes for schematic energy if needed ─────────────
+            AiRecycleRunes(gs);
+            await Delay(GameRules.AI_ACTION_DELAY_MS);
+            if (gs.GameOver) return;
+
             // ── 2. Compute reactive mana reserve ──────────────────────────────
             int reactiveReserve = AiMinReactiveCost(gs);
 
@@ -602,6 +607,76 @@ namespace FWTCG.AI
             for (int i = 0; i < GameRules.BATTLEFIELD_COUNT; i++)
                 list.AddRange(gs.BF[i].EnemyUnits);
             return list;
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // ── AI Rune Recycle ──────────────────────────────────────────────────
+        // ═══════════════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// AI recycles runes to gain schematic energy when it has spells/units
+        /// needing sch but insufficient sch. Recycles tapped runes first (already
+        /// used for mana), then untapped runes of matching type if desperate.
+        /// </summary>
+        private static void AiRecycleRunes(GameState gs)
+        {
+            // Find all cards in hand that need schematic energy
+            var hand = gs.GetHand(GameRules.OWNER_ENEMY);
+            var neededSch = new Dictionary<RuneType, int>();
+
+            foreach (var card in hand)
+            {
+                if (card.CardData.RuneCost > 0)
+                {
+                    RuneType rt = card.CardData.RuneType;
+                    int have = gs.GetSch(GameRules.OWNER_ENEMY, rt);
+                    int need = card.CardData.RuneCost - have;
+                    if (need > 0)
+                    {
+                        if (!neededSch.ContainsKey(rt)) neededSch[rt] = 0;
+                        neededSch[rt] = Mathf.Max(neededSch[rt], need);
+                    }
+                }
+            }
+
+            if (neededSch.Count == 0) return;
+
+            var runes = gs.GetRunes(GameRules.OWNER_ENEMY);
+
+            // Prefer recycling tapped runes (already used) of matching type
+            foreach (var kv in neededSch)
+            {
+                RuneType targetType = kv.Key;
+                int remaining = kv.Value;
+
+                // First pass: recycle tapped runes of matching type
+                for (int i = runes.Count - 1; i >= 0 && remaining > 0; i--)
+                {
+                    if (runes[i].RuneType == targetType && runes[i].Tapped)
+                    {
+                        RuneInstance r = runes[i];
+                        runes.RemoveAt(i);
+                        gs.GetRuneDeck(GameRules.OWNER_ENEMY).Insert(0, r);
+                        gs.AddSch(GameRules.OWNER_ENEMY, r.RuneType, 1);
+                        remaining--;
+                        Log($"[AI回收] 回收已横置符文 {r.RuneType}，+1{r.RuneType}符能");
+                    }
+                }
+
+                // Second pass: recycle untapped runes if still need (sacrifice mana)
+                for (int i = runes.Count - 1; i >= 0 && remaining > 0; i--)
+                {
+                    if (runes[i].RuneType == targetType && !runes[i].Tapped)
+                    {
+                        RuneInstance r = runes[i];
+                        runes.RemoveAt(i);
+                        gs.GetRuneDeck(GameRules.OWNER_ENEMY).Insert(0, r);
+                        gs.AddSch(GameRules.OWNER_ENEMY, r.RuneType, 1);
+                        remaining--;
+                        Log($"[AI回收] 回收未横置符文 {r.RuneType}（牺牲法力），+1{r.RuneType}符能");
+                    }
+                }
+            }
         }
 
         // ── Logging/Delay helpers ─────────────────────────────────────────────

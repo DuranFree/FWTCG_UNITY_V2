@@ -246,6 +246,9 @@ namespace FWTCG.Systems
                 // Battlefield conquest-triggered effects
                 _bfSys?.OnConquest(bfId, attacker, gs);
 
+                // Unit conquest-triggered effects (cards with Conquest keyword)
+                CheckUnitConquestTriggers(attacker, gs);
+
                 // Defense failure effect for the losing player
                 _bfSys?.OnDefenseFailure(bfId, defender, gs);
             }
@@ -410,6 +413,42 @@ namespace FWTCG.Systems
             else
             {
                 Debug.LogWarning($"[CombatSystem] Unknown fromLoc: {fromLoc}");
+            }
+        }
+
+        /// <summary>
+        /// After a conquest, check if any of the conqueror's units have the Conquest keyword.
+        /// bad_poro: draw 1 card on conquest.
+        /// kaisa_hero: already handled by entry effect (adds sch).
+        /// </summary>
+        private void CheckUnitConquestTriggers(string attacker, GameState gs)
+        {
+            // Check all attacker's units (base + all BFs)
+            var allUnits = new List<UnitInstance>(gs.GetBase(attacker));
+            for (int i = 0; i < GameRules.BATTLEFIELD_COUNT; i++)
+            {
+                allUnits.AddRange(attacker == GameRules.OWNER_PLAYER
+                    ? gs.BF[i].PlayerUnits : gs.BF[i].EnemyUnits);
+            }
+
+            foreach (var unit in allUnits)
+            {
+                if (!unit.CardData.HasKeyword(Data.CardKeyword.Conquest)) continue;
+
+                switch (unit.CardData.EffectId)
+                {
+                    case "bad_poro_conquer":
+                        // Draw 1 card on conquest
+                        var deck = gs.GetDeck(attacker);
+                        var hand = gs.GetHand(attacker);
+                        if (deck.Count > 0)
+                        {
+                            hand.Add(deck[0]);
+                            deck.RemoveAt(0);
+                            Log($"[征服触发] {unit.UnitName} 征服效果：摸1张牌（手牌 {hand.Count}）");
+                        }
+                        break;
+                }
             }
         }
 
