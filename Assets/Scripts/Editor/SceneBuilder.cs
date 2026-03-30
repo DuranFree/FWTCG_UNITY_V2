@@ -1403,11 +1403,14 @@ namespace FWTCG.Editor
             vlg.padding = new RectOffset(4, 4, 4, 4);
             vlg.spacing = 4f;
 
-            // Title label
+            // Title bar with collapse toggle
             var titleGO = new GameObject("DebugTitle");
             titleGO.transform.SetParent(go.transform, false);
             var titleLE = titleGO.AddComponent<LayoutElement>();
             titleLE.preferredHeight = 22f;
+            var titleImg = titleGO.AddComponent<Image>();
+            titleImg.color = new Color(0f, 0f, 0f, 0.01f);
+            var titleBtn = titleGO.AddComponent<Button>();
             var titleT = titleGO.AddComponent<Text>();
             titleT.text = "── DEBUG ──";
             titleT.color = new Color(1f, 0.8f, 0.2f, 1f);
@@ -1422,6 +1425,18 @@ namespace FWTCG.Editor
             unitBtn     = CreateDebugButton(go.transform, "摸单位牌", new Color(0.2f, 0.4f, 0.8f, 1f));
             reactiveBtn = CreateDebugButton(go.transform, "摸反应牌", new Color(0.8f, 0.4f, 0.1f, 1f));
             manaBtn     = CreateDebugButton(go.transform, "+5 法力",  new Color(0.7f, 0.4f, 0.1f, 1f));
+
+            // Wire title click to toggle debug panel content visibility
+            titleBtn.onClick.AddListener(() =>
+            {
+                // Toggle all children except title
+                for (int i = 1; i < go.transform.childCount; i++)
+                    go.transform.GetChild(i).gameObject.SetActive(!go.transform.GetChild(i).gameObject.activeSelf);
+                // Collapse/expand height
+                bool collapsed = !go.transform.GetChild(1).gameObject.activeSelf;
+                rt.sizeDelta = collapsed ? new Vector2(130f, 30f) : new Vector2(130f, 215f);
+                titleT.text = collapsed ? "▶ DEBUG" : "── DEBUG ──";
+            });
 
             return go;
         }
@@ -1639,64 +1654,77 @@ namespace FWTCG.Editor
             out Text stateText, out Button closeButton)
         {
             // Fullscreen dimmed overlay (click to close)
-            var overlay = CreateFullscreenPanel(parent, "CardDetailPopup", new Color(0f, 0f, 0f, 0.7f));
+            var overlay = CreateFullscreenPanel(parent, "CardDetailPopup", new Color(0f, 0f, 0f, 0.8f));
             closeButton = overlay.AddComponent<Button>();
-            // Make the background image act as click target
             overlay.GetComponent<Image>().raycastTarget = true;
 
-            // Center detail panel (500x700)
+            // Horizontal layout: large art on LEFT, text info on RIGHT
             var panel = new GameObject("DetailPanel");
             panel.transform.SetParent(overlay.transform, false);
             var panelImg = panel.AddComponent<Image>();
-            panelImg.color = new Color(0.12f, 0.12f, 0.19f, 0.95f); // #1e1e2f-ish
-            panelImg.raycastTarget = true; // block clicks from going to overlay
+            panelImg.color = new Color(0.06f, 0.08f, 0.14f, 0.95f);
+            panelImg.raycastTarget = true;
 
             var panelRT = panel.GetComponent<RectTransform>();
             panelRT.anchorMin = new Vector2(0.5f, 0.5f);
             panelRT.anchorMax = new Vector2(0.5f, 0.5f);
             panelRT.pivot     = new Vector2(0.5f, 0.5f);
-            panelRT.sizeDelta = new Vector2(500f, 700f);
+            panelRT.sizeDelta = new Vector2(700f, 500f);
 
-            var vlg = panel.AddComponent<VerticalLayoutGroup>();
-            vlg.childControlWidth  = true;
-            vlg.childControlHeight = false;
-            vlg.childForceExpandWidth = true;
-            vlg.childForceExpandHeight = false;
-            vlg.padding = new RectOffset(20, 20, 16, 16);
-            vlg.spacing = 8f;
+            var hlgPanel = panel.AddComponent<HorizontalLayoutGroup>();
+            hlgPanel.childControlWidth  = false;
+            hlgPanel.childControlHeight = true;
+            hlgPanel.childForceExpandWidth = false;
+            hlgPanel.childForceExpandHeight = true;
+            hlgPanel.padding = new RectOffset(12, 12, 12, 12);
+            hlgPanel.spacing = 16f;
 
-            // -- Card Art (240px tall)
+            // -- LEFT: Large card art (fills left half, ~300px wide)
             var artGO = new GameObject("CDPArt");
             artGO.transform.SetParent(panel.transform, false);
             var artLE = artGO.AddComponent<LayoutElement>();
-            artLE.preferredHeight = 240f;
+            artLE.preferredWidth = 300f;
             artImage = artGO.AddComponent<Image>();
-            artImage.color = new Color(0.2f, 0.2f, 0.3f, 1f);
+            artImage.color = Color.white; // full brightness, no dimming
             artImage.preserveAspect = true;
+            artImage.raycastTarget = false;
 
-            // -- Card Name (gold, 28pt)
-            nameText = CreateDetailText(panel.transform, "CDPName", "", 28,
-                new Color(0.98f, 0.75f, 0.15f, 1f), TextAnchor.MiddleCenter, 36f);
+            // -- RIGHT: text info column
+            var infoColumn = new GameObject("InfoColumn");
+            infoColumn.transform.SetParent(panel.transform, false);
+            var infoLE = infoColumn.AddComponent<LayoutElement>();
+            infoLE.flexibleWidth = 1f;
+            var infoVLG = infoColumn.AddComponent<VerticalLayoutGroup>();
+            infoVLG.childControlWidth  = true;
+            infoVLG.childControlHeight = false;
+            infoVLG.childForceExpandWidth = true;
+            infoVLG.childForceExpandHeight = false;
+            infoVLG.padding = new RectOffset(0, 0, 4, 4);
+            infoVLG.spacing = 6f;
 
-            // -- Cost & Type
-            costText = CreateDetailText(panel.transform, "CDPCost", "", 16,
-                new Color(0.91f, 0.85f, 0.75f, 1f), TextAnchor.MiddleLeft, 24f);
+            // Card Name (gold, 24pt)
+            nameText = CreateDetailText(infoColumn.transform, "CDPName", "", 24,
+                new Color(0.98f, 0.75f, 0.15f, 1f), TextAnchor.MiddleLeft, 32f);
 
-            // -- ATK/HP
-            atkText = CreateDetailText(panel.transform, "CDPAtk", "", 16,
-                Color.white, TextAnchor.MiddleLeft, 24f);
+            // Cost & Type
+            costText = CreateDetailText(infoColumn.transform, "CDPCost", "", 15,
+                new Color(0.91f, 0.85f, 0.75f, 1f), TextAnchor.MiddleLeft, 22f);
 
-            // -- Keywords (multi-line)
-            keywordsText = CreateDetailText(panel.transform, "CDPKeywords", "", 14,
-                new Color(0.6f, 0.85f, 1f, 1f), TextAnchor.UpperLeft, 100f, true);
+            // ATK/HP
+            atkText = CreateDetailText(infoColumn.transform, "CDPAtk", "", 15,
+                Color.white, TextAnchor.MiddleLeft, 22f);
 
-            // -- Effect description (multi-line)
-            effectText = CreateDetailText(panel.transform, "CDPEffect", "", 14,
+            // Keywords (multi-line)
+            keywordsText = CreateDetailText(infoColumn.transform, "CDPKeywords", "", 13,
+                new Color(0.6f, 0.85f, 1f, 1f), TextAnchor.UpperLeft, 90f, true);
+
+            // Effect description (multi-line)
+            effectText = CreateDetailText(infoColumn.transform, "CDPEffect", "", 13,
                 new Color(0.85f, 0.85f, 0.85f, 1f), TextAnchor.UpperLeft, 80f, true);
 
-            // -- Runtime state
-            stateText = CreateDetailText(panel.transform, "CDPState", "", 13,
-                new Color(1f, 0.9f, 0.5f, 1f), TextAnchor.UpperLeft, 60f, true);
+            // Runtime state
+            stateText = CreateDetailText(infoColumn.transform, "CDPState", "", 12,
+                new Color(1f, 0.9f, 0.5f, 1f), TextAnchor.UpperLeft, 50f, true);
 
             overlay.SetActive(false);
             return overlay;
@@ -2708,11 +2736,12 @@ namespace FWTCG.Editor
             go.SetActive(false);
 
             var rt = go.AddComponent<RectTransform>();
-            rt.anchorMin = new Vector2(0f, 0f);
-            rt.anchorMax = new Vector2(0f, 0f);
-            rt.pivot = new Vector2(0f, 0f);
-            rt.anchoredPosition = new Vector2(10f, 86f);
-            rt.sizeDelta = new Vector2(50f, 50f);
+            // Position: bottom-center, above the action bar, clearly visible
+            rt.anchorMin = new Vector2(0.5f, 0f);
+            rt.anchorMax = new Vector2(0.5f, 0f);
+            rt.pivot = new Vector2(0.5f, 0f);
+            rt.anchoredPosition = new Vector2(0f, 42f);
+            rt.sizeDelta = new Vector2(56f, 56f);
 
             // Background circle
             var bgImg = go.AddComponent<Image>();

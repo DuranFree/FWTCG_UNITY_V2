@@ -390,6 +390,40 @@ namespace FWTCG.UI
             // Render legend art (DEV-10)
             RefreshLegendArt(_playerLegendContainer, gs.PLegend);
             RefreshLegendArt(_enemyLegendContainer, gs.ELegend);
+
+            // Wire right-click on legend containers for detail popup
+            WireLegendRightClick(_playerLegendContainer, gs.PLegend);
+            WireLegendRightClick(_enemyLegendContainer, gs.ELegend);
+        }
+
+        private void WireLegendRightClick(Transform container, LegendInstance legend)
+        {
+            if (container == null || legend == null || legend.DisplayData == null) return;
+            if (_cardDetailPopup == null) return;
+
+            // Add or get EventTrigger
+            var et = container.GetComponent<UnityEngine.EventSystems.EventTrigger>();
+            if (et == null)
+            {
+                et = container.gameObject.AddComponent<UnityEngine.EventSystems.EventTrigger>();
+                var entry = new UnityEngine.EventSystems.EventTrigger.Entry();
+                entry.eventID = UnityEngine.EventSystems.EventTriggerType.PointerClick;
+                entry.callback.AddListener((data) =>
+                {
+                    var pointerData = (UnityEngine.EventSystems.PointerEventData)data;
+                    if (pointerData.button == UnityEngine.EventSystems.PointerEventData.InputButton.Right)
+                    {
+                        // Create a temporary UnitInstance for display
+                        var tempUnit = new UnitInstance(0, legend.DisplayData, legend.Owner);
+                        _cardDetailPopup.Show(tempUnit);
+                    }
+                });
+                et.triggers.Add(entry);
+
+                // Ensure the container is raycast-targetable
+                var img = container.GetComponent<Image>();
+                if (img != null) img.raycastTarget = true;
+            }
         }
 
         // ── Hero zone refresh (DEV-10) ──────────────────────────────────────
@@ -473,7 +507,7 @@ namespace FWTCG.UI
                     artImg = artGO.AddComponent<Image>();
                     artImg.preserveAspect = true;
                     artImg.raycastTarget = false;
-                    artImg.color = new Color(1f, 1f, 1f, 0.4f);
+                    artImg.color = Color.white; // full brightness, no dimming
                 }
                 else
                 {
@@ -850,6 +884,14 @@ namespace FWTCG.UI
                     _playerHandZoneRT.offsetMax = new Vector2(offset, _playerHandZoneRT.offsetMax.y);
                 if (_enemyHandZoneRT != null)
                     _enemyHandZoneRT.offsetMax = new Vector2(offset, _enemyHandZoneRT.offsetMax.y);
+
+                // Move log toggle button to track the log panel edge
+                if (_logToggleBtn != null)
+                {
+                    var btnRT = _logToggleBtn.GetComponent<RectTransform>();
+                    if (btnRT != null)
+                        btnRT.anchoredPosition = new Vector2(offset - 4f, btnRT.anchoredPosition.y);
+                }
 
                 yield return null;
             }
