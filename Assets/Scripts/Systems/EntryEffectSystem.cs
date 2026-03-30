@@ -71,6 +71,64 @@ namespace FWTCG.Systems
                     Log($"[入场] {unit.UnitName} — 被动启动：对手无法获得据守分");
                     gs.TiyanasInPlay[owner] = true;
                     break;
+
+                case "noxus_recruit_enter":
+                    // Inspire: next friendly unit played this turn gets +1 ATK
+                    gs.InspireNextUnit = true;
+                    Log($"[入场] {unit.UnitName} — 鼓舞：下一个出场的盟友+1战力");
+                    break;
+
+                case "rengar_enter":
+                    // Reactive + StrongAtk + gain 1 Blazing sch
+                    unit.HasReactive = true;
+                    gs.AddSch(owner, RuneType.Blazing, 1);
+                    Log($"[入场] {unit.UnitName} — 反应+强攻+1炽烈符能");
+                    break;
+
+                case "kaisa_hero_conquer":
+                    // Conquest trigger + gain 1 Blazing sch
+                    gs.AddSch(owner, RuneType.Blazing, 1);
+                    Log($"[入场] {unit.UnitName} — 征服触发+1炽烈符能");
+                    break;
+
+                case "yi_hero_enter":
+                    // Roam + Haste + gain 1 Crushing sch
+                    unit.Exhausted = false; // Haste: enters active
+                    gs.AddSch(owner, RuneType.Crushing, 1);
+                    Log($"[入场] {unit.UnitName} — 游走+急速+1摧破符能");
+                    break;
+
+                case "sandshoal_deserter_enter":
+                    // SpellShield + can't be targeted by spells
+                    unit.HasSpellShield = true;
+                    unit.UntargetableBySpells = true;
+                    Log($"[入场] {unit.UnitName} — 法盾+法术无法选中");
+                    break;
+
+                // ── Equipment entry effects ──
+                case "trinity_equip":
+                    // +2 ATK to attached unit, hold score bonus handled in BF system
+                    Log($"[装备] {unit.UnitName} — +2战力，据守额外+1分");
+                    break;
+
+                case "guardian_equip":
+                    // +1 ATK, death protection handled in combat system
+                    Log($"[装备] {unit.UnitName} — +1战力，阵亡保护");
+                    break;
+
+                case "dorans_equip":
+                    // +2 ATK
+                    Log($"[装备] {unit.UnitName} — +2战力");
+                    break;
+            }
+
+            // Inspire check: if InspireNextUnit is set and this isn't the inspirer
+            if (gs.InspireNextUnit && effectId != "noxus_recruit_enter")
+            {
+                gs.InspireNextUnit = false;
+                unit.BuffTokens += 1;
+                unit.CurrentAtk += 1;
+                Log($"[鼓舞] {unit.UnitName} 受到鼓舞，+1战力");
             }
         }
 

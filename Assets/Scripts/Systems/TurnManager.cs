@@ -323,15 +323,20 @@ namespace FWTCG.Systems
             Broadcast($"[结束] {DisplayName(who)} 回合结束，法力与符能清零");
 
             // Advance game state
-            string next = gs.Opponent(who);
-            if (who == GameRules.OWNER_ENEMY || (gs.Round == 0 && who == gs.First))
+            // Extra turn (time_warp): don't switch to opponent, give another turn to same player
+            if (gs.ExtraTurnPending)
             {
-                // Only increment round when enemy ends turn (or first player if they go first)
-                // Actually increment each time enemy ends their turn
+                gs.ExtraTurnPending = false;
+                gs.Turn = who;
+                Broadcast($"[时间扭曲] {DisplayName(who)} 获得额外回合！");
+            }
+            else
+            {
+                string next = gs.Opponent(who);
                 if (who == GameRules.OWNER_ENEMY)
                     gs.Round++;
+                gs.Turn = next;
             }
-            gs.Turn = next;
 
             await Delay(GameRules.PHASE_DELAY_MS);
         }

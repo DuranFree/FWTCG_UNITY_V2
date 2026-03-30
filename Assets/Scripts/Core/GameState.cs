@@ -71,6 +71,9 @@ namespace FWTCG.Core
         // ── Game over ─────────────────────────────────────────────────────────
         public bool GameOver { get; set; }
 
+        // ── Extra turn (time_warp) ─────────────────────────────────────────────
+        public bool ExtraTurnPending { get; set; }
+
         // ── Per-turn tracking ─────────────────────────────────────────────────
         /// <summary>Battlefield IDs that already awarded a hold score this turn.</summary>
         public List<int> BFScoredThisTurn { get; set; } = new List<int>();
@@ -89,6 +92,9 @@ namespace FWTCG.Core
 
         /// <summary>Whether 梦幻树 (dreaming_tree) draw has already triggered this turn.</summary>
         public bool DreamingTreeTriggeredThisTurn { get; set; }
+
+        /// <summary>Inspire: next unit entering base gets +1 ATK (noxus_recruit effect).</summary>
+        public bool InspireNextUnit { get; set; }
 
         // ── Hero zone ─────────────────────────────────────────────────────────
         /// <summary>Player's hero card (extracted from deck at game start, rule 103.2.a).</summary>

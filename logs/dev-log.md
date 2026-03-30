@@ -2,6 +2,44 @@
 
 ---
 
+## DEV-11：符文Bug修复 + 剩余法术效果 + 入场效果 — 2026-03-31
+
+**Status**: ✅ Completed
+
+**技术决策**:
+- 符文右键回收Bug：EventTrigger从根节点移到RuneCircle节点，解决Button拦截右键问题
+- 符文拉伸Bug：容器HorizontalLayoutGroup关闭childControlHeight/ForceExpand + LayoutElement固定46×46
+- 额外回合：GameState.ExtraTurnPending + TurnManager.DoEndPhase检查
+- 鼓舞系统：GameState.InspireNextUnit标记 + EntryEffectSystem在下一单位入场时自动+1
+
+**新功能**:
+- SpellSystem: furnace_blast（回响，3单位各1伤害）
+- SpellSystem: time_warp（额外回合）
+- SpellSystem: divine_ray（回响，2伤害×2次）
+- EntryEffectSystem: noxus_recruit_enter（鼓舞下一盟友+1）
+- EntryEffectSystem: rengar_enter（反应+强攻+1炽烈符能）
+- EntryEffectSystem: kaisa_hero_conquer（征服+1炽烈符能）
+- EntryEffectSystem: yi_hero_enter（游走+急速+1摧破符能）
+- EntryEffectSystem: sandshoal_deserter_enter（法盾+法术无法选中）
+- EntryEffectSystem: 装备入场效果（trinity_equip/guardian_equip/dorans_equip）
+- UnitInstance: HasReactive / UntargetableBySpells 字段
+- GameState: ExtraTurnPending / InspireNextUnit 字段
+- TurnManager: 额外回合处理（ExtraTurnPending=true时不切换玩家）
+
+**修改文件**:
+- `Assets/Scripts/UI/GameUI.cs`（符文右键修复+LayoutElement）
+- `Assets/Scripts/Editor/SceneBuilder.cs`（HLG修复+新法术CardData+effectId修正）
+- `Assets/Scripts/Systems/SpellSystem.cs`（+3法术效果+FurnaceBlast方法）
+- `Assets/Scripts/Systems/TurnManager.cs`（+额外回合处理）
+- `Assets/Scripts/Systems/EntryEffectSystem.cs`（+7入场效果+鼓舞机制）
+- `Assets/Scripts/Core/GameState.cs`（+ExtraTurnPending+InspireNextUnit）
+- `Assets/Scripts/Core/UnitInstance.cs`（+HasReactive+UntargetableBySpells）
+- `Assets/Tests/EditMode/DEV11SpellEntryTests.cs`（新建，14个测试）
+
+**测试结果**: 234 全绿（14 新 + 220 现有），0 失败
+
+---
+
 ## DEV-10：数据补全 + 区域视觉 + 日志系统 — 2026-03-30
 
 **Status**: ✅ Completed

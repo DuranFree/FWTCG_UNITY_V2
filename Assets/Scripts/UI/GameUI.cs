@@ -758,10 +758,12 @@ namespace FWTCG.UI
                     }
                 }
 
-                // Right-click = recycle (via EventTrigger on root)
-                if (isPlayer)
+                // Right-click = recycle (via EventTrigger on RuneCircle, not root)
+                // The Button on RuneCircle consumes pointer events, so EventTrigger must be
+                // on the same GameObject to receive right-click.
+                if (isPlayer && circleT != null)
                 {
-                    var et = go.AddComponent<UnityEngine.EventSystems.EventTrigger>();
+                    var et = circleT.gameObject.AddComponent<UnityEngine.EventSystems.EventTrigger>();
                     var entry = new UnityEngine.EventSystems.EventTrigger.Entry();
                     entry.eventID = UnityEngine.EventSystems.EventTriggerType.PointerClick;
                     int capturedIdx = idx;
@@ -772,13 +774,15 @@ namespace FWTCG.UI
                             _onRuneClicked?.Invoke(capturedIdx, true); // recycle
                     });
                     et.triggers.Add(entry);
+                }
 
-                    // Need an Image on root for raycast
-                    if (go.GetComponent<Image>() == null)
-                    {
-                        var rootImg = go.AddComponent<Image>();
-                        rootImg.color = new Color(0f, 0f, 0f, 0.01f);
-                    }
+                // Fix aspect ratio: add LayoutElement to prevent vertical stretching
+                {
+                    var le = go.AddComponent<LayoutElement>();
+                    le.preferredWidth = 46f;
+                    le.preferredHeight = 46f;
+                    le.minWidth = 46f;
+                    le.minHeight = 46f;
                 }
             }
         }

@@ -89,6 +89,24 @@ namespace FWTCG.Systems
                     StrikeAskLater(target, 5);
                     break;
 
+                case "furnace_blast":
+                    // Echo, 1 Blazing: deal 1 damage to up to 3 enemy units
+                    FurnaceBlast(owner, gs);
+                    break;
+
+                case "time_warp":
+                    // 3 Radiant: gain extra turn
+                    gs.ExtraTurnPending = true;
+                    Log("[时间扭曲] 获得额外回合！");
+                    break;
+
+                case "divine_ray":
+                    // Echo, 2 Blazing: deal 2 damage to target twice
+                    DealDamage(target, 2, gs);
+                    if (target != null && target.CurrentHp > 0)
+                        DealDamage(target, 2, gs);
+                    break;
+
                 default:
                     Log($"[法术] 未实现效果: {spell.CardData.EffectId}");
                     break;
@@ -231,6 +249,29 @@ namespace FWTCG.Systems
 
             foreach (UnitInstance u in dead)
                 RemoveDeadUnit(u, gs);
+        }
+
+        private void FurnaceBlast(string owner, GameState gs)
+        {
+            string enemy = gs.Opponent(owner);
+            var allEnemies = new List<UnitInstance>(gs.GetBase(enemy));
+            for (int i = 0; i < GameRules.BATTLEFIELD_COUNT; i++)
+            {
+                List<UnitInstance> bfUnits = enemy == GameRules.OWNER_PLAYER
+                    ? gs.BF[i].PlayerUnits : gs.BF[i].EnemyUnits;
+                allEnemies.AddRange(bfUnits);
+            }
+
+            int hits = Mathf.Min(3, allEnemies.Count);
+            var dead = new List<UnitInstance>();
+            for (int h = 0; h < hits; h++)
+            {
+                UnitInstance t = allEnemies[h];
+                DealDamage(t, 1, gs);
+                if (t.CurrentHp <= 0 && !dead.Contains(t))
+                    dead.Add(t);
+            }
+            Log($"[熔炉烈焰] 对 {hits} 个敌方单位各造成1点伤害");
         }
 
         private void RallyCall(string owner, GameState gs)

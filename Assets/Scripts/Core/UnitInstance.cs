@@ -40,6 +40,12 @@ namespace FWTCG.Core
         /// <summary>Whether this unit has Guard (坚守): +1 power when defending.</summary>
         public bool HasGuard { get; set; }
 
+        /// <summary>Whether this unit has Reactive keyword (can be played in reaction window).</summary>
+        public bool HasReactive { get; set; }
+
+        /// <summary>Whether this unit cannot be targeted by spells.</summary>
+        public bool UntargetableBySpells { get; set; }
+
         /// <summary>"player" or "enemy"</summary>
         public string Owner { get; private set; }
 

@@ -11,3 +11,5 @@
 - ✅ Debug面板只显示2个按钮 — 已修复：VerticalLayoutGroup.childControlHeight 改为 true 使 preferredHeight 生效 — 发现于 DEV-3
 - ✅ 法术目标无法点击 — 已修复：敌方单位 RefreshUnitList 改为传入 _onUnitClicked 而非 null — 发现于 DEV-3
 - ✅ 日志文字被右边裁切 — 已修复：MessageText 的 horizontalOverflow 改为 Wrap — 发现于 DEV-3
+- ✅ 符文牌右键回收无反应 — 已修复：EventTrigger从root移到RuneCircle（Button在circle上拦截事件）— 发现于 DEV-11
+- ✅ 符文牌被上下拉伸 — 已修复：HLG关闭childControlHeight + LayoutElement固定46×46 — 发现于 DEV-11

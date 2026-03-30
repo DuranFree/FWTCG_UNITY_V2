@@ -750,9 +750,9 @@ namespace FWTCG.Editor
 
             var hlg = go.AddComponent<HorizontalLayoutGroup>();
             hlg.childControlWidth = false;
-            hlg.childControlHeight = true;
+            hlg.childControlHeight = false;
             hlg.childForceExpandWidth = false;
-            hlg.childForceExpandHeight = true;
+            hlg.childForceExpandHeight = false;
             hlg.childAlignment = TextAnchor.MiddleCenter;
             hlg.spacing = 4f;
             hlg.padding = new RectOffset(2, 2, 2, 2);
@@ -2117,7 +2117,7 @@ namespace FWTCG.Editor
             // rengar x2
             CD("rengar",             "雷恩加尔·暴起", 3, 3, RuneType.Blazing, 1,
                "反应。强攻：进攻时额外+2战力",
-               CardKeyword.Reactive | CardKeyword.StrongAtk, "");
+               CardKeyword.Reactive | CardKeyword.StrongAtk, "rengar_enter");
 
             // kaisa_hero x1 (hero card — extracted to hero zone at game start)
             CD("kaisa_hero",         "卡莎·九死一生", 4, 4, RuneType.Blazing, 1,
@@ -2144,7 +2144,7 @@ namespace FWTCG.Editor
             // yi_hero x1 (hero card — extracted to hero zone at game start)
             CD("yi_hero",            "易·锋芒毕现",  7, 6, RuneType.Crushing, 1,
                "游走。急速（支付1摧破符能进场时为活跃状态）",
-               CardKeyword.Roam | CardKeyword.Haste, "",
+               CardKeyword.Roam | CardKeyword.Haste, "yi_hero_enter",
                isHero: true);
 
             // jax x2
@@ -2165,7 +2165,7 @@ namespace FWTCG.Editor
             // sandshoal_deserter x2
             CD("sandshoal_deserter", "沙塔啸匪",     6, 5, RuneType.Verdant, 0,
                "无法被敌方法术或技能选中",
-               CardKeyword.SpellShield, "");
+               CardKeyword.SpellShield, "sandshoal_deserter_enter");
 
             // ── Yi Equipment ──────────────────────────────────────────────────
             CD("zhonya",             "中娅沙漏",     2, 0, RuneType.Verdant, 0,
@@ -2216,6 +2216,18 @@ namespace FWTCG.Editor
             CDS("akasi_storm",    "阿卡希狂暴", 7, RuneType.Radiant, 2,
                 "对随机敌方单位造成2点伤害，共6次",
                 SpellTargetType.None, "akasi_storm");
+
+            CDS("furnace_blast",  "熔炉烈焰",   3, RuneType.Blazing, 1,
+                "回响。对至多3个敌方单位各造成1点伤害",
+                SpellTargetType.None, "furnace_blast", CardKeyword.Echo);
+
+            CDS("time_warp",      "时间扭曲",   8, RuneType.Radiant, 3,
+                "获得一个额外回合",
+                SpellTargetType.None, "time_warp");
+
+            CDS("divine_ray",     "神圣光芒",   4, RuneType.Blazing, 2,
+                "回响。对目标敌方单位造成2点伤害两次（共4点）",
+                SpellTargetType.EnemyUnit, "divine_ray", CardKeyword.Echo);
 
             // ── Yi spells ─────────────────────────────────────────────────────
             CDS("rally_call",     "集结号令",   2, RuneType.Verdant, 0,
@@ -2669,6 +2681,9 @@ namespace FWTCG.Editor
                 LoadCard("starburst"),
                 LoadCard("evolve_day"),
                 LoadCard("akasi_storm"),
+                LoadCard("furnace_blast"),
+                LoadCard("time_warp"),
+                LoadCard("divine_ray"),
                 // Kaisa reactive spells (DEV-4)
                 LoadCard("swindle"),
                 LoadCard("retreat_rune"),

@@ -30,7 +30,7 @@
 - ✅ atk = HP 规则（currentHp 和 currentAtk 始终同步）— DEV-1
 - [ ] 增益指示物系统（buffToken，+1/+1，不可叠加）
 - ✅ 休眠（exhausted）/ 眩晕（stunned）状态 — DEV-1（基础字段）
-- [ ] 临时战力加成（tb.atk，回合结束清零）
+- ✅ 临时战力加成（tb.atk，回合结束清零）— DEV-1（TempAtkBonus 字段已实现，ResetEndOfTurn 清零）
 - ✅ 绝念触发系统（DeathwishSystem：alert_sentinel_die / wailing_poro_die）— DEV-2
 
 ### 战斗系统
@@ -80,7 +80,7 @@
 - ✅ 卡莎虚空符文牌堆（炽烈×7 + 灵光×5 = 12张）— DEV-1
 - ✅ 易大师伊欧尼亚符文牌堆（翠意×6 + 摧破×6 = 12张）— DEV-1
 - ✅ 符文横置获得法力（tap → G.pMana++）— DEV-1
-- [ ] 符文回收获得符能（recycle → addSch）
+- ✅ 符文回收获得符能（recycle → addSch）— DEV-11（右键回收已修复）
 - ✅ 符能费用检查与扣除 — DEV-1
 - [ ] 待确认符文操作队列（G.pendingRunes）
 - ✅ 回合结束符能清零（resetSch）— DEV-1
@@ -105,21 +105,21 @@
 - ✅ void_seek（4点伤害+抽牌）— DEV-3
 - ✅ evolve_day（抽4张）— DEV-3
 - ✅ retreat_rune（反应，召回战场单位+回收符文）— DEV-4
-- [ ] furnace_blast（回响，1点伤害×3单位）
+- ✅ furnace_blast（回响，1点伤害×3单位）— DEV-11
 - ✅ guilty_pleasure（反应，弃牌造2点伤害）— DEV-4
 - ✅ starburst（6点伤害×1目标，DEV-3简化）— DEV-3
 - ✅ hex_ray（迅捷，3点伤害）— DEV-3
-- [ ] time_warp（额外回合，extraTurnPending=true）
+- ✅ time_warp（额外回合，extraTurnPending=true）— DEV-11
 - ✅ stardrop（3点伤害×2次）— DEV-3
 - ✅ smoke_bomb（反应，-4战力，自动选第一个敌方单位）— DEV-4
-- [ ] divine_ray（回响+2炽烈，2点伤害×2次）
+- ✅ divine_ray（回响+2炽烈，2点伤害×2次）— DEV-11
 - ✅ akasi_storm（2点伤害×6次随机敌方）— DEV-3
-- [ ] noxus_recruit 入场（鼓舞：下一个盟友+1战力）
+- ✅ noxus_recruit 入场（鼓舞：下一个盟友+1战力）— DEV-11
 - ✅ alert_sentinel 绝念（抽1张）— DEV-2
 - ✅ yordel_instructor 入场（壁垒+抽牌）— DEV-2
 - [ ] bad_poro 征服触发
-- [ ] rengar 入场（反应+强攻+1炽烈符能）
-- [ ] kaisa_hero 入场（征服触发+1炽烈符能）
+- ✅ rengar 入场（反应+强攻+1炽烈符能）— DEV-11
+- ✅ kaisa_hero 入场（征服触发+1炽烈符能）— DEV-11
 - ✅ darius 入场（本回合已出牌时+2战力）— DEV-2
 - ✅ thousand_tail 入场（敌方单位战力-3，最低1）— DEV-2
 - ✅ foresight_mech 预知（查看牌堆顶）— DEV-2（日志显示，无UI）
@@ -134,7 +134,7 @@
 - ✅ flash_counter（反应，反制敌方法术）— DEV-4
 - ✅ slam（回响，眩晕单位）— DEV-3
 - ✅ strike_ask_later（+5战力，2摧破符能）— DEV-3
-- [ ] yi_hero 入场（游走+急速+1摧破符能）
+- ✅ yi_hero 入场（游走+急速+1摧破符能）— DEV-11
 - ✅ jax 入场（法盾+入场效果）— DEV-2（日志显示）
 - ✅ tiyana_warden 被动（阻止对手据守得分）— DEV-2
 - ✅ wailing_poro 绝念（孤独阵亡时抽1张）— DEV-2
@@ -142,7 +142,7 @@
 - [ ] trinity_force（据守额外+1分，+2战力，1摧破符能）
 - [ ] guardian_angel（死亡保护，+1战力，1翠意符能）
 - [ ] dorans_blade（+2战力，1摧破符能）
-- [ ] sandshoal_deserter（入场+法盾，法术无法选中）
+- ✅ sandshoal_deserter（入场+法盾，法术无法选中）— DEV-11
 
 ---
 
