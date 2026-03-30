@@ -108,6 +108,8 @@ namespace FWTCG.UI
         [SerializeField] private Button _logToggleBtn;
         [SerializeField] private Text _logToggleText;
         [SerializeField] private RectTransform _boardWrapperOuter;
+        [SerializeField] private RectTransform _playerHandZoneRT;
+        [SerializeField] private RectTransform _enemyHandZoneRT;
         private bool _logCollapsed = false;
         private Coroutine _logAnimCoroutine;
 
@@ -766,44 +768,34 @@ namespace FWTCG.UI
             float duration = 0.3f;
             float elapsed = 0f;
 
-            // Log panel width animation
-            float logStartWidth = collapse ? 200f : 0f;
-            float logEndWidth = collapse ? 0f : 200f;
+            // Right offset: -200 (log open) → 0 (log collapsed)
+            float startOffset = collapse ? -200f : 0f;
+            float endOffset = collapse ? 0f : -200f;
 
-            // Board right offset animation (expand when log collapsed)
-            float boardStartOffset = collapse ? -200f : 0f;
-            float boardEndOffset = collapse ? 0f : -200f;
+            // Reactivate log panel at start of expand animation
+            if (!collapse && _logPanel != null)
+                _logPanel.SetActive(true);
 
             while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
                 float t = Mathf.SmoothStep(0f, 1f, elapsed / duration);
+                float offset = Mathf.Lerp(startOffset, endOffset, t);
 
-                float currentLogWidth = Mathf.Lerp(logStartWidth, logEndWidth, t);
-                float currentBoardOffset = Mathf.Lerp(boardStartOffset, boardEndOffset, t);
-
-                if (_logPanel != null)
-                {
-                    var logRT = _logPanel.GetComponent<RectTransform>();
-                    if (logRT != null)
-                    {
-                        logRT.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, currentLogWidth);
-                    }
-                }
-
+                // Move all areas that have -200 right margin for log
                 if (_boardWrapperOuter != null)
-                {
-                    _boardWrapperOuter.offsetMax = new Vector2(currentBoardOffset, _boardWrapperOuter.offsetMax.y);
-                }
+                    _boardWrapperOuter.offsetMax = new Vector2(offset, _boardWrapperOuter.offsetMax.y);
+                if (_playerHandZoneRT != null)
+                    _playerHandZoneRT.offsetMax = new Vector2(offset, _playerHandZoneRT.offsetMax.y);
+                if (_enemyHandZoneRT != null)
+                    _enemyHandZoneRT.offsetMax = new Vector2(offset, _enemyHandZoneRT.offsetMax.y);
 
                 yield return null;
             }
 
-            // Final values
-            if (_logPanel != null)
-            {
-                _logPanel.SetActive(!collapse);
-            }
+            // Final: hide log panel when collapsed
+            if (collapse && _logPanel != null)
+                _logPanel.SetActive(false);
         }
 
         // ── Discard / Exile viewer (DEV-10) ──────────────────────────────────

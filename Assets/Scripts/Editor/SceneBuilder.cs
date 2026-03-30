@@ -176,19 +176,25 @@ namespace FWTCG.Editor
             // ── ToastPanel ────────────────────────────────────────────────────
             var toastPanel = CreateToastPanel(canvasGO.transform, out var toastText);
 
-            // ── DEV-10: LogToggleButton ──────────────────────────────────────
+            // ── DEV-10: LogToggleButton (anchored to right side, above message panel) ──
             var logToggleGO = new GameObject("LogToggleBtn");
             logToggleGO.transform.SetParent(canvasGO.transform, false);
             {
                 var ltRT = logToggleGO.AddComponent<RectTransform>();
-                ltRT.anchorMin = new Vector2(1f, 0.5f);
-                ltRT.anchorMax = new Vector2(1f, 0.5f);
+                // Position at the left edge of the message panel (right 200px strip)
+                ltRT.anchorMin = new Vector2(1f, 0.4f);
+                ltRT.anchorMax = new Vector2(1f, 0.6f);
                 ltRT.pivot = new Vector2(1f, 0.5f);
-                ltRT.anchoredPosition = new Vector2(-200f, 0f);
-                ltRT.sizeDelta = new Vector2(24f, 60f);
+                ltRT.anchoredPosition = new Vector2(-196f, 0f); // just left of the 200px log panel
+                ltRT.sizeDelta = new Vector2(28f, 80f);
                 var ltImg = logToggleGO.AddComponent<Image>();
-                ltImg.color = new Color(0.15f, 0.12f, 0.25f, 0.9f);
-                var ltBtn = logToggleGO.AddComponent<Button>();
+                ltImg.color = new Color(0.2f, 0.15f, 0.35f, 0.95f);
+                logToggleGO.AddComponent<Button>();
+
+                // Add outline for visibility
+                var ltOutline = logToggleGO.AddComponent<Outline>();
+                ltOutline.effectColor = new Color(GameColors.GoldDark.r, GameColors.GoldDark.g, GameColors.GoldDark.b, 0.6f);
+                ltOutline.effectDistance = new Vector2(1f, -1f);
 
                 var ltTextGO = new GameObject("LogToggleText");
                 ltTextGO.transform.SetParent(logToggleGO.transform, false);
@@ -200,7 +206,8 @@ namespace FWTCG.Editor
                 var logToggleText = ltTextGO.AddComponent<Text>();
                 logToggleText.text = "<";
                 logToggleText.color = GameColors.GoldLight;
-                logToggleText.fontSize = 16;
+                logToggleText.fontSize = 18;
+                logToggleText.fontStyle = FontStyle.Bold;
                 logToggleText.alignment = TextAnchor.MiddleCenter;
                 if (_font != null) logToggleText.font = _font;
             }
@@ -370,7 +377,9 @@ namespace FWTCG.Editor
                 messagePanel, logToggleBtn, logToggleTxt,
                 boardWrapper.GetComponent<RectTransform>(),
                 viewerPanel, viewerTitle, viewerCardContainer, viewerCloseBtn,
-                timerDisplay, timerFill, timerText);
+                timerDisplay, timerFill, timerText,
+                playerHandZone.GetComponent<RectTransform>(),
+                enemyHandZone.GetComponent<RectTransform>());
 
             WireGameManager(gameMgr, turnMgr, combatSys, scoreMgr, simpleAI, gameUI,
                             entryEffects, deathwish, spellSys, reactiveSys,
@@ -1753,7 +1762,7 @@ namespace FWTCG.Editor
             var artGO = new GameObject("ArtImage");
             artGO.transform.SetParent(root.transform, false);
             var artImg = artGO.AddComponent<Image>();
-            artImg.preserveAspect = false; // stretch to fill card
+            artImg.preserveAspect = true; // keep aspect ratio, no distortion
             artImg.color = Color.white;
             artImg.raycastTarget = false;
             var artRT = artGO.GetComponent<RectTransform>();
@@ -2240,7 +2249,8 @@ namespace FWTCG.Editor
             GameObject logPanel, Button logToggleBtn, Text logToggleText,
             RectTransform boardWrapperOuter,
             GameObject viewerPanel, Text viewerTitle, Transform viewerCardContainer, Button viewerCloseBtn,
-            GameObject timerDisplay, Image timerFill, Text timerText)
+            GameObject timerDisplay, Image timerFill, Text timerText,
+            RectTransform playerHandZoneRT, RectTransform enemyHandZoneRT)
         {
             var so = new SerializedObject(gameUI);
 
@@ -2359,6 +2369,10 @@ namespace FWTCG.Editor
             so.FindProperty("_timerDisplay").objectReferenceValue = timerDisplay;
             so.FindProperty("_timerFill").objectReferenceValue    = timerFill;
             so.FindProperty("_timerText").objectReferenceValue    = timerText;
+
+            // ── DEV-10: Hand zone RTs (for log toggle animation) ──
+            so.FindProperty("_playerHandZoneRT").objectReferenceValue = playerHandZoneRT;
+            so.FindProperty("_enemyHandZoneRT").objectReferenceValue  = enemyHandZoneRT;
 
             so.ApplyModifiedPropertiesWithoutUndo();
         }
@@ -2685,18 +2699,24 @@ namespace FWTCG.Editor
             labelRT.anchorMin = new Vector2(0f, 1f);
             labelRT.anchorMax = new Vector2(0.5f, 1f);
             labelRT.pivot = new Vector2(0f, 1f);
-            labelRT.anchoredPosition = new Vector2(2f, -1f);
-            labelRT.sizeDelta = new Vector2(80f, 14f);
+            labelRT.anchoredPosition = new Vector2(3f, -2f);
+            labelRT.sizeDelta = new Vector2(100f, 16f);
 
             var txt = labelGO.AddComponent<Text>();
             txt.text = labelText;
-            txt.color = new Color(GameColors.GoldDark.r, GameColors.GoldDark.g, GameColors.GoldDark.b, 0.6f);
-            txt.fontSize = 9;
+            txt.color = new Color(GameColors.GoldLight.r, GameColors.GoldLight.g, GameColors.GoldLight.b, 0.7f);
+            txt.fontSize = 11;
+            txt.fontStyle = FontStyle.Bold;
             txt.alignment = TextAnchor.UpperLeft;
             txt.raycastTarget = false;
             txt.horizontalOverflow = HorizontalWrapMode.Overflow;
             txt.verticalOverflow = VerticalWrapMode.Overflow;
             if (_font != null) txt.font = _font;
+
+            // Add shadow for readability
+            var shadow = labelGO.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0f, 0f, 0f, 0.8f);
+            shadow.effectDistance = new Vector2(1f, -1f);
         }
 
         // ── DEV-10: Zone border helper ───────────────────────────────────────
@@ -2705,10 +2725,11 @@ namespace FWTCG.Editor
         {
             if (zone == null) return;
 
+            // Use a more visible outline (2px, higher alpha)
             var outline = zone.gameObject.GetComponent<Outline>();
             if (outline == null) outline = zone.gameObject.AddComponent<Outline>();
-            outline.effectColor = new Color(color.r, color.g, color.b, 0.3f);
-            outline.effectDistance = new Vector2(1f, -1f);
+            outline.effectColor = new Color(color.r, color.g, color.b, 0.5f);
+            outline.effectDistance = new Vector2(2f, -2f);
         }
 
         private static Text CreateTMPText(Transform parent, string name, string text,
