@@ -69,9 +69,26 @@ namespace FWTCG.Editor
             var canvas = canvasGO.GetComponent<Canvas>();
             var canvasRT = canvasGO.GetComponent<RectTransform>();
 
-            // ── Background ────────────────────────────────────────────────────
+            // ── Background (DEV-8: HexGrid shader) ──────────────────────────
             var background = CreateFullscreenPanel(canvasGO.transform, "Background",
                 HexColor("#010a13"));
+            {
+                var hexShader = Shader.Find("UI/HexGrid");
+                if (hexShader != null)
+                {
+                    EnsureDirectory("Assets/Materials");
+                    var hexMat = new Material(hexShader);
+                    hexMat.SetColor("_BgColor", HexColor("#010a13"));
+                    hexMat.SetColor("_GridColor", new Color(0.04f, 0.78f, 0.73f, 0.08f));
+                    hexMat.SetFloat("_GridScale", 40f);
+                    hexMat.SetFloat("_GridThickness", 0.04f);
+                    hexMat.SetFloat("_NoiseIntensity", 0.02f);
+                    hexMat.SetFloat("_VignetteIntensity", 0.3f);
+                    hexMat.SetColor("_VignetteColor", new Color(0.04f, 0.78f, 0.73f, 0.05f));
+                    AssetDatabase.CreateAsset(hexMat, "Assets/Materials/BackgroundMat.mat");
+                    background.GetComponent<Image>().material = hexMat;
+                }
+            }
 
             // ── TopBar ────────────────────────────────────────────────────────
             var topBar = CreateTopBar(canvasGO.transform);
@@ -1118,8 +1135,47 @@ namespace FWTCG.Editor
             buffTextRT.offsetMax = Vector2.zero;
             buffGO.SetActive(false);
 
+            // ── DEV-8: CardGlow (glow border material) ──
+            var cardGlow = root.AddComponent<FWTCG.UI.CardGlow>();
+            Material glowMat = null;
+            {
+                var glowShader = Shader.Find("UI/CardGlow");
+                if (glowShader != null)
+                {
+                    EnsureDirectory("Assets/Materials");
+                    glowMat = new Material(glowShader);
+                    glowMat.SetFloat("_GlowIntensity", 0f);
+                    AssetDatabase.CreateAsset(glowMat, "Assets/Materials/CardGlowMat.mat");
+                    // Assign glow shader material to card background
+                    rootImg.material = glowMat;
+                }
+            }
+
+            // ── DEV-8: ShineOverlay (holographic shine, on top of art) ──
+            GameObject shineGO = null;
+            {
+                var shineShader = Shader.Find("UI/CardShine");
+                if (shineShader != null)
+                {
+                    shineGO = new GameObject("ShineOverlay");
+                    shineGO.transform.SetParent(root.transform, false);
+                    var shineImg = shineGO.AddComponent<Image>();
+                    shineImg.raycastTarget = false;
+                    var shineMat = new Material(shineShader);
+                    shineMat.SetFloat("_ShineIntensity", 0f);
+                    AssetDatabase.CreateAsset(shineMat, "Assets/Materials/CardShineMat.mat");
+                    shineImg.material = shineMat;
+                    shineImg.color = new Color(1f, 1f, 1f, 0f); // transparent base
+                    var shineRT = shineGO.GetComponent<RectTransform>();
+                    shineRT.anchorMin = Vector2.zero;
+                    shineRT.anchorMax = Vector2.one;
+                    shineRT.offsetMin = Vector2.zero;
+                    shineRT.offsetMax = Vector2.zero;
+                }
+            }
+
             // ── DEV-8: CardTilt component ──
-            root.AddComponent<FWTCG.UI.CardTilt>();
+            var cardTilt = root.AddComponent<FWTCG.UI.CardTilt>();
 
             // Wire CardView serialized fields
             var so = new SerializedObject(cardView);

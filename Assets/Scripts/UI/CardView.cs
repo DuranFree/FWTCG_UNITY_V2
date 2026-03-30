@@ -37,11 +37,40 @@ namespace FWTCG.UI
         private bool _faceDown;
         private bool _costInsufficient;
         private Coroutine _stunPulse;
+        private CardGlow _cardGlow;
+        private CardTilt _cardTilt;
 
         private void Awake()
         {
             if (_clickButton != null)
                 _clickButton.onClick.AddListener(HandleClick);
+
+            // Init glow controller — uses the material already assigned to _cardBg by SceneBuilder
+            _cardGlow = GetComponent<CardGlow>();
+            if (_cardGlow != null && _cardBg != null && _cardBg.material != null
+                && _cardBg.material != Canvas.GetDefaultCanvasMaterial())
+            {
+                _cardGlow.Init(_cardBg, _cardBg.material);
+            }
+
+            // Init tilt — connect shine material
+            _cardTilt = GetComponent<CardTilt>();
+            if (_cardTilt != null)
+            {
+                // Find ShineOverlay child
+                var shineT = transform.Find("ShineOverlay");
+                if (shineT != null)
+                {
+                    var shineImg = shineT.GetComponent<Image>();
+                    if (shineImg != null && shineImg.material != null)
+                    {
+                        // Clone the material so each card has its own
+                        var shineMat = new Material(shineImg.material);
+                        shineImg.material = shineMat;
+                        _cardTilt.SetShineMaterial(shineMat);
+                    }
+                }
+            }
         }
 
         private void OnDestroy()
@@ -170,6 +199,15 @@ namespace FWTCG.UI
                     StopCoroutine(_stunPulse);
                     _stunPulse = null;
                 }
+            }
+
+            // Glow border (playable = affordable + not exhausted for hand cards)
+            if (_cardGlow != null)
+            {
+                if (_isPlayerCard && !_unit.Exhausted && !_costInsufficient)
+                    _cardGlow.SetPlayable(true);
+                else
+                    _cardGlow.SetPlayable(false);
             }
 
             // Buff token indicator
