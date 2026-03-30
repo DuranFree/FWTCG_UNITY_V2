@@ -28,6 +28,10 @@ namespace FWTCG.UI
         [SerializeField] private GameObject _buffTokenIcon;
         [SerializeField] private Text _buffTokenText;
 
+        // DEV-10: schematic cost display
+        [SerializeField] private Text _schCostText;
+        [SerializeField] private Image _schCostBg;
+
         private UnitInstance _unit;
         private bool _isPlayerCard;
         private Action<UnitInstance> _onClick;
@@ -197,6 +201,33 @@ namespace FWTCG.UI
                 _buffTokenIcon.SetActive(hasBuff);
                 if (hasBuff && _buffTokenText != null)
                     _buffTokenText.text = $"+{_unit.BuffTokens}";
+            }
+
+            // Schematic (rune) cost display
+            if (_schCostText != null && _schCostBg != null)
+            {
+                int schCost = _unit.CardData.RuneCost;
+                if (schCost > 0)
+                {
+                    _schCostText.gameObject.SetActive(true);
+                    _schCostBg.gameObject.SetActive(true);
+                    string rtShort = "";
+                    switch (_unit.CardData.RuneType)
+                    {
+                        case Data.RuneType.Blazing: rtShort = "炽"; break;
+                        case Data.RuneType.Radiant: rtShort = "灵"; break;
+                        case Data.RuneType.Verdant: rtShort = "翠"; break;
+                        case Data.RuneType.Crushing: rtShort = "摧"; break;
+                        default: rtShort = "符"; break;
+                    }
+                    _schCostText.text = $"{rtShort}×{schCost}";
+                    _schCostBg.color = GameColors.GetRuneColor(_unit.CardData.RuneType);
+                }
+                else
+                {
+                    _schCostText.gameObject.SetActive(false);
+                    _schCostBg.gameObject.SetActive(false);
+                }
             }
         }
 

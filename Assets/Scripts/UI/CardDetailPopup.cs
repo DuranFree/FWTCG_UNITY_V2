@@ -146,6 +146,25 @@ namespace FWTCG.UI
                 _stateText.text = BuildStateText(unit);
         }
 
+        /// <summary>Show detail for a non-unit item (battlefield, legend, etc).</summary>
+        public void ShowSimple(string cardName, string description, Sprite art = null)
+        {
+            if (_panel == null) return;
+            _panel.SetActive(true);
+
+            if (_artImage != null)
+            {
+                if (art != null) { _artImage.sprite = art; _artImage.enabled = true; }
+                else _artImage.enabled = false;
+            }
+            if (_nameText != null) _nameText.text = cardName;
+            if (_costText != null) _costText.text = "[战场]";
+            if (_atkText != null) _atkText.text = "";
+            if (_keywordsText != null) _keywordsText.text = "";
+            if (_effectText != null) _effectText.text = description;
+            if (_stateText != null) _stateText.text = "";
+        }
+
         public void Hide()
         {
             if (_panel != null) _panel.SetActive(false);

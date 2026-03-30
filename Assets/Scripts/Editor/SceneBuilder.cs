@@ -1062,33 +1062,24 @@ namespace FWTCG.Editor
             badgeTextRT.offsetMin = Vector2.zero;
             badgeTextRT.offsetMax = Vector2.zero;
 
-            // BF card art — BEHIND label text (art fills label row, text overlays)
+            // BF name label
+            var lbl = CreateTMPText(labelRow.transform, labelName, labelText, Color.white, 13, TextAnchor.MiddleCenter);
+            lbl.fontStyle = FontStyle.Bold;
+            lbl.gameObject.AddComponent<Shadow>().effectColor = new Color(0f, 0f, 0f, 1f);
+            lbl.gameObject.AddComponent<Outline>().effectColor = new Color(0f, 0f, 0f, 0.8f);
+
+            // BF card art — independent card-shaped slot next to label
             var bfArtGO = new GameObject("BFCardArt");
             bfArtGO.transform.SetParent(labelRow.transform, false);
             var bfArtRT = bfArtGO.AddComponent<RectTransform>();
-            // Fill entire label row as background
-            bfArtRT.anchorMin = Vector2.zero;
-            bfArtRT.anchorMax = Vector2.one;
-            bfArtRT.offsetMin = Vector2.zero;
-            bfArtRT.offsetMax = Vector2.zero;
-            bfArtRT.SetAsFirstSibling(); // behind text
-            var bfArtLE2 = bfArtGO.AddComponent<LayoutElement>();
-            bfArtLE2.ignoreLayout = true; // don't participate in HLG
+            bfArtRT.sizeDelta = new Vector2(38f, 26f); // landscape card (small, ~half card)
             var bfArtImg = bfArtGO.AddComponent<Image>();
-            bfArtImg.color = new Color(1f, 1f, 1f, 0.4f); // semi-transparent so text readable
-            bfArtImg.preserveAspect = false; // stretch to fill (landscape)
-            bfArtImg.raycastTarget = false;
-
-            // BF name label (on top of art)
-            var lbl = CreateTMPText(labelRow.transform, labelName, labelText, Color.white, 14, TextAnchor.MiddleCenter);
-            lbl.fontStyle = FontStyle.Bold;
-            var lblShadow = lbl.gameObject.AddComponent<Shadow>();
-            lblShadow.effectColor = new Color(0f, 0f, 0f, 1f);
-            lblShadow.effectDistance = new Vector2(1f, -1f);
-            // Double shadow for better readability
-            var lblOutline = lbl.gameObject.AddComponent<Outline>();
-            lblOutline.effectColor = new Color(0f, 0f, 0f, 0.8f);
-            lblOutline.effectDistance = new Vector2(1f, -1f);
+            bfArtImg.color = new Color(0.15f, 0.2f, 0.3f, 0.6f); // placeholder
+            bfArtImg.preserveAspect = true;
+            // Border on slot
+            var bfArtOutline = bfArtGO.AddComponent<Outline>();
+            bfArtOutline.effectColor = new Color(0.47f, 0.35f, 0.16f, 0.5f);
+            bfArtOutline.effectDistance = new Vector2(1f, -1f);
 
             // Player units zone
             CreateHorizontalZone(panel.transform, playerZoneName);
@@ -1827,40 +1818,53 @@ namespace FWTCG.Editor
             artRT.offsetMin = new Vector2(2f, 2f);
             artRT.offsetMax = new Vector2(-2f, -2f);
 
-            // ── CardName — top banner (on top of art) ──
-            var nameBannerGO = new GameObject("NameBanner");
-            nameBannerGO.transform.SetParent(root.transform, false);
-            var nameBannerImg = nameBannerGO.AddComponent<Image>();
-            nameBannerImg.color = new Color(0f, 0f, 0f, 0.7f);
-            nameBannerImg.raycastTarget = false;
-            var nameBannerRT = nameBannerGO.GetComponent<RectTransform>();
-            nameBannerRT.anchorMin = new Vector2(0f, 0.78f);
-            nameBannerRT.anchorMax = new Vector2(1f, 1f);
-            nameBannerRT.offsetMin = Vector2.zero;
-            nameBannerRT.offsetMax = Vector2.zero;
+            // ── Bottom half overlay (gradient fade from transparent to dark) ──
+            var bottomOverlay = new GameObject("BottomOverlay");
+            bottomOverlay.transform.SetParent(root.transform, false);
+            var bottomImg = bottomOverlay.AddComponent<Image>();
+            bottomImg.color = new Color(0f, 0f, 0f, 0.75f);
+            bottomImg.raycastTarget = false;
+            var bottomRT = bottomOverlay.GetComponent<RectTransform>();
+            bottomRT.anchorMin = new Vector2(0f, 0f);
+            bottomRT.anchorMax = new Vector2(1f, 0.48f);
+            bottomRT.offsetMin = Vector2.zero;
+            bottomRT.offsetMax = Vector2.zero;
 
-            var cardName = CreateTMPText(nameBannerGO.transform, "CardName", "卡名", Color.white, 10, TextAnchor.MiddleCenter);
+            // ── CardName — bottom half, centered ──
+            var cardName = CreateTMPText(root.transform, "CardName", "卡名", Color.white, 10, TextAnchor.MiddleCenter);
             cardName.fontStyle = FontStyle.Bold;
             cardName.gameObject.AddComponent<Shadow>().effectColor = new Color(0f, 0f, 0f, 1f);
+            cardName.gameObject.AddComponent<Outline>().effectColor = new Color(0f, 0f, 0f, 0.7f);
             var nameRT = cardName.GetComponent<RectTransform>();
-            nameRT.anchorMin = Vector2.zero;
-            nameRT.anchorMax = Vector2.one;
+            nameRT.anchorMin = new Vector2(0.05f, 0.25f);
+            nameRT.anchorMax = new Vector2(0.95f, 0.48f);
             nameRT.offsetMin = Vector2.zero;
             nameRT.offsetMax = Vector2.zero;
 
-            // ── CostText — top-left cost badge (on top of art) ──
+            // ── Description text — below name ──
+            var descText = CreateTMPText(root.transform, "DescText", "", Color.white, 7, TextAnchor.UpperCenter);
+            descText.gameObject.AddComponent<Shadow>().effectColor = new Color(0f, 0f, 0f, 1f);
+            var descRT = descText.GetComponent<RectTransform>();
+            descRT.anchorMin = new Vector2(0.05f, 0.02f);
+            descRT.anchorMax = new Vector2(0.95f, 0.25f);
+            descRT.offsetMin = Vector2.zero;
+            descRT.offsetMax = Vector2.zero;
+            descText.horizontalOverflow = HorizontalWrapMode.Wrap;
+            descText.verticalOverflow = VerticalWrapMode.Truncate;
+
+            // ── CostText — top-left cost badge (above bottom overlay) ──
             var costBadgeGO = new GameObject("CostBadge");
             costBadgeGO.transform.SetParent(root.transform, false);
             var costBadgeImg = costBadgeGO.AddComponent<Image>();
             costBadgeImg.color = new Color(0.78f, 0.67f, 0.43f, 0.95f);
             costBadgeImg.raycastTarget = false;
             var costBadgeRT = costBadgeGO.GetComponent<RectTransform>();
-            costBadgeRT.anchorMin = new Vector2(0f, 0.78f);
-            costBadgeRT.anchorMax = new Vector2(0.28f, 1f);
+            costBadgeRT.anchorMin = new Vector2(0f, 0.85f);
+            costBadgeRT.anchorMax = new Vector2(0.25f, 1f);
             costBadgeRT.offsetMin = new Vector2(1f, 1f);
             costBadgeRT.offsetMax = new Vector2(-1f, -1f);
 
-            var costText = CreateTMPText(costBadgeGO.transform, "CostText", "0", Color.white, 13, TextAnchor.MiddleCenter);
+            var costText = CreateTMPText(costBadgeGO.transform, "CostText", "0", Color.white, 12, TextAnchor.MiddleCenter);
             costText.fontStyle = FontStyle.Bold;
             costText.gameObject.AddComponent<Shadow>().effectColor = new Color(0f, 0f, 0f, 1f);
             var costRT = costText.GetComponent<RectTransform>();
@@ -1873,15 +1877,15 @@ namespace FWTCG.Editor
             var atkBadgeGO = new GameObject("AtkBadge");
             atkBadgeGO.transform.SetParent(root.transform, false);
             var atkBadgeImg = atkBadgeGO.AddComponent<Image>();
-            atkBadgeImg.color = new Color(0.85f, 0.35f, 0.15f, 0.95f); // deep orange-red
+            atkBadgeImg.color = new Color(0.85f, 0.35f, 0.15f, 0.95f);
             atkBadgeImg.raycastTarget = false;
             var atkBadgeRT = atkBadgeGO.GetComponent<RectTransform>();
-            atkBadgeRT.anchorMin = new Vector2(0.72f, 0.78f);
+            atkBadgeRT.anchorMin = new Vector2(0.75f, 0.85f);
             atkBadgeRT.anchorMax = new Vector2(1f, 1f);
             atkBadgeRT.offsetMin = new Vector2(1f, 1f);
             atkBadgeRT.offsetMax = new Vector2(-1f, -1f);
 
-            var atkText = CreateTMPText(atkBadgeGO.transform, "AtkText", "0", new Color(0.05f, 0.05f, 0.05f, 1f), 13, TextAnchor.MiddleCenter);
+            var atkText = CreateTMPText(atkBadgeGO.transform, "AtkText", "0", new Color(0.05f, 0.05f, 0.05f, 1f), 12, TextAnchor.MiddleCenter);
             atkText.fontStyle = FontStyle.Bold;
             atkText.gameObject.AddComponent<Shadow>().effectColor = new Color(1f, 1f, 1f, 0.3f);
             var atkRT = atkText.GetComponent<RectTransform>();
@@ -1890,16 +1894,27 @@ namespace FWTCG.Editor
             atkRT.offsetMin = Vector2.zero;
             atkRT.offsetMax = Vector2.zero;
 
-            // ── Description text — inside bottom banner (on top of art) ──
-            var descText = CreateTMPText(root.transform, "DescText", "", Color.white, 7, TextAnchor.UpperCenter);
-            descText.gameObject.AddComponent<Shadow>().effectColor = new Color(0f, 0f, 0f, 1f);
-            var descRT = descText.GetComponent<RectTransform>();
-            descRT.anchorMin = new Vector2(0.05f, 0.02f);
-            descRT.anchorMax = new Vector2(0.95f, 0.18f);
-            descRT.offsetMin = Vector2.zero;
-            descRT.offsetMax = Vector2.zero;
-            descText.horizontalOverflow = HorizontalWrapMode.Wrap;
-            descText.verticalOverflow = VerticalWrapMode.Truncate;
+            // ── Schematic cost display (below desc, colored bg) ──
+            var schBgGO = new GameObject("SchCostBg");
+            schBgGO.transform.SetParent(root.transform, false);
+            var schBgImg = schBgGO.AddComponent<Image>();
+            schBgImg.color = new Color(1f, 0.55f, 0.1f, 0.8f); // default blazing, runtime changes
+            schBgImg.raycastTarget = false;
+            var schBgRT = schBgGO.GetComponent<RectTransform>();
+            schBgRT.anchorMin = new Vector2(0.05f, 0.02f);
+            schBgRT.anchorMax = new Vector2(0.55f, 0.12f);
+            schBgRT.offsetMin = Vector2.zero;
+            schBgRT.offsetMax = Vector2.zero;
+            schBgGO.SetActive(false);
+
+            var schText = CreateTMPText(schBgGO.transform, "SchCostText", "炽×1", Color.white, 8, TextAnchor.MiddleCenter);
+            schText.fontStyle = FontStyle.Bold;
+            schText.gameObject.AddComponent<Shadow>().effectColor = new Color(0f, 0f, 0f, 1f);
+            var schTextRT = schText.GetComponent<RectTransform>();
+            schTextRT.anchorMin = Vector2.zero;
+            schTextRT.anchorMax = Vector2.one;
+            schTextRT.offsetMin = Vector2.zero;
+            schTextRT.offsetMax = Vector2.zero;
 
             // ── DEV-8: Stunned overlay (fullscreen red tint, starts inactive) ──
             var stunnedGO = new GameObject("StunnedOverlay");
@@ -1960,6 +1975,8 @@ namespace FWTCG.Editor
             so.FindProperty("_stunnedOverlay").objectReferenceValue = stunnedImg;
             so.FindProperty("_buffTokenIcon").objectReferenceValue  = buffGO;
             so.FindProperty("_buffTokenText").objectReferenceValue  = buffText;
+            so.FindProperty("_schCostText").objectReferenceValue    = schText;
+            so.FindProperty("_schCostBg").objectReferenceValue      = schBgImg;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             // Save as prefab
@@ -1975,23 +1992,18 @@ namespace FWTCG.Editor
         {
             var root = new GameObject("RunePrefab");
             var rootRT = root.AddComponent<RectTransform>();
-            rootRT.sizeDelta = new Vector2(40f, 50f); // circle + label (no recycle btn)
+            rootRT.sizeDelta = new Vector2(46f, 46f); // just the circle, label is overlay
 
-            // Vertical layout: circle + label + recycle button
-            var vlg = root.AddComponent<VerticalLayoutGroup>();
-            vlg.childControlWidth = false;
-            vlg.childControlHeight = false;
-            vlg.childForceExpandWidth = false;
-            vlg.childForceExpandHeight = false;
-            vlg.childAlignment = TextAnchor.UpperCenter;
-            vlg.spacing = 1f;
-            vlg.padding = new RectOffset(2, 2, 1, 1);
+            // No layout — circle fills root
 
             // ── Circular rune image (tap button) ──
             var circleGO = new GameObject("RuneCircle");
             circleGO.transform.SetParent(root.transform, false);
             var circleRT = circleGO.AddComponent<RectTransform>();
-            circleRT.sizeDelta = new Vector2(34f, 34f); // bigger without recycle btn
+            circleRT.anchorMin = Vector2.zero;
+            circleRT.anchorMax = Vector2.one;
+            circleRT.offsetMin = new Vector2(2f, 2f);
+            circleRT.offsetMax = new Vector2(-2f, -2f);
 
             // Circular mask
             var mask = circleGO.AddComponent<Mask>();
@@ -2030,11 +2042,18 @@ namespace FWTCG.Editor
             // Tap button on circle
             circleGO.AddComponent<Button>();
 
-            // ── Label text (type + status) ──
-            var labelText = CreateTMPText(root.transform, "RuneTypeText", "炽 就绪", Color.white, 8, TextAnchor.MiddleCenter);
+            // ── Label text overlaid ON the circle ──
+            var labelText = CreateTMPText(circleGO.transform, "RuneTypeText", "炽", Color.white, 11, TextAnchor.MiddleCenter);
+            labelText.fontStyle = FontStyle.Bold;
             labelText.gameObject.AddComponent<Shadow>().effectColor = new Color(0f, 0f, 0f, 1f);
+            labelText.gameObject.AddComponent<Outline>().effectColor = new Color(0f, 0f, 0f, 0.8f);
             var labelRT = labelText.GetComponent<RectTransform>();
-            labelRT.sizeDelta = new Vector2(40f, 14f);
+            labelRT.anchorMin = Vector2.zero;
+            labelRT.anchorMax = Vector2.one;
+            labelRT.offsetMin = Vector2.zero;
+            labelRT.offsetMax = Vector2.zero;
+            var labelLE = labelText.gameObject.AddComponent<LayoutElement>();
+            labelLE.ignoreLayout = true;
 
             var prefab = PrefabUtility.SaveAsPrefabAsset(root, "Assets/Prefabs/RunePrefab.prefab");
             Object.DestroyImmediate(root);

@@ -94,10 +94,39 @@ namespace FWTCG.Core
             { "forgotten_monument", "遗忘丰碑" },
         };
 
+        public static readonly System.Collections.Generic.Dictionary<string, string> BF_DESCRIPTIONS =
+            new System.Collections.Generic.Dictionary<string, string>
+        {
+            { "altar_unity",        "【据守】在基地召唤1/1新兵" },
+            { "aspirant_climb",     "【据守】支付1法力，基地单位+1战力" },
+            { "back_alley_bar",     "【被动】移动离开时+1战力" },
+            { "bandle_tree",        "【据守】场上≥3种特性+1法力" },
+            { "hirana",             "【征服】消耗增益指示物抽1牌" },
+            { "reaver_row",         "【征服】从废牌堆捞费用≤2单位" },
+            { "reckoner_arena",     "【被动】战力≥5自动获得强攻/坚守" },
+            { "dreaming_tree",      "【被动】每回合首次法术抽1牌" },
+            { "vile_throat_nest",   "【限制】此处单位禁止撤回基地" },
+            { "rockfall_path",      "【限制】禁止直接出牌到此战场" },
+            { "sunken_temple",      "【防守失败】支付2法力抽1牌" },
+            { "trifarian_warcamp",  "【入场】获得增益指示物" },
+            { "void_gate",          "【被动】法术伤害额外+1" },
+            { "zaun_undercity",     "【征服】弃1牌抽1牌" },
+            { "strength_obelisk",   "【据守】额外召出1张符文" },
+            { "star_peak",          "【据守】召出1枚休眠符文" },
+            { "thunder_rune",       "【征服】回收1张符文" },
+            { "ascending_stairs",   "【被动】据守/征服时额外+1分" },
+            { "forgotten_monument", "【被动】第三回合前无据守分" },
+        };
+
         /// <summary>Returns the Chinese display name for a battlefield card ID.</summary>
         public static string GetBattlefieldDisplayName(string id)
         {
             return BF_DISPLAY_NAMES.TryGetValue(id, out string name) ? name : id;
+        }
+
+        public static string GetBattlefieldDescription(string id)
+        {
+            return BF_DESCRIPTIONS.TryGetValue(id, out string desc) ? desc : "";
         }
 
         /// <summary>

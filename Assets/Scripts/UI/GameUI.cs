@@ -358,6 +358,42 @@ namespace FWTCG.UI
                 LoadBFCardArt(_bf1PlayerContainer, gs.BFNames.Length > 0 ? gs.BFNames[0] : null);
                 LoadBFCardArt(_bf2PlayerContainer, gs.BFNames.Length > 1 ? gs.BFNames[1] : null);
             }
+
+            // Wire right-click on BF art slots for detail popup
+            WireBFRightClick(_bf1PlayerContainer, gs.BFNames != null && gs.BFNames.Length > 0 ? gs.BFNames[0] : null);
+            WireBFRightClick(_bf2PlayerContainer, gs.BFNames != null && gs.BFNames.Length > 1 ? gs.BFNames[1] : null);
+        }
+
+        private void WireBFRightClick(Transform bfContainer, string bfId)
+        {
+            if (bfContainer == null || string.IsNullOrEmpty(bfId) || _cardDetailPopup == null) return;
+            Transform panel = bfContainer.parent;
+            if (panel == null) return;
+
+            // Only wire once
+            if (panel.GetComponent<UnityEngine.EventSystems.EventTrigger>() != null) return;
+
+            string bfName = GameRules.GetBattlefieldDisplayName(bfId);
+            string capturedId = bfId;
+
+            var et = panel.gameObject.AddComponent<UnityEngine.EventSystems.EventTrigger>();
+            var entry = new UnityEngine.EventSystems.EventTrigger.Entry();
+            entry.eventID = UnityEngine.EventSystems.EventTriggerType.PointerClick;
+            entry.callback.AddListener((data) =>
+            {
+                var pd = (UnityEngine.EventSystems.PointerEventData)data;
+                if (pd.button == UnityEngine.EventSystems.PointerEventData.InputButton.Right)
+                {
+                    string desc = GameRules.GetBattlefieldDescription(capturedId);
+                    Sprite sprite = null;
+                    if (_bfArtCache.TryGetValue(capturedId, out Sprite cached))
+                        sprite = cached;
+                    else
+                        sprite = Resources.Load<Sprite>($"CardArt/bf_{capturedId}");
+                    _cardDetailPopup.ShowSimple(bfName, desc ?? "战场卡", sprite);
+                }
+            });
+            et.triggers.Add(entry);
         }
 
         private static readonly Dictionary<string, Sprite> _bfArtCache = new Dictionary<string, Sprite>();
@@ -707,15 +743,18 @@ namespace FWTCG.UI
                     }
                 }
 
-                // Label text
-                Transform labelT = go.transform.Find("RuneTypeText");
-                if (labelT != null)
+                // Label on circle
+                if (circleT != null)
                 {
-                    Text label = labelT.GetComponent<Text>();
-                    if (label != null)
+                    Transform labelT = circleT.Find("RuneTypeText");
+                    if (labelT != null)
                     {
-                        label.text = $"{RuneTypeShortName(r.RuneType)}\n{(r.Tapped ? "横置" : "就绪")}";
-                        label.color = r.Tapped ? GameColors.RuneTapped : GameColors.GetRuneColor(r.RuneType);
+                        Text label = labelT.GetComponent<Text>();
+                        if (label != null)
+                        {
+                            label.text = r.Tapped ? "横" : RuneTypeShortName(r.RuneType);
+                            label.color = Color.white;
+                        }
                     }
                 }
 
