@@ -581,12 +581,53 @@ namespace FWTCG
             RefreshUI();
         }
 
+        private bool HasValidSpellTargets(SpellTargetType targetType)
+        {
+            switch (targetType)
+            {
+                case SpellTargetType.EnemyUnit:
+                {
+                    if (_gs.EBase.Count > 0) return true;
+                    for (int i = 0; i < GameRules.BATTLEFIELD_COUNT; i++)
+                        if (_gs.BF[i].EnemyUnits.Count > 0) return true;
+                    return false;
+                }
+                case SpellTargetType.FriendlyUnit:
+                {
+                    if (_gs.PBase.Count > 0) return true;
+                    for (int i = 0; i < GameRules.BATTLEFIELD_COUNT; i++)
+                        if (_gs.BF[i].PlayerUnits.Count > 0) return true;
+                    return false;
+                }
+                case SpellTargetType.AnyUnit:
+                {
+                    if (_gs.PBase.Count > 0 || _gs.EBase.Count > 0) return true;
+                    for (int i = 0; i < GameRules.BATTLEFIELD_COUNT; i++)
+                        if (_gs.BF[i].PlayerUnits.Count > 0 || _gs.BF[i].EnemyUnits.Count > 0) return true;
+                    return false;
+                }
+                default:
+                    return true;
+            }
+        }
+
         private void TryPlaySpell(UnitInstance spell)
         {
             if (spell.CardData.Cost > _gs.PMana)
             {
                 TurnManager.BroadcastMessage_Static(
                     $"[提示] 法力不足：需要 {spell.CardData.Cost}，当前 {_gs.PMana}");
+                return;
+            }
+
+            // Guard: refuse to enter targeting mode if no valid targets exist
+            if (spell.CardData.SpellTargetType != SpellTargetType.None &&
+                !HasValidSpellTargets(spell.CardData.SpellTargetType))
+            {
+                string typeLabel = spell.CardData.SpellTargetType == SpellTargetType.EnemyUnit ? "敌方"
+                    : spell.CardData.SpellTargetType == SpellTargetType.FriendlyUnit ? "己方" : "任意";
+                TurnManager.BroadcastMessage_Static(
+                    $"[提示] 场上没有合法目标（{typeLabel}单位），无法发动 {spell.UnitName}");
                 return;
             }
 
