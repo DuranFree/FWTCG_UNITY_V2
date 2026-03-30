@@ -2,6 +2,29 @@
 
 ---
 
+## DEV-14：软加权手牌 + 音频框架 + 系统验证 — 2026-03-31
+
+**Status**: ✅ Completed
+
+**技术决策**:
+- 软加权67%触发率：DealInitialHand内Random.value检测→SeedOpeningHand找≤2费非法术非装备单位
+- AudioManager：单例模式，BGM循环+SFX OneShot，所有方法安全调用（clip=null时跳过）
+- 增益指示物系统确认已完整实现（BuffTokens字段+ResetEndOfTurn保留）
+
+**新功能**:
+- GameManager.SeedOpeningHand（软加权67%开局手牌）
+- AudioManager.cs（完整音频框架：BGM+9个SFX+音量控制）
+- 确认标记：增益指示物系统、卡组初始化完整流程
+
+**修改文件**:
+- `Assets/Scripts/GameManager.cs`（+SeedOpeningHand+DealInitialHand改写）
+- `Assets/Scripts/Audio/AudioManager.cs`（新建）
+- `Assets/Tests/EditMode/DEV14SystemTests.cs`（新建，9个测试）
+
+**测试结果**: 263 全绿（9 新 + 254 现有），0 失败
+
+---
+
 ## DEV-13：装备附着系统 + 符能费用检查 + 常量验证 — 2026-03-31
 
 **Status**: ✅ Completed

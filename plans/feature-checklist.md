@@ -28,7 +28,7 @@
 
 ### 单位状态
 - ✅ atk = HP 规则（currentHp 和 currentAtk 始终同步）— DEV-1
-- [ ] 增益指示物系统（buffToken，+1/+1，不可叠加）
+- ✅ 增益指示物系统（buffToken，+1/+1，ResetEndOfTurn保留buff）— DEV-1字段+DEV-2/6/11使用
 - ✅ 休眠（exhausted）/ 眩晕（stunned）状态 — DEV-1（基础字段）
 - ✅ 临时战力加成（tb.atk，回合结束清零）— DEV-1（TempAtkBonus 字段已实现，ResetEndOfTurn 清零）
 - ✅ 绝念触发系统（DeathwishSystem：alert_sentinel_die / wailing_poro_die）— DEV-2
@@ -256,15 +256,15 @@
 
 ## 七、音效系统（sound.js → AudioManager）
 
-- [ ] 背景音乐（BGM 循环播放，游戏开始时启动）
-- [ ] 出牌音效（card-play swoosh）
-- [ ] 法术施放音效
-- [ ] 战斗冲击音效
-- [ ] 单位死亡音效
-- [ ] 回合结束音效
-- [ ] 游戏结束音效（胜利/失败）
-- [ ] UI 点击音效
-- [ ] 音量控制（可选）
+- ✅ 背景音乐（BGM 循环播放，AudioManager.PlayBGM）— DEV-14（框架+需音频资源）
+- ✅ 出牌音效（AudioManager.PlayCardPlay）— DEV-14（框架+需音频资源）
+- ✅ 法术施放音效（AudioManager.PlaySpellCast）— DEV-14（框架+需音频资源）
+- ✅ 战斗冲击音效（AudioManager.PlayCombatHit）— DEV-14（框架+需音频资源）
+- ✅ 单位死亡音效（AudioManager.PlayUnitDeath）— DEV-14（框架+需音频资源）
+- ✅ 回合结束音效（AudioManager.PlayTurnEnd）— DEV-14（框架+需音频资源）
+- ✅ 游戏结束音效（AudioManager.PlayGameOverWin/Lose）— DEV-14（框架+需音频资源）
+- ✅ UI 点击音效（AudioManager.PlayUIClick）— DEV-14（框架+需音频资源）
+- ✅ 音量控制（AudioManager.SetBGMVolume/SetSFXVolume）— DEV-14
 
 ---
 
@@ -281,8 +281,8 @@
 ## 九、游戏启动流程（main.js → GameBootstrap.cs）
 
 - ✅ 随机阵营分配（50%卡莎先手/易大师先手）— DEV-1
-- [ ] 卡组初始化（含英雄卡单独提取）
-- [ ] 软加权开局手牌（seedPlayerOpeningHand，67%触发，抽≤2费单位）
+- ✅ 卡组初始化（含英雄卡单独提取）— DEV-1 BuildDeck+DealInitialHand + DEV-10 ExtractHero + DEV-14 SeedOpeningHand
+- ✅ 软加权开局手牌（seedPlayerOpeningHand，67%触发，抽≤2费单位）— DEV-14
 - ✅ 符文牌堆初始化 — DEV-1
 - ✅ 传奇初始化（InitGame 创建 PLegend=卡莎 + ELegend=易大师）— DEV-5
 - ✅ 初始手牌抽取（各4张）— DEV-1

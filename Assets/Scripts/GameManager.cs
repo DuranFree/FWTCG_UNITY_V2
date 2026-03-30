@@ -863,11 +863,36 @@ namespace FWTCG
             List<UnitInstance> deck = _gs.GetDeck(owner);
             List<UnitInstance> hand = _gs.GetHand(owner);
 
-            for (int i = 0; i < GameRules.INITIAL_HAND_SIZE; i++)
+            // Soft-weighted opening hand: 67% chance to ensure at least one ≤2-cost unit
+            if (Random.value <= 0.67f)
             {
-                if (deck.Count == 0) break;
+                SeedOpeningHand(deck, hand);
+            }
+
+            // Draw remaining cards to fill up to INITIAL_HAND_SIZE
+            while (hand.Count < GameRules.INITIAL_HAND_SIZE && deck.Count > 0)
+            {
                 hand.Add(deck[0]);
                 deck.RemoveAt(0);
+            }
+        }
+
+        /// <summary>
+        /// Soft-weighted opening hand: find a ≤2-cost non-spell unit in the deck
+        /// and move it to hand (ensures early playable card).
+        /// </summary>
+        private void SeedOpeningHand(List<UnitInstance> deck, List<UnitInstance> hand)
+        {
+            for (int i = 0; i < deck.Count; i++)
+            {
+                UnitInstance card = deck[i];
+                if (!card.CardData.IsSpell && !card.CardData.IsEquipment && card.CardData.Cost <= 2)
+                {
+                    deck.RemoveAt(i);
+                    hand.Add(card);
+                    Debug.Log($"[软加权] 开局手牌加入低费单位: {card.UnitName}");
+                    return;
+                }
             }
         }
 
