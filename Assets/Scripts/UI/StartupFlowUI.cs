@@ -57,8 +57,8 @@ namespace FWTCG.UI
             var tcs = new TaskCompletionSource<bool>();
 
             string label = gs.First == GameRules.OWNER_PLAYER ? "玩家先手！" : "AI先手！";
-            string bf0 = gs.BFNames != null && gs.BFNames.Length > 0 ? gs.BFNames[0] : "战场1";
-            string bf1 = gs.BFNames != null && gs.BFNames.Length > 1 ? gs.BFNames[1] : "战场2";
+            string bf0 = gs.BFNames != null && gs.BFNames.Length > 0 ? GameRules.GetBattlefieldDisplayName(gs.BFNames[0]) : "战场1";
+            string bf1 = gs.BFNames != null && gs.BFNames.Length > 1 ? GameRules.GetBattlefieldDisplayName(gs.BFNames[1]) : "战场2";
 
             if (_coinFlipText != null)
                 _coinFlipText.text = $"掷硬币\n{label}\n\n战场：{bf0}  /  {bf1}";

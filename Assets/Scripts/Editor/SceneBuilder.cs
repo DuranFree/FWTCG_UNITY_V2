@@ -167,6 +167,7 @@ namespace FWTCG.Editor
             var startupFlowUI  = gmGO.AddComponent<FWTCG.UI.StartupFlowUI>();
             var reactiveWindowUI = gmGO.AddComponent<FWTCG.UI.ReactiveWindowUI>();
             var legendSys    = gmGO.AddComponent<FWTCG.Systems.LegendSystem>();
+            var bfSys        = gmGO.AddComponent<FWTCG.Systems.BattlefieldSystem>();
 
             // ── Wire UI references via SerializedObject ───────────────────────
             WireGameUI(gameUI, cardPrefab, runePrefab,
@@ -194,7 +195,7 @@ namespace FWTCG.Editor
                             mulliganPanel, mulliganTitleText, mulliganCardContainer,
                             mulliganConfirmButton, mulliganConfirmLabel, cardPrefab,
                             reactivePanel, reactiveContextText, reactiveCardContainer,
-                            reactBtn, legendSys, legendSkillBtn,
+                            reactBtn, legendSys, legendSkillBtn, bfSys,
                             debugSpellBtn, debugEquipBtn, debugUnitBtn, debugReactiveBtn, debugManaBtn);
 
             // ── Save scene ────────────────────────────────────────────────────
@@ -1351,6 +1352,7 @@ namespace FWTCG.Editor
             GameObject reactivePanel, Text reactiveContextText,
             Transform reactiveCardContainer, Button reactBtn,
             FWTCG.Systems.LegendSystem legendSys, Button legendSkillBtn,
+            FWTCG.Systems.BattlefieldSystem bfSys,
             Button debugSpellBtn, Button debugEquipBtn, Button debugUnitBtn, Button debugReactiveBtn, Button debugManaBtn)
         {
             var so = new SerializedObject(gameMgr);
@@ -1397,14 +1399,26 @@ namespace FWTCG.Editor
             so.FindProperty("_reactBtn").objectReferenceValue        = reactBtn;
             so.FindProperty("_legendSkillBtn").objectReferenceValue  = legendSkillBtn;
 
-            // Wire LegendSystem into GameManager
+            // Wire LegendSystem + BattlefieldSystem into GameManager
             so.FindProperty("_legendSys").objectReferenceValue       = legendSys;
+            so.FindProperty("_bfSys").objectReferenceValue           = bfSys;
 
-            // Wire DeathwishSystem + LegendSystem into CombatSystem
+            // Wire DeathwishSystem + LegendSystem + BattlefieldSystem into CombatSystem
             var combatSO = new SerializedObject(combatSys);
             combatSO.FindProperty("_deathwish").objectReferenceValue  = deathwish;
             combatSO.FindProperty("_legendSys").objectReferenceValue  = legendSys;
+            combatSO.FindProperty("_bfSys").objectReferenceValue      = bfSys;
             combatSO.ApplyModifiedPropertiesWithoutUndo();
+
+            // Wire BattlefieldSystem into ScoreManager
+            var scoreSO = new SerializedObject(scoreMgr);
+            scoreSO.FindProperty("_bfSys").objectReferenceValue       = bfSys;
+            scoreSO.ApplyModifiedPropertiesWithoutUndo();
+
+            // Wire BattlefieldSystem into SpellSystem
+            var spellSO = new SerializedObject(spellSys);
+            spellSO.FindProperty("_bfSys").objectReferenceValue       = bfSys;
+            spellSO.ApplyModifiedPropertiesWithoutUndo();
 
             // Wire CardData arrays — full decks (unique card types; copies handled at runtime)
             var kaisaCards = new CardData[]

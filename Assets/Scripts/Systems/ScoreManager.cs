@@ -18,6 +18,8 @@ namespace FWTCG.Systems
         public static event Action<string> OnGameOver;
         public static event Action<string> OnScoreChanged;
 
+        [SerializeField] private BattlefieldSystem _bfSys;
+
         /// <summary>
         /// Attempts to add points to a player. Applies the last-point restriction.
         /// Returns true if the point(s) were actually awarded.
@@ -25,6 +27,17 @@ namespace FWTCG.Systems
         public bool AddScore(string who, int pts, string type, int? bfId, GameState gs)
         {
             if (gs.GameOver) return false;
+
+            // forgotten_monument: block hold score before round 2
+            if (type == GameRules.SCORE_TYPE_HOLD && bfId.HasValue && _bfSys != null)
+            {
+                if (_bfSys.ShouldBlockHoldScore(bfId.Value, gs))
+                    return false;
+            }
+
+            // ascending_stairs: +1 bonus on hold or conquer from this BF
+            if (bfId.HasValue && _bfSys != null)
+                pts += _bfSys.GetBonusScorePoints(bfId.Value, type, gs);
 
             // Tiyana passive: opponent can't gain hold score while Tiyana is in play
             if (type == GameRules.SCORE_TYPE_HOLD)

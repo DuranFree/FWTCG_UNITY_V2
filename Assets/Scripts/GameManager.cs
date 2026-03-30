@@ -39,6 +39,7 @@ namespace FWTCG
         [SerializeField] private ReactiveSystem _reactiveSys;
         [SerializeField] private ReactiveWindowUI _reactiveWindowUI;
         [SerializeField] private LegendSystem _legendSys;
+        [SerializeField] private BattlefieldSystem _bfSys;
 
         // ── React button / Legend skill button ────────────────────────────────
         [SerializeField] private Button _reactBtn;
@@ -193,7 +194,7 @@ namespace FWTCG
 
             // Inject dependencies into systems
             _turnMgr.Inject(_gs, _scoreMgr, _combatSys, _ai, _entryEffects,
-                            _spellSys, _reactiveSys, _reactiveWindowUI, _legendSys);
+                            _spellSys, _reactiveSys, _reactiveWindowUI, _legendSys, _bfSys);
 
             // Initialize legends (player = Kaisa/虚空, enemy = Masteryi/伊欧尼亚)
             if (_legendSys != null)
@@ -409,6 +410,16 @@ namespace FWTCG
             {
                 TurnManager.BroadcastMessage_Static("[提示] 请选择目标单位，或结束回合以取消法术");
                 return;
+            }
+
+            // rockfall_path: block direct unit play from base to this BF
+            if (_selectedBaseUnits.Count > 0 || (_selectedUnit != null && _selectedUnitLoc == "base"))
+            {
+                if (_bfSys != null && !_bfSys.CanPlayDirectlyToBattlefield(bfId, _gs))
+                {
+                    TurnManager.BroadcastMessage_Static("[落岩之径] 禁止从手牌直接打出到此战场！");
+                    return;
+                }
             }
 
             // ── Batch move from base ──

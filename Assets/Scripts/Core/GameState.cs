@@ -83,6 +83,9 @@ namespace FWTCG.Core
         /// <summary>Tracks which owners have Tiyana Warden in play (blocks hold scoring).</summary>
         public Dictionary<string, bool> TiyanasInPlay { get; set; } = new Dictionary<string, bool>();
 
+        /// <summary>Whether 梦幻树 (dreaming_tree) draw has already triggered this turn.</summary>
+        public bool DreamingTreeTriggeredThisTurn { get; set; }
+
         // ── Legend zone ────────────────────────────────────────────────────────
         /// <summary>Player's legend (Kaisa). Initialized by GameManager at game start.</summary>
         public LegendInstance PLegend { get; set; }

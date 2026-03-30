@@ -37,13 +37,15 @@ namespace FWTCG.Systems
         private ReactiveSystem _reactiveSys;
         private ReactiveWindowUI _reactiveWindow;
         private LegendSystem _legendSys;
+        private BattlefieldSystem _bfSys;
 
         public void Inject(GameState gs, ScoreManager score, CombatSystem combat, SimpleAI ai,
                            EntryEffectSystem entryEffects = null,
                            SpellSystem spellSys = null,
                            ReactiveSystem reactiveSys = null,
                            ReactiveWindowUI reactiveWindow = null,
-                           LegendSystem legendSys = null)
+                           LegendSystem legendSys = null,
+                           BattlefieldSystem bfSys = null)
         {
             _gs = gs;
             _scoreMgr = score;
@@ -54,6 +56,7 @@ namespace FWTCG.Systems
             _reactiveSys = reactiveSys;
             _reactiveWindow = reactiveWindow;
             _legendSys = legendSys;
+            _bfSys = bfSys;
         }
 
         // ── Public API ────────────────────────────────────────────────────────
@@ -145,6 +148,7 @@ namespace FWTCG.Systems
             gs.BFScoredThisTurn.Clear();
             gs.BFConqueredThisTurn.Clear();
             gs.CardsPlayedThisTurn = 0;
+            gs.DreamingTreeTriggeredThisTurn = false;
 
             // Reset legend ability usage
             _legendSys?.ResetForTurn(who, gs);
@@ -169,6 +173,9 @@ namespace FWTCG.Systems
                     Broadcast($"[据守] {DisplayName(who)} 控制战场{i + 1}，+1分");
                     _scoreMgr.AddScore(who, 1, GameRules.SCORE_TYPE_HOLD, i, gs);
                     if (gs.GameOver) return;
+
+                    // Battlefield hold-phase triggered effects
+                    _bfSys?.OnHoldPhaseEffects(i, who, gs);
                 }
             }
 

@@ -239,12 +239,12 @@ namespace FWTCG.UI
 
             if (_bf1CtrlText != null)
             {
-                string bf1Name = gs.BFNames != null && gs.BFNames.Length > 0 ? gs.BFNames[0] : "战场1";
+                string bf1Name = gs.BFNames != null && gs.BFNames.Length > 0 ? GameRules.GetBattlefieldDisplayName(gs.BFNames[0]) : "战场1";
                 _bf1CtrlText.text = $"{bf1Name}\n{CtrlLabel(gs.BF[0].Ctrl)}";
             }
             if (_bf2CtrlText != null)
             {
-                string bf2Name = gs.BFNames != null && gs.BFNames.Length > 1 ? gs.BFNames[1] : "战场2";
+                string bf2Name = gs.BFNames != null && gs.BFNames.Length > 1 ? GameRules.GetBattlefieldDisplayName(gs.BFNames[1]) : "战场2";
                 _bf2CtrlText.text = $"{bf2Name}\n{CtrlLabel(gs.BF[1].Ctrl)}";
             }
 

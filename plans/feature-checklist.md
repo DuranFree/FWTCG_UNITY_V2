@@ -37,7 +37,7 @@
 - ✅ 单位移动（基地↔战场，多选→批量同时移动）— DEV-1 + 修正
 - ✅ 战斗触发（移动造成争夺→自动触发法术对决，Rule 546）— DEV-1 规则修正
 - ✅ 伤害分配（逐一分配，顺序吸收，未来加壁垒优先 Rule 626）— DEV-1 规则修正
-- [ ] 强攻 / 坚守关键词（+1攻击力 / +1防御力，可配置）
+- ✅ 强攻 / 坚守关键词（+1攻击力 / +1防御力，ComputeCombatPower）— DEV-6
 - ❌ 溢出伤害检查（压制关键词击中传奇）— OUT OF SCOPE：传奇不可被摧毁（规则167.3），溢出伤害无处落点
 - ✅ 战斗结果判定（双方全灭 / 攻方胜征服 / 守方胜 / 双方存活→攻方召回 Rule 627）— DEV-1 规则修正
 - ✅ 战后清理（阵亡→废牌堆 + 全场所有单位HP重置 Rule 627.5）— DEV-1 规则修正
@@ -72,8 +72,8 @@
 - [ ] 易大师传奇卡（masteryi，传奇区技能载体：独影剑鸣被动）
 
 ### 战场卡数据
-- [ ] 19张战场卡数据（id/name/效果描述）
-- [ ] 战场牌池分配（卡莎池3张 / 易大师池3张）
+- ✅ 19张战场卡数据（id/name/效果描述，GameRules.BF_DISPLAY_NAMES）— DEV-6
+- ✅ 战场牌池分配（卡莎池3张 / 易大师池3张，GameRules.KAISA_BF_POOL/YI_BF_POOL）— DEV-6
 
 ### 符文系统
 - ✅ 6种符文类型定义（blazing/radiant/verdant/crushing/chaos/order）— DEV-1
@@ -253,25 +253,25 @@
 
 ## 九、战场卡牌特殊能力（19张）
 
-- [ ] altar_unity — 据守：召唤1/1新兵
-- [ ] aspirant_climb — 据守：支付1法力，基地单位+1战力
-- [ ] back_alley_bar — 被动：移动离开时+1战力
-- [ ] bandle_tree — 据守：场上≥3种特性+1法力
-- [ ] hirana — 征服：消耗增益指示物抽1牌
-- [ ] reaver_row — 征服：从废牌堆捞费用≤2单位
-- [ ] reckoner_arena — 被动：战力≥5自动获得强攻/坚守
-- [ ] dreaming_tree — 被动：每回合首次法术抽1牌
-- [ ] vile_throat_nest — 被动：此处单位禁止撤回基地
-- [ ] rockfall_path — 被动：禁止直接出牌到此战场
-- [ ] sunken_temple — 防守失败触发：支付2法力抽1牌
-- [ ] trifarian_warcamp — 入场触发：获得增益指示物
-- [ ] void_gate — 被动：法术伤害额外+1
-- [ ] zaun_undercity — 征服：弃1牌抽1牌
-- [ ] strength_obelisk — 据守：额外召出1张符文
-- [ ] star_peak — 据守：召出1枚休眠符文（玩家选择）
-- [ ] thunder_rune — 征服：回收1张符文
-- [ ] ascending_stairs — 被动：据守时额外+1分
-- [ ] forgotten_monument — 被动：第三回合前无据守分
+- ✅ altar_unity — 据守：召唤1/1新兵 — DEV-6
+- ✅ aspirant_climb — 据守：支付1法力，基地单位+1战力 — DEV-6
+- ✅ back_alley_bar — 被动：移动离开时+1战力 — DEV-6
+- ✅ bandle_tree — 据守：场上≥3种特性+1法力 — DEV-6
+- ✅ hirana — 征服：消耗增益指示物抽1牌 — DEV-6
+- ✅ reaver_row — 征服：从废牌堆捞费用≤2单位 — DEV-6
+- ✅ reckoner_arena — 被动：战力≥5自动获得强攻/坚守 — DEV-6
+- ✅ dreaming_tree — 被动：每回合首次法术抽1牌 — DEV-6
+- ✅ vile_throat_nest — 被动：此处单位禁止撤回基地 — DEV-6
+- ✅ rockfall_path — 被动：禁止直接出牌到此战场 — DEV-6
+- ✅ sunken_temple — 防守失败触发：支付2法力抽1牌 — DEV-6
+- ✅ trifarian_warcamp — 入场触发：获得增益指示物 — DEV-6
+- ✅ void_gate — 被动：法术伤害额外+1 — DEV-6
+- ✅ zaun_undercity — 征服：弃1牌抽1牌 — DEV-6
+- ✅ strength_obelisk — 据守：额外召出1张符文 — DEV-6
+- ✅ star_peak — 据守：召出1枚休眠符文 — DEV-6
+- ✅ thunder_rune — 征服：回收1张符文 — DEV-6
+- ✅ ascending_stairs — 被动：据守/征服时额外+1分 — DEV-6
+- ✅ forgotten_monument — 被动：第三回合前无据守分 — DEV-6
 
 ---
 

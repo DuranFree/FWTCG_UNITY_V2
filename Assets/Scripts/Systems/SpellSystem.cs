@@ -16,6 +16,8 @@ namespace FWTCG.Systems
     {
         public static event System.Action<string> OnSpellLog;
 
+        [SerializeField] private BattlefieldSystem _bfSys;
+
         // ── Public API ────────────────────────────────────────────────────────
 
         /// <summary>
@@ -92,6 +94,9 @@ namespace FWTCG.Systems
                     break;
             }
 
+            // dreaming_tree: draw 1 if this spell targeted a friendly unit on that BF
+            _bfSys?.OnSpellTargetsFriendlyUnit(target, owner, gs);
+
             // Move spell from hand to discard
             gs.GetHand(owner).Remove(spell);
             gs.GetDiscard(owner).Add(spell);
@@ -112,6 +117,10 @@ namespace FWTCG.Systems
                 Log($"[法盾] {target.UnitName} 法术护盾抵消了 {amount} 点伤害");
                 return;
             }
+
+            // void_gate: +1 damage to units on that BF
+            if (_bfSys != null)
+                amount += _bfSys.GetSpellDamageBonus(target, gs);
 
             target.CurrentHp -= amount;
             Log($"[伤害] {target.UnitName} 受到 {amount} 点法术伤害（剩余HP: {target.CurrentHp}）");

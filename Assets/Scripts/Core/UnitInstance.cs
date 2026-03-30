@@ -34,6 +34,12 @@ namespace FWTCG.Core
         /// <summary>Whether this unit currently has a spell shield charge.</summary>
         public bool HasSpellShield { get; set; }
 
+        /// <summary>Whether this unit has StrongAtk (强攻): +1 power when attacking.</summary>
+        public bool HasStrongAtk { get; set; }
+
+        /// <summary>Whether this unit has Guard (坚守): +1 power when defending.</summary>
+        public bool HasGuard { get; set; }
+
         /// <summary>"player" or "enemy"</summary>
         public string Owner { get; private set; }
 
@@ -50,6 +56,8 @@ namespace FWTCG.Core
             BuffTokens = 0;
             TempAtkBonus = 0;
             HasSpellShield = data.HasKeyword(CardKeyword.SpellShield);
+            HasStrongAtk = data.HasKeyword(CardKeyword.StrongAtk);
+            HasGuard = data.HasKeyword(CardKeyword.Guard);
             Owner = owner;
         }
 

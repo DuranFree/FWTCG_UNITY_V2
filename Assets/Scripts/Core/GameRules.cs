@@ -54,20 +54,54 @@ namespace FWTCG.Core
         public const int PHASE_DELAY_MS = 650;
         public const int AI_ACTION_DELAY_MS = 700;
 
+        // Strong power threshold for reckoner_arena keyword grant
+        public const int STRONG_POWER_THRESHOLD = 5;
+
         // Battlefield pools per faction (each player randomly picks 1 from their pool)
-        // Format: display name only; special abilities are implemented in DEV-3+
+        // Format: card ID (matches BattlefieldSystem effect switch cases)
         public static readonly string[] KAISA_BF_POOL =
         {
-            "虚空之门", "星峰", "雷文符石"
+            "star_peak", "void_gate", "strength_obelisk"
         };
 
         public static readonly string[] YI_BF_POOL =
         {
-            "磨难高阶", "力量碑文", "忘却纪念碑"
+            "thunder_rune", "ascending_stairs", "forgotten_monument"
         };
 
+        // Display names for all 19 battlefield cards
+        public static readonly System.Collections.Generic.Dictionary<string, string> BF_DISPLAY_NAMES =
+            new System.Collections.Generic.Dictionary<string, string>
+        {
+            { "altar_unity",        "团结祭坛" },
+            { "aspirant_climb",     "试炼者之阶" },
+            { "back_alley_bar",     "暗巷酒吧" },
+            { "bandle_tree",        "班德尔城神树" },
+            { "hirana",             "希拉娜修道院" },
+            { "reaver_row",         "掠夺者之街" },
+            { "reckoner_arena",     "清算人竞技场" },
+            { "dreaming_tree",      "梦幻树" },
+            { "vile_throat_nest",   "卑鄙之喉的巢穴" },
+            { "rockfall_path",      "落岩之径" },
+            { "sunken_temple",      "沉没神庙" },
+            { "trifarian_warcamp",  "崔法利战营" },
+            { "void_gate",          "虚空之门" },
+            { "zaun_undercity",     "祖安地沟" },
+            { "strength_obelisk",   "力量方尖碑" },
+            { "star_peak",          "星尖峰" },
+            { "thunder_rune",       "雷霆之纹" },
+            { "ascending_stairs",   "攀圣长阶" },
+            { "forgotten_monument", "遗忘丰碑" },
+        };
+
+        /// <summary>Returns the Chinese display name for a battlefield card ID.</summary>
+        public static string GetBattlefieldDisplayName(string id)
+        {
+            return BF_DISPLAY_NAMES.TryGetValue(id, out string name) ? name : id;
+        }
+
         /// <summary>
-        /// Picks a random battlefield name from a faction pool.
+        /// Picks a random battlefield card ID from a faction pool.
         /// </summary>
         public static string PickBattlefield(string[] pool)
         {

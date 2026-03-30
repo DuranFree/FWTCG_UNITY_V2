@@ -23,5 +23,6 @@ namespace FWTCG.Data
         Standby     = 1 << 10, // 待命: face-down 0-cost reactive
         Stun        = 1 << 11, // 眩晕: cannot contribute power in combat
         Echo        = 1 << 12, // 回响: can be played a second time this turn
+        Guard       = 1 << 13, // 坚守: +1 power when defending
     }
 }

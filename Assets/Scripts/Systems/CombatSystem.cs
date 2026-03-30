@@ -22,6 +22,7 @@ namespace FWTCG.Systems
 
         [SerializeField] private DeathwishSystem _deathwish;
         [SerializeField] private LegendSystem _legendSys;
+        [SerializeField] private BattlefieldSystem _bfSys;
 
         // ── Unit movement (#3, #9) ───────────────────────────────────────────
 
@@ -39,6 +40,10 @@ namespace FWTCG.Systems
             // Remove from source
             RemoveFromSource(unit, fromLoc, owner, gs);
 
+            // Leave source BF effect (back_alley_bar) — fire before removal
+            if (fromLoc != "base" && int.TryParse(fromLoc, out int srcBfIdx))
+                _bfSys?.OnUnitLeaveBattlefield(unit, srcBfIdx, owner, gs);
+
             // Add to destination
             if (owner == GameRules.OWNER_PLAYER)
                 bf.PlayerUnits.Add(unit);
@@ -48,6 +53,9 @@ namespace FWTCG.Systems
             unit.Exhausted = true;
 
             Log($"[移动] {unit.UnitName}({DisplayName(owner)}) → 战场{toBF + 1}");
+
+            // Enter BF effect (trifarian_warcamp)
+            _bfSys?.OnUnitEnterBattlefield(unit, toBF, owner, gs);
 
             // Claim control if uncontested (no combat yet)
             string opponent = gs.Opponent(owner);
@@ -122,6 +130,10 @@ namespace FWTCG.Systems
         {
             if (gs.GameOver) return;
 
+            // vile_throat_nest: block recall from this BF
+            if (_bfSys != null && !_bfSys.CanRecallFromBattlefield(fromBF, gs))
+                return;
+
             BattlefieldState bf = gs.BF[fromBF];
 
             // Remove from battlefield
@@ -165,16 +177,20 @@ namespace FWTCG.Systems
             // Masteryi passive: lone defender gets +2 temp attack (DEV-5)
             _legendSys?.TryApplyMasteryiPassive(bfId, attacker, gs);
 
+            // #4: Collect units (needed for power calc and damage distribution)
+            List<UnitInstance> attackerUnits = GetBFUnits(attacker, bf);
+            List<UnitInstance> defenderUnits = GetBFUnits(defender, bf);
+
+            // reckoner_arena: grant StrongAtk/Guard to units with power >= 5
+            _bfSys?.OnCombatStart(bfId, attacker, gs);
+
             // Calculate total power per side (#5: stunned units contribute 0)
-            int attackerPower = bf.TotalPower(attacker);
-            int defenderPower = bf.TotalPower(defender);
+            // StrongAtk/Guard bonuses are included via ComputeCombatPower
+            int attackerPower = ComputeCombatPower(attackerUnits, isAttacking: true);
+            int defenderPower = ComputeCombatPower(defenderUnits, isAttacking: false);
 
             Log($"[法术对决] 战场{bfId + 1}: {DisplayName(attacker)}({attackerPower}) vs {DisplayName(defender)}({defenderPower})");
             TurnManager.ShowBanner_Static($"⚔ 法术对决！战场{bfId + 1}");
-
-            // #4: Distribute damage individually
-            List<UnitInstance> attackerUnits = GetBFUnits(attacker, bf);
-            List<UnitInstance> defenderUnits = GetBFUnits(defender, bf);
 
             List<UnitInstance> deadDefenders = DistributeDamage(attackerPower, defenderUnits);
             List<UnitInstance> deadAttackers = DistributeDamage(defenderPower, attackerUnits);
@@ -212,6 +228,12 @@ namespace FWTCG.Systems
                 {
                     score.AddScore(attacker, 1, GameRules.SCORE_TYPE_CONQUER, bfId, gs);
                 }
+
+                // Battlefield conquest-triggered effects
+                _bfSys?.OnConquest(bfId, attacker, gs);
+
+                // Defense failure effect for the losing player
+                _bfSys?.OnDefenseFailure(bfId, defender, gs);
             }
             else if (!attackerSurvivors && defenderSurvivors)
             {
@@ -231,6 +253,25 @@ namespace FWTCG.Systems
         }
 
         // ── Private helpers ──────────────────────────────────────────────────
+
+        /// <summary>
+        /// Computes total combat power for a group of units.
+        /// Stunned units contribute 0 (Rule 743).
+        /// StrongAtk adds +1 when attacking; Guard adds +1 when defending.
+        /// </summary>
+        private int ComputeCombatPower(List<UnitInstance> units, bool isAttacking)
+        {
+            int total = 0;
+            foreach (UnitInstance u in units)
+            {
+                if (u.Stunned) continue;
+                int power = Mathf.Max(1, u.CurrentAtk + u.TempAtkBonus);
+                if (isAttacking && u.HasStrongAtk) power += 1;
+                if (!isAttacking && u.HasGuard) power += 1;
+                total += power;
+            }
+            return total;
+        }
 
         /// <summary>
         /// Distributes damage sequentially among target units.

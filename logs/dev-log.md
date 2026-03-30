@@ -2,6 +2,61 @@
 
 ---
 
+## DEV-6：战场特殊能力（19张）— 2026-03-30
+
+**Status**: ✅ Completed
+
+**新功能**:
+- `CardKeyword.cs`：新增 `Guard`（坚守，bit 13）关键词
+- `UnitInstance.cs`：新增运行时标志 `HasStrongAtk` / `HasGuard`，构造器自动从 CardData 关键词初始化
+- `GameRules.cs`：
+  - BF 牌池改为 ID 存储（`KAISA_BF_POOL` / `YI_BF_POOL`）
+  - 新增 `BF_DISPLAY_NAMES` 字典（19张全部中文名）
+  - 新增 `STRONG_POWER_THRESHOLD = 5` 常量
+  - 新增 `GetBattlefieldDisplayName(id)` 辅助方法
+- `GameState.cs`：新增 `DreamingTreeTriggeredThisTurn` 标志（每回合重置）
+- `BattlefieldSystem.cs`（新建）：全部 19 张战场卡效果，触发点挂钩在各系统：
+  - Score: `ShouldBlockHoldScore` / `GetBonusScorePoints`
+  - Hold phase: `OnHoldPhaseEffects`（altar_unity / aspirant_climb / bandle_tree / strength_obelisk / star_peak）
+  - Unit move: `OnUnitEnterBattlefield`（trifarian_warcamp）/ `OnUnitLeaveBattlefield`（back_alley_bar）
+  - Combat: `OnCombatStart`（reckoner_arena）/ `OnConquest`（hirana/reaver_row/zaun_undercity/strength_obelisk/thunder_rune）/ `OnDefenseFailure`（sunken_temple）
+  - Passive: `CanRecallFromBattlefield`（vile_throat_nest）/ `CanPlayDirectlyToBattlefield`（rockfall_path）
+  - Spell: `GetSpellDamageBonus`（void_gate）/ `OnSpellTargetsFriendlyUnit`（dreaming_tree）
+- `ScoreManager.cs`：注入 BattlefieldSystem，AddScore 集成 forgotten_monument 阻断 + ascending_stairs +1
+- `TurnManager.cs`：Inject() 接收 BattlefieldSystem；DoAwaken 重置 DreamingTreeTriggeredThisTurn；DoStart 调用 OnHoldPhaseEffects
+- `CombatSystem.cs`：注入 BattlefieldSystem；MoveUnit 调用进/出触发；TriggerCombat 集成 reckoner_arena / OnConquest / OnDefenseFailure；新增 `ComputeCombatPower(units, isAttacking)` 支持 StrongAtk/Guard；RecallUnit 检查 vile_throat_nest
+- `SpellSystem.cs`：注入 BattlefieldSystem；DealDamage 集成 void_gate；CastSpell 集成 dreaming_tree
+- `GameManager.cs`：注入 BattlefieldSystem；OnBattlefieldClicked 加入 rockfall_path 拦截；Inject() 透传给 TurnManager
+- `GameUI.cs` / `StartupFlowUI.cs`：战场名显示改用 `GameRules.GetBattlefieldDisplayName()`
+- `SceneBuilder.cs`：添加 BattlefieldSystem AddComponent；WireGameManager 函数签名 + 连线更新
+
+**设计决定 (DEV-6 简化)**:
+- aspirant_climb / star_peak / hirana / reaver_row / zaun_undercity / thunder_rune / sunken_temple：自动选择目标，不弹目标选择UI
+- bandle_tree：以场上单位的 distinct RuneType 数量作为地区多样性代理
+- back_alley_bar / trifarian_warcamp：仅对玩家方单位生效（与 JS 原版一致）
+
+**测试**:
+- `DEV6BattlefieldTests.cs`（新建）：25 项战场系统测试（6 张活跃 BF 卡 + 被动效果）
+- 🟢 [逻辑测试] 135/135 全绿（含前序测试），编译无 error CS
+
+**Files modified**:
+- `Assets/Scripts/Data/CardKeyword.cs`
+- `Assets/Scripts/Core/UnitInstance.cs`
+- `Assets/Scripts/Core/GameRules.cs`
+- `Assets/Scripts/Core/GameState.cs`
+- `Assets/Scripts/Systems/BattlefieldSystem.cs`（新建）
+- `Assets/Scripts/Systems/ScoreManager.cs`
+- `Assets/Scripts/Systems/TurnManager.cs`
+- `Assets/Scripts/Systems/CombatSystem.cs`
+- `Assets/Scripts/Systems/SpellSystem.cs`
+- `Assets/Scripts/GameManager.cs`
+- `Assets/Scripts/UI/GameUI.cs`
+- `Assets/Scripts/UI/StartupFlowUI.cs`
+- `Assets/Scripts/Editor/SceneBuilder.cs`
+- `Assets/Tests/EditMode/DEV6BattlefieldTests.cs`（新建）
+
+---
+
 ## DEV-5：传奇技能系统 — 2026-03-29
 
 **Status**: ✅ Completed
