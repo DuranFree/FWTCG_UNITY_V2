@@ -77,15 +77,17 @@ namespace FWTCG.UI
                 return _tcs.Task;
             }
 
-            BuildSection(_enemyContainer,  enemyUnits,  new Color(0.85f, 0.28f, 0.28f));
-            BuildSection(_playerContainer, playerUnits, new Color(0.22f, 0.72f, 0.38f));
-
+            // Show overlay BEFORE building sections — if BuildSection throws,
+            // the panel is still visible and the user can Cancel.
             if (_canvasGroup != null)
             {
                 _canvasGroup.alpha          = 1f;
                 _canvasGroup.blocksRaycasts = true;
                 _canvasGroup.interactable   = true;
             }
+
+            BuildSection(_enemyContainer,  enemyUnits,  new Color(0.85f, 0.28f, 0.28f));
+            BuildSection(_playerContainer, playerUnits, new Color(0.22f, 0.72f, 0.38f));
 
             return _tcs.Task;
         }
@@ -153,7 +155,10 @@ namespace FWTCG.UI
                 lblRT.offsetMin  = new Vector2(artWidth + 4f, 0f);
                 lblRT.offsetMax  = new Vector2(-4f, 0f);
                 var lbl = lblGO.AddComponent<Text>();
-                lbl.font              = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                // Use built-in font safely — Unity 2022 uses "LegacyRuntime.ttf", older uses "Arial.ttf"
+                var builtinFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf")
+                               ?? Resources.GetBuiltinResource<Font>("Arial.ttf");
+                if (builtinFont != null) lbl.font = builtinFont;
                 lbl.text              = $"{u.UnitName}  [{u.CurrentAtk}/{u.CurrentHp}]";
                 lbl.color             = Color.white;
                 lbl.fontSize          = 14;
