@@ -3341,7 +3341,7 @@ namespace FWTCG.Editor
             rt.anchorMin = new Vector2(0.5f, 0.5f);
             rt.anchorMax = new Vector2(0.5f, 0.5f);
             rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.anchoredPosition = Vector2.zero;
+            rt.anchoredPosition = new Vector2(0f, 175f); // 上移，避免与 ToastPanel / EventBannerPanel 重叠
             rt.sizeDelta = new Vector2(70f, 70f);
 
             // Dark background circle
