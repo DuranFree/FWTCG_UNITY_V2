@@ -567,7 +567,11 @@ namespace FWTCG.AI
                     await SpellShowcaseUI.Instance.ShowAsync(spell, GameRules.OWNER_ENEMY);
 
                 if (!gs.GameOver)
+                {
                     spellSys.CastSpell(spell, GameRules.OWNER_ENEMY, target, gs);
+                    // Wait for hit-flash + shake before next action destroys CardViews
+                    await Task.Delay(550);
+                }
             }
         }
 

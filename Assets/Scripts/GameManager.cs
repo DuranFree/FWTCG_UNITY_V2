@@ -906,6 +906,9 @@ namespace FWTCG
                 }
             }
 
+            // Wait for hit-flash + shake animations to complete before RefreshUI destroys CardViews
+            await Task.Delay(550);
+
             _aiReactionPending = false;
             RefreshUI();
         }
