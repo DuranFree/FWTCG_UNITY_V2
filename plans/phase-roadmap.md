@@ -649,7 +649,42 @@
 
 ---
 
-## 剩余 Phase 总览（DEV-15 ~ DEV-25）
+## DEV-26 — Architecture Improvement
+
+**前置条件：** DEV-25 Tech-Debt Cleanup 完成
+
+**触发文件：** `E:\claudeCode\DOC\skills\migration\06-architecture.md`
+
+**目标：** 移植全部完成后，对积累的架构耦合问题做系统性优化，提升可维护性和可测试性。
+
+### 执行流程
+
+**Step 1 — 有机探索代码库，记录摩擦点：**
+- 理解一个概念需要跳转多少文件？
+- 哪些模块职责过宽（如 GameManager）？
+- 哪些耦合点制造了测试难度？
+- 哪些系统边界不清晰（事件系统混用 `static event` vs `UnityEvent`）？
+
+**Step 2 — 列出候选重构模块：**
+
+| 候选模块 | 耦合原因 | 依赖类型 | 测试影响 |
+|---------|---------|---------|---------|
+| GameManager（过胖）| 同时持有 UI/逻辑/状态引用 | In-process | 替换单元测试 |
+| 事件系统（混用）| static event + UnityEvent 并存 | In-process | 新建边界测试 |
+| UI 连线（GameObject.Find）| 运行时字符串查找，脆弱 | In-process | 不影响逻辑测试 |
+| *(执行时以实际探索结果为准)* | — | — | — |
+
+**Step 3 — 并行派 sub-agent 设计多个接口方案（每个候选模块）：**
+- Agent 1: 最小接口（1-3 个入口点）
+- Agent 2: 最大灵活性（支持多种调用场景）
+- Agent 3: 以最常见调用方为优化目标
+- Agent 4: Ports & Adapters 模式（跨边界依赖）
+
+**Step 4 — 如已关联 GitHub，为每个重构模块创建 RFC Issue。**
+
+---
+
+## 剩余 Phase 总览（DEV-15 ~ DEV-26）
 
 | Phase | 核心内容 | 类型 |
 |-------|---------|------|
@@ -665,5 +700,6 @@
 | DEV-23 | 开始流程+过渡动画+标题界面 | 视觉 |
 | DEV-24 | 音频资源接入+玻璃态UI | 功能+视觉 |
 | DEV-25 | Tech-Debt Cleanup | 稳定性 |
+| DEV-26 | Architecture Improvement | 架构 |
 
-*最后更新：2026-03-31（新增 DEV-25 Tech-Debt Cleanup；DEV-17 实际内容更新）*
+*最后更新：2026-03-31（新增 DEV-26 Architecture Improvement，对应工作流 06-architecture.md）*

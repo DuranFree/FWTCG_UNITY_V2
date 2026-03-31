@@ -64,6 +64,11 @@
 - 逻辑测试每个循环后立即跑：`🟢 [逻辑测试]`
 - 引擎测试每个 Phase 完成后跑：`🔵 [引擎测试]`
 - 如果测试框架未安装，自动安装，安装失败才用 TestRunner 替代
+- **引擎编辑器开着时，优先用引擎 MCP 的 run_tests 工具跑测试，禁止用 batchmode / headless 杀进程再测试**
+- MCP run_tests 出错 / 超时 / 无响应时，立刻杀掉引擎进程，切换 batchmode / headless 后台跑测试，不得卡住等待，不需要用户确认
+- 引擎编辑器未运行时，才用 batchmode / headless 模式跑测试
+- 批量测试跑完后，必须关闭引擎进程，不得残留
+- **每个功能必须包含边界条件测试**：无合法目标、空列表、零值、极限值等异常路径，不只测正常流程
 
 ## 交互测试规则
 
@@ -145,6 +150,29 @@
 **审查结果处理：**
 - High priority → 必须修复后才能 commit 进入下一个 Phase
 - Medium / Low → 记入 `tech-debt.md`，不阻断流程
+
+---
+
+## 引擎 MCP 工具使用规则
+
+需要查询场景结构、GameObject、组件属性时，优先判断是否有引擎 MCP 工具可用：
+- 工具可用（如 `mcp__mcp-unity__*`）→ 直接调用，不读 .unity / .scene 文件
+- 工具不可用 → 才读取文件或让用户描述
+
+**注意：** 查顶层大节点（如 Canvas）数据量极大，应查具体子路径（如 `Canvas/Panel/Button`）。
+
+---
+
+## Roadmap 修改校验规则
+
+任何时候新增、修改、追加 `plans/phase-roadmap.md` 的内容（包括追加新 Phase、调整顺序、修改 Phase 内容），必须先完整读取 `E:\claudeCode\DOC\skills\migration\04-plan.md`，逐条对照检查：
+
+- 所有规划规则是否还在被遵守？
+- Phase 顺序和依赖门是否正确？
+- 有没有功能黑洞（功能未分配到任何 Phase）？
+- 最后两个 Phase 是否固定为 Tech-Debt Cleanup + 架构优化？
+
+**不得依赖记忆，必须读文件后才能改 roadmap。**
 
 ---
 

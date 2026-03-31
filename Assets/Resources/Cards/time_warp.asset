@@ -28,4 +28,4 @@ MonoBehaviour:
   _isSpell: 1
   _spellTargetType: 0
   _description: "\u83B7\u5F97\u4E00\u4E2A\u989D\u5916\u56DE\u5408"
-  _artSprite: {fileID: 0}
+  _artSprite: {fileID: 21300000, guid: 9798174fd7c407b4295214b4af00e755, type: 3}
