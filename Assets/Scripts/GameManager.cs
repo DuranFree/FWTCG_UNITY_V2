@@ -131,7 +131,19 @@ namespace FWTCG
         [SerializeField] private Button _debugReactiveBtn;
         [SerializeField] private Button _debugManaBtn;
         [SerializeField] private Button _debugSchBtn;
+        [SerializeField] private Button _debugFloatBtn;   // DEV-18b: cycle float/banner test
         [SerializeField] private SpellTargetPopup _spellTargetPopup;  // DEV-16b
+
+        private int _debugFloatIndex = 0;
+        private static readonly string[] _debugFloatLabels = {
+            "⚡[1] 战力+2(buff)",  "⚡[2] 战力-1(debuff)", "⚡[3] 战力+3(buff)",
+            "⚡[4] 战力-2(debuff)","⚡[5] 摸1张牌",         "⚡[6] 符能+1",
+            "⚡[7] 击倒",
+            "⚡[8] 区域+1分",      "⚡[9] 区域法力+1",     "⚡[10] 区域符能+1",
+            "⚡[11] 据守横幅",     "⚡[12] 征服横幅",      "⚡[13] 燃尽横幅",
+            "⚡[14] 传说技横幅",   "⚡[15] 进化横幅",      "⚡[16] 时间扭曲横幅",
+            "⚡[17] 绝念横幅",
+        };
 
         // ── Game state ────────────────────────────────────────────────────────
         private GameState _gs;
@@ -181,6 +193,7 @@ namespace FWTCG
             if (_debugReactiveBtn != null) _debugReactiveBtn.onClick.AddListener(() => DebugDraw("reactive"));
             if (_debugManaBtn != null)     _debugManaBtn.onClick.AddListener(DebugAddMana);
             if (_debugSchBtn != null)      _debugSchBtn.onClick.AddListener(DebugAddSch);
+            if (_debugFloatBtn != null)    _debugFloatBtn.onClick.AddListener(DebugCycleFloat);
         }
 
         private void OnEnable()
@@ -1325,6 +1338,64 @@ namespace FWTCG
                 _gs.AddSch(GameRules.OWNER_PLAYER, rt, 5);
             TurnManager.BroadcastMessage_Static("[DEBUG] +5 全符能");
             RefreshUI();
+        }
+
+        private void DebugCycleFloat()
+        {
+            if (_gs == null) return;
+            int idx = _debugFloatIndex % _debugFloatLabels.Length;
+            var units = DebugGetBoardUnits();
+
+            switch (idx)
+            {
+                // ── Unit float texts ─────────────────────────────────────────
+                case 0: foreach (var u in units) UI.GameEventBus.FireUnitAtkBuff(u,  2); break;
+                case 1: foreach (var u in units) UI.GameEventBus.FireUnitAtkBuff(u, -1); break;
+                case 2: foreach (var u in units) UI.GameEventBus.FireUnitAtkBuff(u,  3); break;
+                case 3: foreach (var u in units) UI.GameEventBus.FireUnitAtkBuff(u, -2); break;
+                case 4: foreach (var u in units) UI.GameEventBus.FireUnitFloatText(u, "摸1张牌", UnityEngine.Color.cyan); break;
+                case 5: foreach (var u in units) UI.GameEventBus.FireUnitFloatText(u, "符能+1", UI.GameColors.SchColor); break;
+                case 6: foreach (var u in units) UI.GameEventBus.FireUnitFloatText(u, "击倒", UnityEngine.Color.gray); break;
+                // ── Zone float texts ─────────────────────────────────────────
+                case 7:  UI.GameEventBus.FireScoreFloat(GameRules.OWNER_PLAYER, 1); break;
+                case 8:  UI.GameEventBus.FireRuneTapFloat(GameRules.OWNER_PLAYER); break;
+                case 9:  UI.GameEventBus.FireRuneRecycleFloat(GameRules.OWNER_PLAYER); break;
+                // ── Event banners ─────────────────────────────────────────────
+                case 10: UI.GameEventBus.FireHoldScoreBanner(); break;
+                case 11: UI.GameEventBus.FireConquerScoreBanner(); break;
+                case 12: UI.GameEventBus.FireBurnoutBanner(GameRules.OWNER_PLAYER); break;
+                case 13: UI.GameEventBus.FireLegendSkillBanner("独影剑鸣", "孤独守卫+2战力"); break;
+                case 14: UI.GameEventBus.FireLegendEvolvedBanner(); break;
+                case 15: UI.GameEventBus.FireTimeWarpBanner(); break;
+                case 16: UI.GameEventBus.FireDeathwishBanner("哀哀魄罗", "孤独阵亡—摸1张牌"); break;
+            }
+
+            int next = (_debugFloatIndex + 1) % _debugFloatLabels.Length;
+            TurnManager.BroadcastMessage_Static($"[DEBUG] 飘字测试 {_debugFloatLabels[idx]}，下一个→ {_debugFloatLabels[next]}");
+
+            _debugFloatIndex++;
+
+            // Update button label to show next type
+            if (_debugFloatBtn != null)
+            {
+                var lbl = _debugFloatBtn.GetComponentInChildren<UnityEngine.UI.Text>();
+                if (lbl != null) lbl.text = _debugFloatLabels[next];
+            }
+        }
+
+        /// <summary>Returns all units currently on both battlefields + both bases.</summary>
+        private System.Collections.Generic.List<Core.UnitInstance> DebugGetBoardUnits()
+        {
+            var list = new System.Collections.Generic.List<Core.UnitInstance>();
+            if (_gs == null) return list;
+            list.AddRange(_gs.PBase);
+            list.AddRange(_gs.EBase);
+            foreach (var bf in _gs.BF)
+            {
+                list.AddRange(bf.PlayerUnits);
+                list.AddRange(bf.EnemyUnits);
+            }
+            return list;
         }
     }
 }
