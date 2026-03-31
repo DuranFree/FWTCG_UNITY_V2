@@ -25,3 +25,7 @@
 - [ ] 入场 Foil Sweep 未实现（需对角光扫动画）— DEV-9 — Phase DEV-8
 - [ ] kaisa_legend/yi_legend CardData 缺少卡图（需 tempPic 中找传奇卡图片，或用户提供）— Phase DEV-10
 - ✅ 弃牌堆/放逐堆 Button onClick — 已通过 GameUI.SetPileClickCallback + WirePileButtons() 在运行时连线，实现正常 — Phase DEV-10
+- [ ] DamagePopup 每次 new GameObject（GC churn）— 高频伤害时压力大，应改为对象池 — Phase DEV-17（Codex Medium/Low）
+- [ ] GameUI.OnUnitDied/OnUnitDamaged 订阅在 Awake/OnDestroy，禁用组件时仍活跃 — 应改为 OnEnable/OnDisable — Phase DEV-17（Codex Medium）
+- [ ] OnBattlefieldClicked async void 无结构化异常处理 — await 后异常无法传播 — Phase DEV-17（Codex Medium）
+- [ ] CardView.OnDestroy 只停 _stunPulse，_shake/_flash/_death 靠 Unity 隐式停止 — Phase DEV-17（Codex Low）

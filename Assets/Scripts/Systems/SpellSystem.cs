@@ -155,6 +155,8 @@ namespace FWTCG.Systems
 
         private void RemoveDeadUnit(UnitInstance unit, GameState gs)
         {
+            // Fire BEFORE removal so GameUI can play death animation on the still-visible CardView (DEV-17)
+            GameManager.FireUnitDied(unit);
             string owner = unit.Owner;
 
             // Check base

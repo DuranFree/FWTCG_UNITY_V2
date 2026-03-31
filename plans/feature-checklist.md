@@ -272,8 +272,8 @@
 
 ## 八、粒子特效（particles.js → VFX）
 
-- [ ] 伤害数字飘出（受击时显示伤害值）
-- [ ] 单位阵亡特效
+- ✅ 伤害数字飘出（受击时显示伤害值，DamagePopup 红色浮字 0.85s）— DEV-17
+- ✅ 单位阵亡特效（DeathRoutine 缩小+淡出 0.45s，CardView.PlayDeathAnimation）— DEV-17
 - [ ] 法术施放特效
 - [ ] 征服/得分特效
 - [ ] 对决横幅动画（showDuelBanner）

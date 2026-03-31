@@ -341,6 +341,8 @@ namespace FWTCG.Systems
         {
             foreach (UnitInstance u in dead)
             {
+                // Fire BEFORE removal so GameUI can play death animation on the still-visible CardView (DEV-17)
+                GameManager.FireUnitDied(u);
                 Log($"[阵亡] {u.UnitName}({DisplayName(owner)})");
                 gs.GetDiscard(owner).Add(u);
 

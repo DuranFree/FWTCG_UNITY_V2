@@ -303,6 +303,8 @@ namespace FWTCG.Systems
             if (!gs.GameOver)
             {
                 _combatSys.ResolveAllBattlefields(who, gs, _scoreMgr);
+                // DEV-17: wait for hit flash + death animations fired by ResolveAllBattlefields
+                await Task.Delay(550);
             }
         }
 

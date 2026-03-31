@@ -2,6 +2,32 @@
 
 ---
 
+## DEV-17：伤害数字飘出 + 单位死亡动画 — 2026-03-31
+
+**Status**: ✅ Completed
+
+**What was done**:
+- DamagePopup.cs（NEW）：每次单位受伤时在 Canvas 根节点生成浮字，红色粗体+黑描边，ease-out 上浮 75px，0.85s 后自毁。
+- CardView.cs：新增 `PlayDeathAnimation()`，缩小+淡出 0.45s（二次加速曲线），缓存各 Image/Text 原始颜色逐帧 alpha 渐出。
+- GameManager.cs：新增 `OnUnitDied` 静态事件 + `FireUnitDied()`；`OnBattlefieldClicked` 改为 `async void`，两个战斗分支各加 550ms 延迟后再 RefreshUI；新增 `_bfClickInFlight` 输入锁防止 await 期间重叠点击，await 后重检 GameOver 再刷新。
+- SpellSystem.cs：`RemoveDeadUnit` 在移除前先 `FireUnitDied`。
+- CombatSystem.cs：`RemoveDeadUnits` 在移除前先 `FireUnitDied`。
+- TurnManager.cs：`DoAction` 中 `ResolveAllBattlefields` 后加 `await Task.Delay(550)` 确保回合结束兜底战斗的死亡动画也能播完。
+- GameUI.cs：订阅 `OnUnitDied` → `PlayDeathAnimation`；`OnSpellUnitDamaged` 新增 `SpawnDamagePopup`，通过 `RectTransformUtility` 正确转换坐标后生成 DamagePopup。
+
+**Decisions made**:
+- `OnUnitDied` 在单位从 List 移除前触发，确保 FindCardView 仍能找到 CardView。
+- `_bfClickInFlight` + `try/finally` 保证锁无论是否抛异常都能释放。
+- `ResolveAllBattlefields` 延迟放在 TurnManager async Task 层，无需额外 MonoBehaviour。
+
+**Codex 审查**:
+- 2 High 已修复：BF点击输入锁 + ResolveAllBattlefields 死亡延迟
+- Medium/Low 记入 tech-debt.md
+
+**Tests**: 289/289 EditMode 全绿
+
+---
+
 ## DEV-16c：Bug 修复 — SpellShowcase 根治 + SpellTargetPopup + AI 出牌 + 受击特效 — 2026-03-31
 
 **Status**: ✅ Completed

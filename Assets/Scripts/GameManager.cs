@@ -37,6 +37,10 @@ namespace FWTCG
         public static void FireUnitDamaged(UnitInstance unit, int damage, string source = "")
             => OnUnitDamaged?.Invoke(unit, damage, source);
 
+        /// <summary>Fired just BEFORE a unit is removed from game state (HP reached 0). Used for death animation. DEV-17.</summary>
+        public static event System.Action<UnitInstance> OnUnitDied;
+        public static void FireUnitDied(UnitInstance unit) => OnUnitDied?.Invoke(unit);
+
         // ── Card data (assign in Inspector) ──────────────────────────────────
         [SerializeField] private CardData[] _kaisaDeck;   // 5 cards
         [SerializeField] private CardData[] _yiDeck;      // 5 cards
@@ -134,6 +138,7 @@ namespace FWTCG
         private List<UnitInstance> _selectedBaseUnits = new List<UnitInstance>(); // multi-select for batch move
         private UnitInstance _targetingSpell;     // non-null = awaiting target click for spell
         private bool _aiReactionPending;          // DEV-15: true while AI reaction resolves
+        private bool _bfClickInFlight;            // DEV-17: true while OnBattlefieldClicked awaits post-combat delay
 
         // ── Unity lifecycle ───────────────────────────────────────────────────
 
@@ -438,12 +443,13 @@ namespace FWTCG
         /// If base units are multi-selected, batch-move them all, then auto-combat.
         /// If a single BF unit is selected, move it to the other BF.
         /// </summary>
-        public void OnBattlefieldClicked(int bfId)
+        public async void OnBattlefieldClicked(int bfId)
         {
             if (_gs.GameOver) return;
             if (_gs.Turn != GameRules.OWNER_PLAYER) return;
             if (_gs.Phase != GameRules.PHASE_ACTION) return;
             if (_aiReactionPending) return; // DEV-15
+            if (_bfClickInFlight) return;   // DEV-17: block reentrant clicks during post-combat delay
 
             // Ignore BF click while in spell targeting mode
             if (_targetingSpell != null)
@@ -482,7 +488,14 @@ namespace FWTCG
 
                 _selectedUnit = null;
                 _selectedUnitLoc = null;
-                RefreshUI();
+                // DEV-17: wait for hit flash + death animation before destroying CardViews
+                _bfClickInFlight = true;
+                try
+                {
+                    await System.Threading.Tasks.Task.Delay(550);
+                    if (!_gs.GameOver) RefreshUI(); // re-check in case game ended during delay
+                }
+                finally { _bfClickInFlight = false; }
                 return;
             }
 
@@ -502,7 +515,14 @@ namespace FWTCG
 
                 _selectedUnit = null;
                 _selectedUnitLoc = null;
-                RefreshUI();
+                // DEV-17: wait for hit flash + death animation before destroying CardViews
+                _bfClickInFlight = true;
+                try
+                {
+                    await System.Threading.Tasks.Task.Delay(550);
+                    if (!_gs.GameOver) RefreshUI(); // re-check in case game ended during delay
+                }
+                finally { _bfClickInFlight = false; }
                 return;
             }
 

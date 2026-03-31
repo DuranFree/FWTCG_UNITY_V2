@@ -200,6 +200,7 @@ namespace FWTCG.UI
             FWTCG.Systems.LegendSystem.OnLegendEvolved += OnLegendEvolved; // DEV-15
             GameManager.OnCardPlayFailed += ShakeHandCard;
             GameManager.OnUnitDamaged += OnSpellUnitDamaged;
+            GameManager.OnUnitDied += OnUnitDiedHandler;
         }
 
         private void OnDestroy()
@@ -212,6 +213,7 @@ namespace FWTCG.UI
             FWTCG.Systems.LegendSystem.OnLegendEvolved -= OnLegendEvolved; // DEV-15
             GameManager.OnCardPlayFailed -= ShakeHandCard;
             GameManager.OnUnitDamaged -= OnSpellUnitDamaged;
+            GameManager.OnUnitDied -= OnUnitDiedHandler;
         }
 
         // ── Card shake on play failure ────────────────────────────────────────
@@ -230,7 +232,7 @@ namespace FWTCG.UI
             }
         }
 
-        // ── Spell hit feedback: flash red + shake + toast ────────────────────
+        // ── Spell/combat hit feedback: flash red + shake + damage popup + toast ─
 
         private void OnSpellUnitDamaged(FWTCG.Core.UnitInstance unit, int damage, string spellName)
         {
@@ -239,11 +241,48 @@ namespace FWTCG.UI
             {
                 cv.FlashRed();
                 cv.Shake();
+                SpawnDamagePopup(damage, cv);
             }
             string msg = string.IsNullOrEmpty(spellName)
                 ? $"{unit.UnitName} 受到 {damage} 点伤害"
                 : $"{spellName} 击中 {unit.UnitName}，造成 {damage} 点伤害";
             GameManager.FireHintToast(msg);
+        }
+
+        /// <summary>Spawns a floating damage number at the card's position on the root canvas. DEV-17.</summary>
+        private void SpawnDamagePopup(int damage, CardView cv)
+        {
+            var cvRT = cv.GetComponent<RectTransform>();
+            if (cvRT == null) return;
+
+            // Find root canvas
+            Canvas rootCanvas = null;
+            Transform t = transform;
+            while (t != null)
+            {
+                var c = t.GetComponent<Canvas>();
+                if (c != null) { rootCanvas = c; break; }
+                t = t.parent;
+            }
+            if (rootCanvas == null) return;
+
+            // Convert card world position → canvas local position
+            var canvasRT = rootCanvas.GetComponent<RectTransform>();
+            Vector2 screenPt = RectTransformUtility.WorldToScreenPoint(null, cvRT.position);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                canvasRT, screenPt, rootCanvas.worldCamera, out Vector2 localPos);
+
+            // Offset upward so it doesn't overlap the card centre
+            localPos += new Vector2(0f, 30f);
+            DamagePopup.Create(damage, localPos, rootCanvas.transform);
+        }
+
+        // ── Unit death animation (DEV-17) ─────────────────────────────────────
+
+        private void OnUnitDiedHandler(FWTCG.Core.UnitInstance unit)
+        {
+            var cv = FindCardView(unit);
+            cv?.PlayDeathAnimation();
         }
 
         private CardView FindCardView(FWTCG.Core.UnitInstance unit)

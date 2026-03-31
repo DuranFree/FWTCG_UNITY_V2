@@ -47,6 +47,7 @@ namespace FWTCG.UI
         private Coroutine _stunPulse;
         private Coroutine _shake;
         private Coroutine _flash;
+        private Coroutine _death;
         private CardGlow _cardGlow;
 
         private void Awake()
@@ -374,6 +375,52 @@ namespace FWTCG.UI
             }
             rt.anchoredPosition = origin;
             _shake = null;
+        }
+
+        /// <summary>
+        /// Shrink + fade death animation over 0.45s. Called just before the unit is
+        /// removed from game state. RefreshUI will destroy this GameObject shortly after.
+        /// DEV-17.
+        /// </summary>
+        public void PlayDeathAnimation()
+        {
+            if (_death != null) return;
+            _death = StartCoroutine(DeathRoutine());
+        }
+
+        private IEnumerator DeathRoutine()
+        {
+            const float duration = 0.45f;
+            float elapsed = 0f;
+            Vector3 startScale = transform.localScale;
+
+            var images = GetComponentsInChildren<Image>(true);
+            var texts  = GetComponentsInChildren<Text>(true);
+            Color[] imgColors = new Color[images.Length];
+            Color[] txtColors = new Color[texts.Length];
+            for (int i = 0; i < images.Length; i++) imgColors[i] = images[i].color;
+            for (int i = 0; i < texts.Length;  i++) txtColors[i] = texts[i].color;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                // Accelerate scale down (quadratic)
+                float scale = Mathf.Lerp(1f, 0f, t * t);
+                transform.localScale = startScale * scale;
+
+                float alpha = 1f - t;
+                for (int i = 0; i < images.Length; i++)
+                {
+                    var c = imgColors[i]; c.a *= alpha; images[i].color = c;
+                }
+                for (int i = 0; i < texts.Length; i++)
+                {
+                    var c = txtColors[i]; c.a *= alpha; texts[i].color = c;
+                }
+                yield return null;
+            }
+            _death = null;
         }
     }
 }
