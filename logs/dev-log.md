@@ -2,6 +2,27 @@
 
 ---
 
+## DEV-16c：Bug 修复 — SpellShowcase 根治 + SpellTargetPopup + AI 出牌 + 受击特效 — 2026-03-31
+
+**Status**: ✅ Completed
+
+**What was done**:
+- SpellShowcaseUI.cs：彻底修复 Lazy Awake 陷阱（Awake 调用 SetActive(false) 会在第一次激活时立刻再次设 inactive，使 StartCoroutine 失败）。改为始终保持 GameObject active，用 CanvasGroup alpha/blocksRaycasts 控制可见性。
+- SpellTargetPopup.cs：同类修复，HidePanel() 使用 CanvasGroup，不再 SetActive。
+- SimpleAI.cs：AiRecycleRunes 新增 `if (card.CardData.Cost > gs.EMana) continue;`，防止为本回合无法打出的卡浪费符能，修复 AI 永远不出单位牌的系统性 bug。
+- SpellSystem.cs：新增 `OnUnitDamaged` 静态事件，DealDamage/AkasiStorm 触发，携带目标+伤害量+法术名。
+- CardView.cs：FlashRed() + Shake() 受击动画（0.12s 红闪 + 0.35s 渐回 + 4次 ±8px 抖动）。
+- GameUI.cs：订阅 OnUnitDamaged → FindCardView → FlashRed/Shake + GameManager.FireHintToast 飘屏。
+- GameManager.cs：新增 FireHintToast() 静态帮助方法。
+
+**Decisions made**:
+- CanvasGroup 方案是 Unity 中 "始终 active" 面板的标准隐藏方式，彻底避免 Lazy Awake 问题。
+- AiRecycleRunes 的修复条件为 `Cost > gs.EMana`（法力不足）而非 sch 判断，因为 sch 每回合清零，预储没有意义。
+
+**Tests**: 289/289 EditMode 全绿
+
+---
+
 ## DEV-16b：卡牌不可用飘屏提示 + 卡牌抖动 + 法术目标选择弹窗 — 2026-03-31
 
 **Status**: ✅ Completed
