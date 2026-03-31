@@ -124,6 +124,9 @@ namespace FWTCG.UI
         [SerializeField] private Transform _viewerCardContainer;
         [SerializeField] private Button _viewerCloseBtn;
 
+        // ── Root canvas ref (GameManager is a sibling root, not under Canvas) ──
+        [SerializeField] private Canvas _rootCanvas;
+
         // ── Turn timer (DEV-10) ──────────────────────────────────────────────
         [SerializeField] private Image _timerFill;
         [SerializeField] private Text _timerText;
@@ -279,15 +282,7 @@ namespace FWTCG.UI
             var cvRT = cv.GetComponent<RectTransform>();
             if (cvRT == null) return;
 
-            // Find root canvas
-            Canvas rootCanvas = null;
-            Transform t = transform;
-            while (t != null)
-            {
-                var c = t.GetComponent<Canvas>();
-                if (c != null) { rootCanvas = c; break; }
-                t = t.parent;
-            }
+            Canvas rootCanvas = _rootCanvas;
             if (rootCanvas == null) return;
 
             // Convert card world position → canvas local position
@@ -383,17 +378,7 @@ namespace FWTCG.UI
             }
         }
 
-        private Canvas GetRootCanvas()
-        {
-            Transform t = transform;
-            while (t != null)
-            {
-                var c = t.GetComponent<Canvas>();
-                if (c != null) return c;
-                t = t.parent;
-            }
-            return null;
-        }
+        private Canvas GetRootCanvas() => _rootCanvas;
 
         // ── DEV-15: Legend evolution flash ───────────────────────────────────
 

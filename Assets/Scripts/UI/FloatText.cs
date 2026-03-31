@@ -51,6 +51,13 @@ namespace FWTCG.UI
 
             var go = new GameObject("FloatTextPool");
             go.transform.SetParent(canvasRoot, false);
+            // Must have a full-canvas RectTransform so children's anchoredPosition
+            // uses the same origin as ScreenPointToLocalPointInRectangle on the canvas.
+            var poolRT = go.AddComponent<RectTransform>();
+            poolRT.anchorMin = Vector2.zero;
+            poolRT.anchorMax = Vector2.one;
+            poolRT.offsetMin = Vector2.zero;
+            poolRT.offsetMax = Vector2.zero;
             _poolRoot = go.transform;
 
             for (int i = 0; i < POOL_SIZE; i++)

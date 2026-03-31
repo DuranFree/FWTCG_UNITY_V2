@@ -388,7 +388,7 @@ namespace FWTCG.Editor
             var combatAnimator = gmGO.AddComponent<FWTCG.UI.CombatAnimator>(); // DEV-18
 
             // ── Wire UI references via SerializedObject ───────────────────────
-            WireGameUI(gameUI, cardPrefab, runePrefab,
+            WireGameUI(gameUI, canvasGO.GetComponent<Canvas>(), cardPrefab, runePrefab,
                 playerScoreText, enemyScoreText, roundInfoText,
                 manaDisplay, schDisplay,
                 playerHand, enemyHand,
@@ -2871,6 +2871,7 @@ namespace FWTCG.Editor
 
         private static void WireGameUI(
             FWTCG.UI.GameUI gameUI,
+            Canvas rootCanvas,
             GameObject cardPrefab,
             GameObject runePrefab,
             Text playerScoreText, Text enemyScoreText, Text roundPhaseText,
@@ -2915,6 +2916,8 @@ namespace FWTCG.Editor
             Image boardFlashOverlay)
         {
             var so = new SerializedObject(gameUI);
+
+            so.FindProperty("_rootCanvas").objectReferenceValue       = rootCanvas;
 
             so.FindProperty("_playerScoreText").objectReferenceValue  = playerScoreText;
             so.FindProperty("_enemyScoreText").objectReferenceValue   = enemyScoreText;
