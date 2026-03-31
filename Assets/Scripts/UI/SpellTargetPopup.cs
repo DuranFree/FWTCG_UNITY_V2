@@ -28,7 +28,17 @@ namespace FWTCG.UI
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
             Instance = this;
             if (_cancelBtn != null) _cancelBtn.onClick.AddListener(CancelSelection);
-            gameObject.SetActive(false);
+            HidePanel();
+        }
+
+        private void HidePanel()
+        {
+            if (_canvasGroup != null)
+            {
+                _canvasGroup.alpha          = 0f;
+                _canvasGroup.blocksRaycasts = false;
+                _canvasGroup.interactable   = false;
+            }
         }
 
         private void OnDestroy()
@@ -70,11 +80,11 @@ namespace FWTCG.UI
             BuildSection(_enemyContainer,  enemyUnits,  new Color(0.85f, 0.28f, 0.28f));
             BuildSection(_playerContainer, playerUnits, new Color(0.22f, 0.72f, 0.38f));
 
-            gameObject.SetActive(true);
             if (_canvasGroup != null)
             {
-                _canvasGroup.alpha = 1f;
+                _canvasGroup.alpha          = 1f;
                 _canvasGroup.blocksRaycasts = true;
+                _canvasGroup.interactable   = true;
             }
 
             return _tcs.Task;
@@ -141,12 +151,7 @@ namespace FWTCG.UI
 
         private void Close()
         {
-            gameObject.SetActive(false);
-            if (_canvasGroup != null)
-            {
-                _canvasGroup.alpha = 0f;
-                _canvasGroup.blocksRaycasts = false;
-            }
+            HidePanel();
         }
     }
 }

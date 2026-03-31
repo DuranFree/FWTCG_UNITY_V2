@@ -2,6 +2,42 @@
 
 ---
 
+## DEV-16b：卡牌不可用飘屏提示 + 卡牌抖动 + 法术目标选择弹窗 — 2026-03-31
+
+**Status**: ✅ Completed
+
+**技术决策**:
+- `GameManager.OnHintToast` / `OnCardPlayFailed` 静态事件：解耦提示触发与 UI 层
+- `ShowPlayError(msg, card)` 统一入口：BroadcastMessage + toast + shake 三合一
+- `CardView.Shake()` 协程：±10px 左右抖动 7步 0.28s，`RectTransform.anchoredPosition` 偏移
+- `SpellTargetPopup`：Singleton MonoBehaviour，`ShowAsync(SpellTargetType, GameState)` → `Task<UnitInstance>`，分敌/己方两栏动态生成按钮
+- `SpellShowcaseUI` coroutine 修复：`gameObject.SetActive(true)` 必须在 `StartCoroutine` 之前调用
+
+**新功能**:
+- 法术目标选择弹窗（SpellTargetPopup，敌/己方上下两栏，可取消）
+- 无可用目标时飘屏提示（OnHintToast → ToastUI.Enqueue）
+- 无可用目标时卡牌左右抖动（OnCardPlayFailed → GameUI.ShakeHandCard → CardView.Shake）
+- Debug 按钮：+5 全符能（一键给所有6种符文各+5符能）
+
+**Bug 修复**:
+- `SpellShowcasePanel` inactive 时 StartCoroutine 报错 → 先 SetActive(true) 再协程
+- `CardView` 重复 `Unit` 属性定义编译错误
+
+**修改文件**:
+- `Assets/Scripts/GameManager.cs`（+OnHintToast/OnCardPlayFailed 事件 + ShowPlayError + SpellTargetPopup 集成）
+- `Assets/Scripts/UI/CardView.cs`（+Shake 方法 + 修复重复 Unit 属性）
+- `Assets/Scripts/UI/GameUI.cs`（+OnCardPlayFailed 订阅 + ShakeHandCard）
+- `Assets/Scripts/UI/ToastUI.cs`（+OnHintToast 订阅）
+- `Assets/Scripts/UI/SpellShowcaseUI.cs`（coroutine inactive 修复）
+- `Assets/Scripts/Editor/SceneBuilder.cs`（+SpellTargetPopup UI 构建）
+
+**New files**:
+- `Assets/Scripts/UI/SpellTargetPopup.cs`
+
+**测试**: 289/289 全绿
+
+---
+
 ## DEV-15：AI 反应对称 + 传奇升级动画 — 2026-03-31
 
 **Status**: ✅ Completed

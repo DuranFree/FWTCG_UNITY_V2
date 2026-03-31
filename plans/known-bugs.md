@@ -13,3 +13,5 @@
 - ✅ 日志文字被右边裁切 — 已修复：MessageText 的 horizontalOverflow 改为 Wrap — 发现于 DEV-3
 - ✅ 符文牌右键回收无反应 — 已修复：EventTrigger从root移到RuneCircle（Button在circle上拦截事件）— 发现于 DEV-11
 - ✅ 符文牌被上下拉伸 — 已修复：HLG关闭childControlHeight + LayoutElement固定46×46 — 发现于 DEV-11
+- ✅ SpellShowcasePanel coroutine inactive 报错 — 已修复：ShowAsync 中先 SetActive(true) 再 StartCoroutine — 发现于 DEV-16b
+- ✅ CardView 重复 Unit 属性编译错误 — 已修复：移除行39的重复定义，保留行299原有属性 — 发现于 DEV-16b

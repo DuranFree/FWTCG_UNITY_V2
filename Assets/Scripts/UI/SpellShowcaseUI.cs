@@ -48,8 +48,17 @@ namespace FWTCG.UI
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
             Instance = this;
-            if (_canvasGroup != null) _canvasGroup.alpha = 0f;
-            gameObject.SetActive(false);
+            Hide();
+        }
+
+        private void Hide()
+        {
+            if (_canvasGroup != null)
+            {
+                _canvasGroup.alpha          = 0f;
+                _canvasGroup.interactable   = false;
+                _canvasGroup.blocksRaycasts = false;
+            }
         }
 
         private void OnDestroy()
@@ -66,9 +75,7 @@ namespace FWTCG.UI
         public Task ShowAsync(UnitInstance spell, string owner)
         {
             if (spell == null) return Task.CompletedTask;
-
-            // Must activate before StartCoroutine — coroutines can't start on inactive objects
-            gameObject.SetActive(true);
+            // Panel stays always active — CanvasGroup controls visibility, no SetActive needed.
             var tcs = new System.Threading.Tasks.TaskCompletionSource<bool>();
             StartCoroutine(ShowCoroutine(spell, owner, tcs));
             return tcs.Task;
@@ -158,7 +165,7 @@ namespace FWTCG.UI
                 yield return null;
             }
 
-            gameObject.SetActive(false);
+            Hide();
             IsShowing = false;
             tcs.TrySetResult(true);
         }
