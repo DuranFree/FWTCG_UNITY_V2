@@ -43,3 +43,10 @@ Thumbs.db
 logs/*.log
 logs/*.txt
 logs/*.xml
+
+# Build/test artifacts (root-level)
+build_*.txt
+test_*.txt
+test_results_*.xml
+TestResults/
+*.lnk
