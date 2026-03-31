@@ -1574,8 +1574,8 @@ namespace FWTCG.Editor
             go.transform.SetParent(parent, false);
 
             var rt = go.AddComponent<RectTransform>();
-            rt.anchorMin = new Vector2(0.2f, 0.82f);
-            rt.anchorMax = new Vector2(0.8f, 0.92f);
+            rt.anchorMin = new Vector2(0.2f, 0.46f);
+            rt.anchorMax = new Vector2(0.8f, 0.54f);
             rt.offsetMin = Vector2.zero;
             rt.offsetMax = Vector2.zero;
 
