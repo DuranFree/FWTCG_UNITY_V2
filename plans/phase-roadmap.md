@@ -457,6 +457,8 @@
 | 出牌时环境光闪烁（board-event-fade，0.85s）| 视觉 |
 | 战场卡牌图片展示（19张战场卡图）| 视觉 |
 | 待命区域 UI（bf-1-standby / bf-2-standby）| 功能+视觉 |
+| **#3 待命机制完整实现**（正面朝下状态机 + 0费打出窗口，Rule 716）| 功能 |
+| **#4 瞬息关键词**（CardKeyword.Ephemeral + 回合开始前销毁逻辑，Rule 728）| 功能 |
 
 ---
 
@@ -673,6 +675,10 @@
 | 事件系统（混用）| static event + UnityEvent 并存 | In-process | 新建边界测试 |
 | UI 连线（GameObject.Find）| 运行时字符串查找，脆弱 | In-process | 不影响逻辑测试 |
 | *(执行时以实际探索结果为准)* | — | — | — |
+| 结算链多轮（#11）| ReactiveSystem 缺少多轮循环支持 | In-process | 替换集成测试 |
+| 空战场法术对决（#13）| ReactiveSystem 缺少空战场响应窗口 | In-process | 替换集成测试 |
+
+**注意（#11 + #13）：** 这两项需要同一套 ReactiveSystem 架构重构（多轮结算循环 + 空战场响应窗口），必须同时实现，不可拆开。Rule 721.2 & Rule 720.3。
 
 **Step 3 — 并行派 sub-agent 设计多个接口方案（每个候选模块）：**
 - Agent 1: 最小接口（1-3 个入口点）

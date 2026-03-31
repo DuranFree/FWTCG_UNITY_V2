@@ -73,9 +73,16 @@ namespace FWTCG.Systems
                     break;
 
                 case "noxus_recruit_enter":
-                    // Inspire: next friendly unit played this turn gets +1 ATK
-                    gs.InspireNextUnit = true;
-                    Log($"[入场] {unit.UnitName} — 鼓舞：下一个出场的盟友+1战力");
+                    // Rule 724.1.c: Inspire triggers only if another card was already played this turn
+                    if (gs.CardsPlayedThisTurn > 1)
+                    {
+                        gs.InspireNextUnit = true;
+                        Log($"[入场] {unit.UnitName} — 鼓舞触发：下一个出场的盟友+1战力");
+                    }
+                    else
+                    {
+                        Log($"[入场] {unit.UnitName} — 鼓舞未触发（本回合首张牌）");
+                    }
                     break;
 
                 case "rengar_enter":

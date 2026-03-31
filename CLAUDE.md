@@ -10,6 +10,8 @@
 - `./plans/known-bugs.md`
 - `./plans/tech-debt.md`
 
+检查 git status，如果 `plans/phase-roadmap.md` 出现在修改列表中，立即读取它。
+
 ---
 
 ## 每个 Phase 完成后必须执行（按顺序）
