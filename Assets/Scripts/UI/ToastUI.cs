@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using FWTCG.Systems;
+using FWTCG;
 
 namespace FWTCG.UI
 {
@@ -37,11 +38,13 @@ namespace FWTCG.UI
         private void OnEnable()
         {
             BattlefieldSystem.OnBattlefieldLog += Enqueue;
+            GameManager.OnHintToast             += Enqueue;
         }
 
         private void OnDisable()
         {
             BattlefieldSystem.OnBattlefieldLog -= Enqueue;
+            GameManager.OnHintToast             -= Enqueue;
         }
 
         private void Enqueue(string msg)

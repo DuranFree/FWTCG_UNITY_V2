@@ -23,6 +23,12 @@ namespace FWTCG
         // ── Singleton ─────────────────────────────────────────────────────────
         public static GameManager Instance { get; private set; }
 
+        // ── Static events ─────────────────────────────────────────────────────
+        /// <summary>Fired when a card play fails — subscribers show a floating hint toast.</summary>
+        public static event System.Action<string> OnHintToast;
+        /// <summary>Fired with the UnitInstance that failed to play — subscribers shake the CardView.</summary>
+        public static event System.Action<UnitInstance> OnCardPlayFailed;
+
         // ── Card data (assign in Inspector) ──────────────────────────────────
         [SerializeField] private CardData[] _kaisaDeck;   // 5 cards
         [SerializeField] private CardData[] _yiDeck;      // 5 cards
@@ -616,6 +622,15 @@ namespace FWTCG
 
         // ── Private helpers ───────────────────────────────────────────────────
 
+        /// <summary>Show a floating hint toast and shake the card that failed to play.</summary>
+        private void ShowPlayError(string msg, UnitInstance card)
+        {
+            TurnManager.BroadcastMessage_Static(msg);
+            string hint = msg.StartsWith("[提示] ") ? msg.Substring(5) : msg;
+            OnHintToast?.Invoke(hint);
+            if (card != null) OnCardPlayFailed?.Invoke(card);
+        }
+
         private void TryPlayCard(UnitInstance unit)
         {
             if (unit.CardData.IsSpell)
@@ -630,8 +645,7 @@ namespace FWTCG
         {
             if (unit.CardData.Cost > _gs.PMana)
             {
-                TurnManager.BroadcastMessage_Static(
-                    $"[提示] 法力不足：需要 {unit.CardData.Cost}，当前 {_gs.PMana}");
+                ShowPlayError($"[提示] 法力不足：需要 {unit.CardData.Cost}，当前 {_gs.PMana}", unit);
                 _selectedUnit = null;
                 return;
             }
@@ -642,8 +656,7 @@ namespace FWTCG
                 int haveSch = _gs.GetSch(GameRules.OWNER_PLAYER, unit.CardData.RuneType);
                 if (haveSch < unit.CardData.RuneCost)
                 {
-                    TurnManager.BroadcastMessage_Static(
-                        $"[提示] 符能不足：需要 {unit.CardData.RuneCost} {unit.CardData.RuneType}，当前 {haveSch}");
+                    ShowPlayError($"[提示] 符能不足：需要 {unit.CardData.RuneCost} {unit.CardData.RuneType}，当前 {haveSch}", unit);
                     _selectedUnit = null;
                     return;
                 }
@@ -676,8 +689,7 @@ namespace FWTCG
         {
             if (equip.CardData.Cost > _gs.PMana)
             {
-                TurnManager.BroadcastMessage_Static(
-                    $"[提示] 法力不足：需要 {equip.CardData.Cost}，当前 {_gs.PMana}");
+                ShowPlayError($"[提示] 法力不足：需要 {equip.CardData.Cost}，当前 {_gs.PMana}", equip);
                 return;
             }
 
@@ -687,8 +699,7 @@ namespace FWTCG
                 int haveSch = _gs.GetSch(GameRules.OWNER_PLAYER, equip.CardData.RuneType);
                 if (haveSch < equip.CardData.RuneCost)
                 {
-                    TurnManager.BroadcastMessage_Static(
-                        $"[提示] 符能不足：需要 {equip.CardData.RuneCost} {equip.CardData.RuneType}，当前 {haveSch}");
+                    ShowPlayError($"[提示] 符能不足：需要 {equip.CardData.RuneCost} {equip.CardData.RuneType}，当前 {haveSch}", equip);
                     return;
                 }
             }
@@ -784,8 +795,17 @@ namespace FWTCG
         {
             if (spell.CardData.Cost > _gs.PMana)
             {
-                TurnManager.BroadcastMessage_Static(
-                    $"[提示] 法力不足：需要 {spell.CardData.Cost}，当前 {_gs.PMana}");
+                ShowPlayError($"[提示] 法力不足：需要 {spell.CardData.Cost}，当前 {_gs.PMana}", spell);
+                return;
+            }
+
+            // Guard: no valid targets → reject before deducting anything
+            if (spell.CardData.SpellTargetType != SpellTargetType.None &&
+                !HasValidSpellTargets(spell.CardData.SpellTargetType))
+            {
+                string typeLabel = spell.CardData.SpellTargetType == SpellTargetType.EnemyUnit ? "敌方"
+                    : spell.CardData.SpellTargetType == SpellTargetType.FriendlyUnit ? "己方" : "任意";
+                ShowPlayError($"[提示] 场上没有可选的{typeLabel}单位", spell);
                 return;
             }
 

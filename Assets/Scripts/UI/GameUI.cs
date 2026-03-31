@@ -198,6 +198,7 @@ namespace FWTCG.UI
 
             FWTCG.Systems.TurnManager.OnBannerRequest += ShowBanner;
             FWTCG.Systems.LegendSystem.OnLegendEvolved += OnLegendEvolved; // DEV-15
+            GameManager.OnCardPlayFailed += ShakeHandCard;
         }
 
         private void OnDestroy()
@@ -208,6 +209,23 @@ namespace FWTCG.UI
             if (_restartButton != null) _restartButton.onClick.RemoveAllListeners();
             FWTCG.Systems.TurnManager.OnBannerRequest -= ShowBanner;
             FWTCG.Systems.LegendSystem.OnLegendEvolved -= OnLegendEvolved; // DEV-15
+            GameManager.OnCardPlayFailed -= ShakeHandCard;
+        }
+
+        // ── Card shake on play failure ────────────────────────────────────────
+
+        private void ShakeHandCard(FWTCG.Core.UnitInstance unit)
+        {
+            if (_playerHandContainer == null) return;
+            foreach (Transform child in _playerHandContainer)
+            {
+                var cv = child.GetComponent<CardView>();
+                if (cv != null && cv.Unit == unit)
+                {
+                    cv.Shake();
+                    return;
+                }
+            }
         }
 
         // ── DEV-15: Legend evolution flash ───────────────────────────────────

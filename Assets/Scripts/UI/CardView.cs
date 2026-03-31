@@ -36,6 +36,7 @@ namespace FWTCG.UI
         [SerializeField] private Image _exhaustedOverlay;
 
         private UnitInstance _unit;
+
         private bool _isPlayerCard;
         private Action<UnitInstance> _onClick;
         private Action<UnitInstance> _onRightClick;
@@ -44,6 +45,7 @@ namespace FWTCG.UI
         private bool _faceDown;
         private bool _costInsufficient;
         private Coroutine _stunPulse;
+        private Coroutine _shake;
         private CardGlow _cardGlow;
 
         private void Awake()
@@ -322,6 +324,30 @@ namespace FWTCG.UI
                 }
                 yield return null;
             }
+        }
+
+        /// <summary>Left-right shake: 4 oscillations of ±10px over ~0.3s.</summary>
+        public void Shake()
+        {
+            if (_shake != null) StopCoroutine(_shake);
+            _shake = StartCoroutine(ShakeRoutine());
+        }
+
+        private IEnumerator ShakeRoutine()
+        {
+            var rt = GetComponent<RectTransform>();
+            if (rt == null) yield break;
+
+            Vector2 origin = rt.anchoredPosition;
+            float[] offsets = { 10f, -10f, 8f, -8f, 5f, -5f, 0f };
+            float step = 0.04f;
+            foreach (float dx in offsets)
+            {
+                rt.anchoredPosition = new Vector2(origin.x + dx, origin.y);
+                yield return new WaitForSeconds(step);
+            }
+            rt.anchoredPosition = origin;
+            _shake = null;
         }
     }
 }
