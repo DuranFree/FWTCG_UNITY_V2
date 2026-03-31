@@ -742,6 +742,9 @@ namespace FWTCG.UI
                 le.preferredHeight = 46f;
                 le.minWidth = 46f;
                 le.minHeight = 46f;
+
+                // Ensure RuneCircle/RuneArt hierarchy exists (may be absent if prefab refs lost)
+                EnsureRuneCircle(newGo);
             }
 
             // Update all rune objects in-place
@@ -1292,6 +1295,64 @@ namespace FWTCG.UI
             Transform t = parent.transform.Find(name);
             if (t != null) return t.GetComponent<Button>();
             return null;
+        }
+
+        /// <summary>
+        /// Creates the RuneCircle / RuneArt / RuneTypeText hierarchy inside a rune GO
+        /// if it doesn't already exist (handles case where prefab refs were lost after git reset).
+        /// </summary>
+        private static void EnsureRuneCircle(GameObject runeGo)
+        {
+            if (runeGo.transform.Find("RuneCircle") != null) return;
+
+            // ── RuneCircle (fills parent, has Image + Button) ─────────────────
+            var circleGo = new GameObject("RuneCircle");
+            circleGo.transform.SetParent(runeGo.transform, false);
+            var circleRT = circleGo.GetComponent<RectTransform>();
+            if (circleRT == null) circleRT = circleGo.AddComponent<RectTransform>();
+            circleRT.anchorMin = Vector2.zero;
+            circleRT.anchorMax = Vector2.one;
+            circleRT.offsetMin = Vector2.zero;
+            circleRT.offsetMax = Vector2.zero;
+
+            var circleImg = circleGo.AddComponent<Image>();
+            circleImg.raycastTarget = true;
+
+            var btn = circleGo.AddComponent<Button>();
+            var colors = btn.colors;
+            colors.highlightedColor = new Color(1f, 1f, 0.7f, 1f);
+            btn.colors = colors;
+
+            // ── RuneArt (80% of circle, non-raycast) ──────────────────────────
+            var artGo = new GameObject("RuneArt");
+            artGo.transform.SetParent(circleGo.transform, false);
+            var artRT = artGo.AddComponent<RectTransform>();
+            artRT.anchorMin = new Vector2(0.1f, 0.1f);
+            artRT.anchorMax = new Vector2(0.9f, 0.9f);
+            artRT.offsetMin = Vector2.zero;
+            artRT.offsetMax = Vector2.zero;
+            var artImg = artGo.AddComponent<Image>();
+            artImg.raycastTarget = false;
+            artImg.preserveAspect = true;
+
+            // ── RuneTypeText (centred overlay) ────────────────────────────────
+            var textGo = new GameObject("RuneTypeText");
+            textGo.transform.SetParent(circleGo.transform, false);
+            var textRT = textGo.AddComponent<RectTransform>();
+            textRT.anchorMin = Vector2.zero;
+            textRT.anchorMax = Vector2.one;
+            textRT.offsetMin = Vector2.zero;
+            textRT.offsetMax = Vector2.zero;
+            var txt = textGo.AddComponent<Text>();
+            txt.fontSize = 14;
+            txt.alignment = TextAnchor.MiddleCenter;
+            txt.color = Color.white;
+            txt.raycastTarget = false;
+            txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
+            // Hide the old RuneTypeText that was directly on prefab root (if any)
+            Transform oldLabel = runeGo.transform.Find("RuneTypeText");
+            if (oldLabel != null) oldLabel.gameObject.SetActive(false);
         }
     }
 }

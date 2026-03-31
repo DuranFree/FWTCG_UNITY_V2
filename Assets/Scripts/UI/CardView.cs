@@ -48,6 +48,21 @@ namespace FWTCG.UI
 
         private void Awake()
         {
+            // Auto-wire SerializeField refs by child name if Inspector connections were lost
+            if (_nameText == null)         _nameText         = FindDeepText("CardName");
+            if (_costText == null)         _costText         = FindDeepText("CostText");
+            if (_atkText == null)          _atkText          = FindDeepText("AtkText");
+            if (_descText == null)         _descText         = FindDeepText("DescText");
+            if (_artImage == null)         _artImage         = FindDeepImage("ArtImage");
+            if (_cardBg == null)           _cardBg           = GetComponent<Image>();
+            if (_clickButton == null)      _clickButton      = GetComponent<Button>();
+            if (_stunnedOverlay == null)   _stunnedOverlay   = FindDeepImage("StunnedOverlay");
+            if (_buffTokenIcon == null)    { var t = FindDeep("BuffTokenIcon"); if (t) _buffTokenIcon = t.gameObject; }
+            if (_buffTokenText == null)    _buffTokenText    = FindDeepText("BuffText");
+            if (_schCostText == null)      _schCostText      = FindDeepText("SchCostText");
+            if (_schCostBg == null)        _schCostBg        = FindDeepImage("SchCostBg");
+            if (_exhaustedOverlay == null) _exhaustedOverlay = FindDeepImage("ExhaustedOverlay");
+
             if (_clickButton != null)
                 _clickButton.onClick.AddListener(HandleClick);
 
@@ -58,6 +73,36 @@ namespace FWTCG.UI
             {
                 _cardGlow.Init(_cardBg, _cardBg.material);
             }
+        }
+
+        // ── Auto-wire helpers ─────────────────────────────────────────────────
+
+        private Transform FindDeep(string childName)
+        {
+            return FindDeepIn(transform, childName);
+        }
+
+        private static Transform FindDeepIn(Transform parent, string name)
+        {
+            if (parent.name == name) return parent;
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                var result = FindDeepIn(parent.GetChild(i), name);
+                if (result != null) return result;
+            }
+            return null;
+        }
+
+        private Text FindDeepText(string childName)
+        {
+            var t = FindDeep(childName);
+            return t != null ? t.GetComponent<Text>() : null;
+        }
+
+        private Image FindDeepImage(string childName)
+        {
+            var t = FindDeep(childName);
+            return t != null ? t.GetComponent<Image>() : null;
         }
 
         private void OnDestroy()
