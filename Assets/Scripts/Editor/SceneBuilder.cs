@@ -189,6 +189,9 @@ namespace FWTCG.Editor
             // ── SpellShowcasePanel (DEV-16) ───────────────────────────────────
             var spellShowcaseGO = CreateSpellShowcasePanel(canvasGO.transform);
 
+            // ── SpellTargetPopup (DEV-16b) ────────────────────────────────────
+            var spellTargetPopupGO = CreateSpellTargetPopup(canvasGO.transform);
+
             // ── CombatResultPanel (DEV-10: shows power comparison after combat) ──
             var combatResultPanel = CreateCombatResultPanel(canvasGO.transform,
                 out var crAttackerText, out var crDefenderText,
@@ -413,7 +416,7 @@ namespace FWTCG.Editor
                             reactBtn, legendSys, legendSkillBtn, bfSys,
                             debugSpellBtn, debugEquipBtn, debugUnitBtn, debugReactiveBtn, debugManaBtn, debugSchBtn,
                             tapAllRunesBtn, skipReactionBtn,
-                            spellShowcaseGO);
+                            spellShowcaseGO, spellTargetPopupGO);
 
             // ── Wire ToastUI ──────────────────────────────────────────────────
             var toastSO = new SerializedObject(toastUI);
@@ -1422,6 +1425,141 @@ namespace FWTCG.Editor
 
             go.SetActive(false);
             return go;
+        }
+
+        // ── Spell Target Popup (DEV-16b) ──────────────────────────────────────
+
+        private static GameObject CreateSpellTargetPopup(Transform parent)
+        {
+            // Full-screen dimming backdrop
+            var backdrop = new GameObject("SpellTargetPopup");
+            backdrop.transform.SetParent(parent, false);
+            var bdRT = backdrop.AddComponent<RectTransform>();
+            bdRT.anchorMin = Vector2.zero;
+            bdRT.anchorMax = Vector2.one;
+            bdRT.offsetMin = Vector2.zero;
+            bdRT.offsetMax = Vector2.zero;
+            var bdImg = backdrop.AddComponent<Image>();
+            bdImg.color = new Color(0f, 0f, 0f, 0.65f);
+            var bdCG = backdrop.AddComponent<CanvasGroup>();
+
+            // Centered panel box
+            var box = new GameObject("PopupBox");
+            box.transform.SetParent(backdrop.transform, false);
+            var boxRT = box.AddComponent<RectTransform>();
+            boxRT.anchorMin = new Vector2(0.5f, 0.5f);
+            boxRT.anchorMax = new Vector2(0.5f, 0.5f);
+            boxRT.pivot     = new Vector2(0.5f, 0.5f);
+            boxRT.sizeDelta = new Vector2(520f, 320f);
+            var boxImg = box.AddComponent<Image>();
+            boxImg.color = new Color(0.04f, 0.09f, 0.16f, 0.97f);
+            var boxVLG = box.AddComponent<VerticalLayoutGroup>();
+            boxVLG.childControlWidth    = true;
+            boxVLG.childControlHeight   = false;
+            boxVLG.childForceExpandWidth = true;
+            boxVLG.padding  = new RectOffset(12, 12, 10, 10);
+            boxVLG.spacing  = 8f;
+
+            // Title
+            var titleGO = new GameObject("Title");
+            titleGO.transform.SetParent(box.transform, false);
+            var titleLE = titleGO.AddComponent<LayoutElement>();
+            titleLE.preferredHeight = 26f;
+            var titleT = titleGO.AddComponent<Text>();
+            titleT.text      = "选择法术目标";
+            titleT.color     = new Color(0.94f, 0.84f, 0.43f);
+            titleT.fontSize  = 16;
+            titleT.fontStyle = FontStyle.Bold;
+            titleT.alignment = TextAnchor.MiddleCenter;
+            titleT.horizontalOverflow = HorizontalWrapMode.Overflow;
+            titleT.verticalOverflow   = VerticalWrapMode.Overflow;
+            if (_font != null) titleT.font = _font;
+
+            // ── Enemy section ──────────────────────────────────────────────────
+            var enemyHeader = new GameObject("EnemyHeader");
+            enemyHeader.transform.SetParent(box.transform, false);
+            var ehLE = enemyHeader.AddComponent<LayoutElement>();
+            ehLE.preferredHeight = 20f;
+            var ehT = enemyHeader.AddComponent<Text>();
+            ehT.text      = "── 敌方单位 ──";
+            ehT.color     = new Color(0.97f, 0.44f, 0.44f);
+            ehT.fontSize  = 13;
+            ehT.alignment = TextAnchor.MiddleCenter;
+            ehT.horizontalOverflow = HorizontalWrapMode.Overflow;
+            ehT.verticalOverflow   = VerticalWrapMode.Overflow;
+            if (_font != null) ehT.font = _font;
+
+            var enemyRow = new GameObject("EnemyContainer");
+            enemyRow.transform.SetParent(box.transform, false);
+            var erLE = enemyRow.AddComponent<LayoutElement>();
+            erLE.preferredHeight = 46f;
+            var erHLG = enemyRow.AddComponent<HorizontalLayoutGroup>();
+            erHLG.childControlWidth    = false;
+            erHLG.childControlHeight   = true;
+            erHLG.childForceExpandWidth = false;
+            erHLG.childAlignment = TextAnchor.MiddleLeft;
+            erHLG.spacing = 6f;
+
+            // ── Player section ─────────────────────────────────────────────────
+            var playerHeader = new GameObject("PlayerHeader");
+            playerHeader.transform.SetParent(box.transform, false);
+            var phLE = playerHeader.AddComponent<LayoutElement>();
+            phLE.preferredHeight = 20f;
+            var phT = playerHeader.AddComponent<Text>();
+            phT.text      = "── 己方单位 ──";
+            phT.color     = new Color(0.29f, 0.87f, 0.5f);
+            phT.fontSize  = 13;
+            phT.alignment = TextAnchor.MiddleCenter;
+            phT.horizontalOverflow = HorizontalWrapMode.Overflow;
+            phT.verticalOverflow   = VerticalWrapMode.Overflow;
+            if (_font != null) phT.font = _font;
+
+            var playerRow = new GameObject("PlayerContainer");
+            playerRow.transform.SetParent(box.transform, false);
+            var prLE = playerRow.AddComponent<LayoutElement>();
+            prLE.preferredHeight = 46f;
+            var prHLG = playerRow.AddComponent<HorizontalLayoutGroup>();
+            prHLG.childControlWidth    = false;
+            prHLG.childControlHeight   = true;
+            prHLG.childForceExpandWidth = false;
+            prHLG.childAlignment = TextAnchor.MiddleLeft;
+            prHLG.spacing = 6f;
+
+            // ── Cancel button ──────────────────────────────────────────────────
+            var cancelGO = new GameObject("CancelBtn");
+            cancelGO.transform.SetParent(box.transform, false);
+            var cancelLE = cancelGO.AddComponent<LayoutElement>();
+            cancelLE.preferredHeight = 34f;
+            var cancelImg = cancelGO.AddComponent<Image>();
+            cancelImg.color = new Color(0.45f, 0.45f, 0.45f, 0.9f);
+            var cancelBtn = cancelGO.AddComponent<Button>();
+            var cancelLblGO = new GameObject("Label");
+            cancelLblGO.transform.SetParent(cancelGO.transform, false);
+            var cancelLblRT = cancelLblGO.AddComponent<RectTransform>();
+            cancelLblRT.anchorMin = Vector2.zero;
+            cancelLblRT.anchorMax = Vector2.one;
+            cancelLblRT.offsetMin = Vector2.zero;
+            cancelLblRT.offsetMax = Vector2.zero;
+            var cancelLbl = cancelLblGO.AddComponent<Text>();
+            cancelLbl.text      = "取消";
+            cancelLbl.color     = Color.white;
+            cancelLbl.fontSize  = 14;
+            cancelLbl.alignment = TextAnchor.MiddleCenter;
+            cancelLbl.horizontalOverflow = HorizontalWrapMode.Overflow;
+            cancelLbl.verticalOverflow   = VerticalWrapMode.Overflow;
+            if (_font != null) cancelLbl.font = _font;
+
+            // ── Wire SpellTargetPopup component ───────────────────────────────
+            var popup = backdrop.AddComponent<FWTCG.UI.SpellTargetPopup>();
+            var popupSO = new UnityEditor.SerializedObject(popup);
+            popupSO.FindProperty("_canvasGroup").objectReferenceValue    = bdCG;
+            popupSO.FindProperty("_enemyContainer").objectReferenceValue = enemyRow.transform;
+            popupSO.FindProperty("_playerContainer").objectReferenceValue = playerRow.transform;
+            popupSO.FindProperty("_cancelBtn").objectReferenceValue      = cancelBtn;
+            popupSO.ApplyModifiedPropertiesWithoutUndo();
+
+            backdrop.SetActive(false);
+            return backdrop;
         }
 
         // ── Toast panel ───────────────────────────────────────────────────────
@@ -2694,7 +2832,8 @@ namespace FWTCG.Editor
             FWTCG.Systems.BattlefieldSystem bfSys,
             Button debugSpellBtn, Button debugEquipBtn, Button debugUnitBtn, Button debugReactiveBtn, Button debugManaBtn, Button debugSchBtn,
             Button tapAllRunesBtn = null, Button skipReactionBtn = null,
-            GameObject spellShowcaseGO = null)
+            GameObject spellShowcaseGO = null,
+            GameObject spellTargetPopupGO = null)
         {
             var so = new SerializedObject(gameMgr);
             so.FindProperty("_turnMgr").objectReferenceValue        = turnMgr;
@@ -2757,6 +2896,14 @@ namespace FWTCG.Editor
                 var showcase = spellShowcaseGO.GetComponent<FWTCG.UI.SpellShowcaseUI>();
                 if (showcase != null)
                     so.FindProperty("_spellShowcase").objectReferenceValue = showcase;
+            }
+
+            // DEV-16b: Wire SpellTargetPopup
+            if (spellTargetPopupGO != null)
+            {
+                var popup = spellTargetPopupGO.GetComponent<FWTCG.UI.SpellTargetPopup>();
+                if (popup != null)
+                    so.FindProperty("_spellTargetPopup").objectReferenceValue = popup;
             }
 
             // Wire DeathwishSystem + LegendSystem + BattlefieldSystem into CombatSystem

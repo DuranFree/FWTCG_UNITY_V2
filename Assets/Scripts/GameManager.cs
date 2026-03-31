@@ -109,6 +109,7 @@ namespace FWTCG
         [SerializeField] private Button _debugReactiveBtn;
         [SerializeField] private Button _debugManaBtn;
         [SerializeField] private Button _debugSchBtn;
+        [SerializeField] private SpellTargetPopup _spellTargetPopup;  // DEV-16b
 
         // ── Game state ────────────────────────────────────────────────────────
         private GameState _gs;
@@ -618,7 +619,7 @@ namespace FWTCG
         private void TryPlayCard(UnitInstance unit)
         {
             if (unit.CardData.IsSpell)
-                TryPlaySpell(unit);
+                _ = TryPlaySpellAsync(unit);
             else if (unit.CardData.IsEquipment)
                 TryPlayEquipment(unit);
             else
@@ -779,7 +780,7 @@ namespace FWTCG
             }
         }
 
-        private void TryPlaySpell(UnitInstance spell)
+        private async Task TryPlaySpellAsync(UnitInstance spell)
         {
             if (spell.CardData.Cost > _gs.PMana)
             {
@@ -788,39 +789,50 @@ namespace FWTCG
                 return;
             }
 
-            // Guard: refuse to enter targeting mode if no valid targets exist
-            if (spell.CardData.SpellTargetType != SpellTargetType.None &&
-                !HasValidSpellTargets(spell.CardData.SpellTargetType))
-            {
-                string typeLabel = spell.CardData.SpellTargetType == SpellTargetType.EnemyUnit ? "敌方"
-                    : spell.CardData.SpellTargetType == SpellTargetType.FriendlyUnit ? "己方" : "任意";
-                TurnManager.BroadcastMessage_Static(
-                    $"[提示] 场上没有合法目标（{typeLabel}单位），无法发动 {spell.UnitName}");
-                return;
-            }
-
             _gs.PMana -= spell.CardData.Cost;
             _gs.CardsPlayedThisTurn++;
+            _gs.PHand.Remove(spell);
 
             if (spell.CardData.SpellTargetType == SpellTargetType.None)
             {
-                // No target needed — remove from hand, give AI reaction window (DEV-15)
-                _gs.PHand.Remove(spell);
+                // No target needed — give AI reaction window (DEV-15)
                 _ = CastPlayerSpellWithReactionAsync(spell, null);
                 RefreshUI();
+                return;
+            }
+
+            // Needs a target — show popup
+            UnitInstance target = null;
+            if (_spellTargetPopup != null)
+            {
+                RefreshUI();
+                target = await _spellTargetPopup.ShowAsync(spell.CardData.SpellTargetType, _gs);
             }
             else
             {
-                // Needs target — remove from hand, enter targeting mode
-                // AI reaction window fires after target is confirmed in OnUnitClicked
-                _gs.PHand.Remove(spell);
+                // Fallback: no popup wired — use old targeting mode
                 _targetingSpell = spell;
                 string typeLabel = spell.CardData.SpellTargetType == SpellTargetType.EnemyUnit ? "敌方"
                     : spell.CardData.SpellTargetType == SpellTargetType.FriendlyUnit ? "己方" : "任意";
                 TurnManager.BroadcastMessage_Static(
                     $"[法术] {spell.UnitName} — 请点击一个{typeLabel}单位作为目标（结束回合可取消）");
                 RefreshUI();
+                return;
             }
+
+            if (target == null)
+            {
+                // Cancelled — refund mana and return spell to hand
+                _gs.PHand.Add(spell);
+                _gs.PMana += spell.CardData.Cost;
+                _gs.CardsPlayedThisTurn--;
+                TurnManager.BroadcastMessage_Static($"[法术] 取消 {spell.UnitName} 的目标选择，法力退还");
+                RefreshUI();
+                return;
+            }
+
+            _ = CastPlayerSpellWithReactionAsync(spell, target);
+            RefreshUI();
         }
 
         // ── DEV-15: AI reaction to player spells ─────────────────────────���────

@@ -67,6 +67,8 @@ namespace FWTCG.UI
         {
             if (spell == null) return Task.CompletedTask;
 
+            // Must activate before StartCoroutine — coroutines can't start on inactive objects
+            gameObject.SetActive(true);
             var tcs = new System.Threading.Tasks.TaskCompletionSource<bool>();
             StartCoroutine(ShowCoroutine(spell, owner, tcs));
             return tcs.Task;
@@ -78,7 +80,6 @@ namespace FWTCG.UI
                                           System.Threading.Tasks.TaskCompletionSource<bool> tcs)
         {
             IsShowing = true;
-            gameObject.SetActive(true);
 
             // Populate content
             bool isPlayer = owner == GameRules.OWNER_PLAYER;
