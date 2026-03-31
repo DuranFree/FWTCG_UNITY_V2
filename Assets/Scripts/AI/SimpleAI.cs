@@ -633,16 +633,19 @@ namespace FWTCG.AI
 
             foreach (var card in hand)
             {
-                if (card.CardData.RuneCost > 0)
+                if (card.CardData.RuneCost <= 0) continue;
+                // Don't pre-recycle for cards we can't afford mana-wise this turn.
+                // Schematic energy resets every Awaken phase, so pre-recycling is wasteful
+                // and starves the AI of mana needed to play units.
+                if (card.CardData.Cost > gs.EMana) continue;
+
+                RuneType rt = card.CardData.RuneType;
+                int have = gs.GetSch(GameRules.OWNER_ENEMY, rt);
+                int need = card.CardData.RuneCost - have;
+                if (need > 0)
                 {
-                    RuneType rt = card.CardData.RuneType;
-                    int have = gs.GetSch(GameRules.OWNER_ENEMY, rt);
-                    int need = card.CardData.RuneCost - have;
-                    if (need > 0)
-                    {
-                        if (!neededSch.ContainsKey(rt)) neededSch[rt] = 0;
-                        neededSch[rt] = Mathf.Max(neededSch[rt], need);
-                    }
+                    if (!neededSch.ContainsKey(rt)) neededSch[rt] = 0;
+                    neededSch[rt] = Mathf.Max(neededSch[rt], need);
                 }
             }
 
