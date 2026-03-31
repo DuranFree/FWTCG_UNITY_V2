@@ -14,9 +14,14 @@ namespace FWTCG.Systems
     /// </summary>
     public class SpellSystem : MonoBehaviour
     {
-        public static event System.Action<string> OnSpellLog;
+        public static event System.Action<string>                        OnSpellLog;
+        /// <summary>Fired whenever a spell deals damage: (damagedUnit, amount, spellName).</summary>
+        public static event System.Action<UnitInstance, int, string>     OnUnitDamaged;
 
         [SerializeField] private BattlefieldSystem _bfSys;
+
+        // Captured at CastSpell entry so DealDamage knows the source without extra params.
+        private string _currentSpellName = "";
 
         // ── Public API ────────────────────────────────────────────────────────
 
@@ -26,6 +31,7 @@ namespace FWTCG.Systems
         /// </summary>
         public void CastSpell(UnitInstance spell, string owner, UnitInstance target, GameState gs)
         {
+            _currentSpellName = spell.UnitName;
             Log($"[法术] {spell.UnitName} 发动！");
 
             switch (spell.CardData.EffectId)
@@ -142,6 +148,7 @@ namespace FWTCG.Systems
 
             target.CurrentHp -= amount;
             Log($"[伤害] {target.UnitName} 受到 {amount} 点法术伤害（剩余HP: {target.CurrentHp}）");
+            OnUnitDamaged?.Invoke(target, amount, _currentSpellName);
 
             if (target.CurrentHp <= 0)
                 RemoveDeadUnit(target, gs);
@@ -243,6 +250,7 @@ namespace FWTCG.Systems
                 UnitInstance picked = alive[Random.Range(0, alive.Count)];
                 picked.CurrentHp -= 2;
                 Log($"[狂暴之风] 第{hit + 1}击 → {picked.UnitName}（剩余HP: {picked.CurrentHp}）");
+                OnUnitDamaged?.Invoke(picked, 2, _currentSpellName);
                 if (picked.CurrentHp <= 0 && !dead.Contains(picked))
                     dead.Add(picked);
             }

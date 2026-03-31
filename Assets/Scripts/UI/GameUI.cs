@@ -199,6 +199,7 @@ namespace FWTCG.UI
             FWTCG.Systems.TurnManager.OnBannerRequest += ShowBanner;
             FWTCG.Systems.LegendSystem.OnLegendEvolved += OnLegendEvolved; // DEV-15
             GameManager.OnCardPlayFailed += ShakeHandCard;
+            FWTCG.Systems.SpellSystem.OnUnitDamaged += OnSpellUnitDamaged;
         }
 
         private void OnDestroy()
@@ -210,6 +211,7 @@ namespace FWTCG.UI
             FWTCG.Systems.TurnManager.OnBannerRequest -= ShowBanner;
             FWTCG.Systems.LegendSystem.OnLegendEvolved -= OnLegendEvolved; // DEV-15
             GameManager.OnCardPlayFailed -= ShakeHandCard;
+            FWTCG.Systems.SpellSystem.OnUnitDamaged -= OnSpellUnitDamaged;
         }
 
         // ── Card shake on play failure ────────────────────────────────────────
@@ -226,6 +228,44 @@ namespace FWTCG.UI
                     return;
                 }
             }
+        }
+
+        // ── Spell hit feedback: flash red + shake + toast ────────────────────
+
+        private void OnSpellUnitDamaged(FWTCG.Core.UnitInstance unit, int damage, string spellName)
+        {
+            var cv = FindCardView(unit);
+            if (cv != null)
+            {
+                cv.FlashRed();
+                cv.Shake();
+            }
+            string msg = string.IsNullOrEmpty(spellName)
+                ? $"{unit.UnitName} 受到 {damage} 点伤害"
+                : $"{spellName} 击中 {unit.UnitName}，造成 {damage} 点伤害";
+            GameManager.FireHintToast(msg);
+        }
+
+        private CardView FindCardView(FWTCG.Core.UnitInstance unit)
+        {
+            var containers = new Transform[]
+            {
+                _playerHandContainer, _enemyHandContainer,
+                _playerBaseContainer, _enemyBaseContainer,
+                _bf1PlayerContainer,  _bf1EnemyContainer,
+                _bf2PlayerContainer,  _bf2EnemyContainer,
+                _playerHeroContainer, _enemyHeroContainer,
+            };
+            foreach (var c in containers)
+            {
+                if (c == null) continue;
+                foreach (Transform child in c)
+                {
+                    var cv = child.GetComponent<CardView>();
+                    if (cv != null && cv.Unit == unit) return cv;
+                }
+            }
+            return null;
         }
 
         // ── DEV-15: Legend evolution flash ───────────────────────────────────

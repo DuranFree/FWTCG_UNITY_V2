@@ -46,6 +46,7 @@ namespace FWTCG.UI
         private bool _costInsufficient;
         private Coroutine _stunPulse;
         private Coroutine _shake;
+        private Coroutine _flash;
         private CardGlow _cardGlow;
 
         private void Awake()
@@ -324,6 +325,31 @@ namespace FWTCG.UI
                 }
                 yield return null;
             }
+        }
+
+        /// <summary>Brief red flash: instant red, fade back over 0.35s.</summary>
+        public void FlashRed()
+        {
+            if (_flash != null) StopCoroutine(_flash);
+            _flash = StartCoroutine(FlashRedRoutine());
+        }
+
+        private IEnumerator FlashRedRoutine()
+        {
+            if (_cardBg == null) yield break;
+            Color original = _cardBg.color;
+            Color red = new Color(1f, 0.15f, 0.15f, original.a);
+            _cardBg.color = red;
+            yield return new WaitForSeconds(0.12f);
+            float t = 0f;
+            while (t < 0.35f)
+            {
+                _cardBg.color = Color.Lerp(red, original, t / 0.35f);
+                t += Time.deltaTime;
+                yield return null;
+            }
+            _cardBg.color = original;
+            _flash = null;
         }
 
         /// <summary>Left-right shake: 4 oscillations of ±10px over ~0.3s.</summary>

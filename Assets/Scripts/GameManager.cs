@@ -29,6 +29,9 @@ namespace FWTCG
         /// <summary>Fired with the UnitInstance that failed to play — subscribers shake the CardView.</summary>
         public static event System.Action<UnitInstance> OnCardPlayFailed;
 
+        /// <summary>Allows non-GameManager code to send a hint toast.</summary>
+        public static void FireHintToast(string msg) => OnHintToast?.Invoke(msg);
+
         // ── Card data (assign in Inspector) ──────────────────────────────────
         [SerializeField] private CardData[] _kaisaDeck;   // 5 cards
         [SerializeField] private CardData[] _yiDeck;      // 5 cards
@@ -834,8 +837,9 @@ namespace FWTCG
                 _targetingSpell = spell;
                 string typeLabel = spell.CardData.SpellTargetType == SpellTargetType.EnemyUnit ? "敌方"
                     : spell.CardData.SpellTargetType == SpellTargetType.FriendlyUnit ? "己方" : "任意";
-                TurnManager.BroadcastMessage_Static(
-                    $"[法术] {spell.UnitName} — 请点击一个{typeLabel}单位作为目标（结束回合可取消）");
+                string prompt = $"请点击一个{typeLabel}单位作为目标";
+                TurnManager.BroadcastMessage_Static($"[法术] {spell.UnitName} — {prompt}（结束回合可取消）");
+                OnHintToast?.Invoke(prompt); // toast so player notices
                 RefreshUI();
                 return;
             }
