@@ -98,6 +98,13 @@ namespace FWTCG.Systems
             TurnManager.BroadcastMessage_Static(msg);
             OnScoreChanged?.Invoke(msg);
 
+            // DEV-18b: fire score float text + event banner
+            FWTCG.UI.GameEventBus.FireScoreFloat(who, pts);
+            if (type == GameRules.SCORE_TYPE_HOLD)
+                FWTCG.UI.GameEventBus.FireHoldScoreBanner();
+            else if (type == GameRules.SCORE_TYPE_CONQUER)
+                FWTCG.UI.GameEventBus.FireConquerScoreBanner();
+
             CheckWin(gs);
             return true;
         }

@@ -36,6 +36,7 @@ namespace FWTCG.Systems
                 case "alert_sentinel_die":
                     DrawCard(owner, gs);
                     Log($"[绝念] {unit.UnitName} 阵亡 — 摸1张牌");
+                    FWTCG.UI.GameEventBus.FireDeathwishBanner(unit.UnitName, "摸1张牌"); // DEV-18b
                     break;
 
                 case "wailing_poro_die":
@@ -45,6 +46,7 @@ namespace FWTCG.Systems
                     {
                         DrawCard(owner, gs);
                         Log($"[绝念] {unit.UnitName} 孤独阵亡 — 摸1张牌");
+                        FWTCG.UI.GameEventBus.FireDeathwishBanner(unit.UnitName, "孤独阵亡 — 摸1张牌"); // DEV-18b
                     }
                     else
                     {

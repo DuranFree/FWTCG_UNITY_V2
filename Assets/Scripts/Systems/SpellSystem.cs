@@ -103,6 +103,7 @@ namespace FWTCG.Systems
                     // 3 Radiant: gain extra turn
                     gs.ExtraTurnPending = true;
                     Log("[时间扭曲] 获得额外回合！");
+                    FWTCG.UI.GameEventBus.FireTimeWarpBanner(); // DEV-18b
                     break;
 
                 case "divine_ray":

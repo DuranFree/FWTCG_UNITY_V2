@@ -101,6 +101,13 @@ namespace FWTCG.UI
         // ── Info strip ───────────────────────────────────────────────────────
         public static readonly Color InfoStripBg = new Color(0.02f, 0.05f, 0.1f, 0.9f);
 
+        // ── Event feedback (DEV-18b) ─────────────────────────────────────────
+        public static readonly Color ScorePulseColor = new Color(1f, 0.85f, 0.1f, 1f);  // bright gold
+        public static readonly Color ManaColor       = new Color(0.3f, 0.7f, 1f, 1f);   // blue (法力)
+        public static readonly Color SchColor        = new Color(0.7f, 0.4f, 1f, 1f);   // purple (符能)
+        public static readonly Color BuffColor       = new Color(1f, 0.85f, 0.1f, 1f);  // gold (ATK buff)
+        public static readonly Color DebuffColor     = new Color(0.8f, 0.4f, 0.4f, 1f); // muted red (ATK debuff)
+
         /// <summary>
         /// Convert a hex color string (#RRGGBB or #RRGGBBAA) to a Unity Color.
         /// </summary>

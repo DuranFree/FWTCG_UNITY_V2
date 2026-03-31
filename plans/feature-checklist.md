@@ -274,8 +274,11 @@
 
 - ✅ 伤害数字飘出（受击时显示伤害值，DamagePopup 红色浮字 0.85s）— DEV-17
 - ✅ 单位阵亡特效（DeathRoutine 缩小+淡出 0.45s，CardView.PlayDeathAnimation）— DEV-17
+- ✅ 全局事件反馈系统（GameEventBus + FloatText 池化飘字 + EventBanner 小横幅队列）— DEV-18b
+- ✅ 飘字：单位战力 buff/debuff / 符文横置+法力 / 符文回收+符能 / 得分+N分 — DEV-18b
+- ✅ 小横幅：绝念/入场效果/据守分/征服分/传奇技能/进化/燃尽/时间扭曲 — DEV-18b
 - [ ] 法术施放特效
-- [ ] 征服/得分特效
+- [ ] 征服/得分特效（粒子版）
 - [ ] 对决横幅动画（showDuelBanner）
 
 ---

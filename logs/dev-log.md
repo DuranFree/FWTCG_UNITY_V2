@@ -2,6 +2,32 @@
 
 ---
 
+## DEV-18b：全局事件反馈系统 — 2026-03-31
+
+**Status**: ✅ Completed
+**Tests**: 332/332 🟢
+
+**What was done**:
+
+- **GameEventBus.cs（新建）** — 静态事件总线，集中管理所有视觉反馈事件。提供 `OnUnitFloatText`、`OnZoneFloatText`、`OnEventBanner` 三类事件 + 16 个 convenience Fire 方法（ScoreFloat / RuneTap / RuneRecycle / UnitAtkBuff / 各类 banner）。
+- **FloatText.cs（新建）** — 池化飘字组件（默认池 12 个）。上浮 60px + ease-out + 淡出，0.9s 自动回池。支持颜色和 large 参数（24/32px 字号）。
+- **EventBanner.cs（新建）** — 小横幅组件，CanvasGroup 控制可见性，Queue 防重叠（先进先出）。每条 banner 滑入 0.2s + 停留 + 淡出 0.25s；large=true 时字号 26/金色，普通 20/暖白。
+- **GameColors.cs** — 新增 `ScorePulseColor`、`ManaColor`、`SchColor`、`BuffColor`、`DebuffColor` 5 个颜色常量。
+- **GameUI.cs** — 新增 4 个 SerializedField zone RT（`_playerScoreZoneRT` 等），Awake/OnDestroy 订阅 GameEventBus，新增 `OnUnitFloatTextHandler`、`OnZoneFloatTextHandler`、`GetZoneRT`、`GetRootCanvas` 4 个处理方法。
+- **ScoreManager.cs** — AddScore 成功后 Fire `GameEventBus.FireScoreFloat + FireHoldScoreBanner / FireConquerScoreBanner`。
+- **TurnManager.cs** — DoDraw 燃尽路径 Fire `GameEventBus.FireBurnoutBanner`。
+- **SpellSystem.cs** — time_warp 分支 Fire `GameEventBus.FireTimeWarpBanner`。
+- **DeathwishSystem.cs** — alert_sentinel_die / wailing_poro_die 触发时 Fire `GameEventBus.FireDeathwishBanner`。
+- **EntryEffectSystem.cs** — yordel/darius/thousand_tail/rengar/yi_hero 入场 Fire `FireEntryEffectBanner`；darius +2战力 / thousand_tail 逐单位 / inspire 触发时 Fire `FireUnitAtkBuff`。
+- **LegendSystem.cs** — 卡莎虚空感知 Fire `FireLegendSkillBanner`；进化 Fire `FireLegendEvolvedBanner`；易大师独影剑鸣 Fire `FireLegendSkillBanner + FireUnitAtkBuff`。
+- **GameManager.cs** — OnRuneClicked 横置/回收分支分别 Fire `FireRuneTapFloat / FireRuneRecycleFloat`。
+- **SceneBuilder.cs** — 新增 `CreateEventBannerPanel`，在 Canvas 根节点创建 EventBanner GameObject 并连线字段；WireGameUI 补充 4 个 zone RT 连线。
+- **测试** — 新建 `DEV18bEventFeedbackTests.cs`（23 tests）：所有 Fire 方法均有订阅回调验证、null 安全测试、颜色正确性检查、无订阅者不抛异常。
+
+**Files changed**: `GameEventBus.cs`、`FloatText.cs`、`EventBanner.cs`（新建）；`GameColors.cs`、`GameUI.cs`、`ScoreManager.cs`、`TurnManager.cs`、`SpellSystem.cs`、`DeathwishSystem.cs`、`EntryEffectSystem.cs`、`LegendSystem.cs`、`GameManager.cs`、`SceneBuilder.cs`（修改）
+
+---
+
 ## DEV-18：战斗视觉 + 待命/瞬息机制 — 2026-03-31
 
 **Status**: ✅ Completed

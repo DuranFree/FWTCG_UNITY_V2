@@ -594,6 +594,7 @@ namespace FWTCG
                 _gs.AddSch(GameRules.OWNER_PLAYER, rune.RuneType, 1);
                 TurnManager.BroadcastMessage_Static(
                     $"[回收] 符文 {rune.RuneType} 回收，获得 1 点{rune.RuneType}符能");
+                UI.GameEventBus.FireRuneRecycleFloat(GameRules.OWNER_PLAYER); // DEV-18b
             }
             else
             {
@@ -607,6 +608,7 @@ namespace FWTCG
                 _gs.PMana += 1;
                 TurnManager.BroadcastMessage_Static(
                     $"[横置] 符文 {rune.RuneType} 横置，法力 → {_gs.PMana}");
+                UI.GameEventBus.FireRuneTapFloat(GameRules.OWNER_PLAYER); // DEV-18b
             }
 
             RefreshUI();

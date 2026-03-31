@@ -34,3 +34,6 @@
 - [ ] AI 出牌不触发 OnCardPlayed/BoardFlash — FireCardPlayed 只在玩家三条出牌路径调用，AI 出牌无棋盘闪烁；如需视觉对称须补充 AI 路径调用 — Phase DEV-18（Claude 审查 Medium，设计待确认）
 - [ ] CtrlGlowLoop 无控制方时 alpha 非零 — NoGlow=(0,0,0,0) 但 Lerp(0.10,0.35,pulse) 始终>0，产生微弱黑色叠加；修复：_currentCtrl==null 时直接 alpha=0 — Phase DEV-18（Claude 审查 Low）
 - [ ] Ephemeral 销毁未加入弃牌堆 — DestroyEphemeralUnits 只从列表移除，未调用 gs.GetDiscard(owner).Add(u)；需确认是否设计意图 — Phase DEV-18（Claude 审查 Low）
+- [ ] FloatText._pool 静态列表跨场景不清空 — _poolRoot 场景销毁后变成 null 引用，EnsurePool 需检测 destroyed 状态 — Phase DEV-18b（Claude 审查 Low）
+- [ ] EventBanner.DrainQueue 协程在 OnDisable 时不会停止 — 组件禁用后仍可能继续运行（本项目 EventBanner 不会被禁用，风险低）— Phase DEV-18b（Claude 审查 Low）
+- [ ] GameEventBus 测试中 lambda 退订写法无效 — Action 委托退订需保存引用，测试间若有残留订阅可能互相干扰（当前测试全绿，实际无影响）— Phase DEV-18b（Claude 审查 Medium）

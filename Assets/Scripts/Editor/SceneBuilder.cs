@@ -188,6 +188,9 @@ namespace FWTCG.Editor
             // ── BannerPanel ───────────────────────────────────────────────────
             var bannerPanel = CreateBannerPanel(canvasGO.transform, out var bannerText);
 
+            // ── EventBanner (DEV-18b) ─────────────────────────────────────────
+            var eventBannerGO = CreateEventBannerPanel(canvasGO.transform);
+
             // ── SpellShowcasePanel (DEV-16) ───────────────────────────────────
             var spellShowcaseGO = CreateSpellShowcasePanel(canvasGO.transform);
 
@@ -1080,7 +1083,7 @@ namespace FWTCG.Editor
             vlg.childControlWidth = true;
             vlg.childControlHeight = true;
             vlg.childForceExpandWidth = true;
-            vlg.childForceExpandHeight = true;
+            vlg.childForceExpandHeight = false;  // StandbyZone must stay fixed-height
             vlg.spacing = 2f;
 
             // Enemy units zone
@@ -1146,7 +1149,7 @@ namespace FWTCG.Editor
             standbyZone.transform.SetParent(panel.transform, false);
             standbyZone.AddComponent<RectTransform>();
             var standbyLE = standbyZone.AddComponent<LayoutElement>();
-            standbyLE.preferredHeight = 18f;
+            standbyLE.preferredHeight = 14f;
             standbyLE.flexibleHeight = 0f;
             var standbyHLG = standbyZone.AddComponent<HorizontalLayoutGroup>();
             standbyHLG.childControlWidth = false;
@@ -1158,7 +1161,7 @@ namespace FWTCG.Editor
             var standbyBg = standbyZone.AddComponent<Image>();
             standbyBg.color = new Color(0.05f, 0.05f, 0.15f, 0.25f);
             var standbyLabel = CreateTMPText(standbyZone.transform, "StandbyLabel", "待命区",
-                new Color(0.47f, 0.35f, 0.16f, 0.6f), 8, TextAnchor.MiddleCenter);
+                new Color(0.78f, 0.67f, 0.43f, 0.9f), 11, TextAnchor.MiddleCenter);
             var standbyLabelLE = standbyLabel.gameObject.AddComponent<LayoutElement>();
             standbyLabelLE.minWidth = 30f;
 
@@ -1424,6 +1427,49 @@ namespace FWTCG.Editor
             bannerText.fontStyle = FontStyle.Bold;
 
             go.SetActive(false);
+            return go;
+        }
+
+        // ── Event Banner Panel (DEV-18b) ─────────────────────────────────────
+
+        private static GameObject CreateEventBannerPanel(Transform parent)
+        {
+            // Small screen-center event banner; visibility controlled by CanvasGroup.
+            // Anchored center, sits above the big BannerPanel in z-order.
+            var go = new GameObject("EventBannerPanel");
+            go.transform.SetParent(parent, false);
+
+            var rt = go.AddComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.25f, 0.52f);
+            rt.anchorMax = new Vector2(0.75f, 0.62f);
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+
+            var cg = go.AddComponent<CanvasGroup>();
+            cg.alpha = 0f;
+            cg.blocksRaycasts = false;
+
+            var bg = go.AddComponent<Image>();
+            bg.color = new Color(0.02f, 0.05f, 0.1f, 0.88f);
+
+            // Text
+            var text = CreateTMPText(go.transform, "EventBannerText", "", GameColors.GoldLight, 20, TextAnchor.MiddleCenter);
+            var tRT = text.GetComponent<RectTransform>();
+            tRT.anchorMin = Vector2.zero;
+            tRT.anchorMax = Vector2.one;
+            tRT.offsetMin = new Vector2(8f, 4f);
+            tRT.offsetMax = new Vector2(-8f, -4f);
+            text.fontStyle = FontStyle.Bold;
+            text.raycastTarget = false;
+
+            // Attach EventBanner component and wire fields
+            var eb = go.AddComponent<FWTCG.UI.EventBanner>();
+            var ebSO = new SerializedObject(eb);
+            ebSO.FindProperty("_bannerText").objectReferenceValue = text;
+            ebSO.FindProperty("_bannerBg").objectReferenceValue   = bg;
+            ebSO.FindProperty("_bannerRT").objectReferenceValue   = rt;
+            ebSO.ApplyModifiedPropertiesWithoutUndo();
+
             return go;
         }
 
@@ -2914,6 +2960,16 @@ namespace FWTCG.Editor
             if (bf1CardArt != null) so.FindProperty("_bf1CardArt").objectReferenceValue = bf1CardArt;
             if (bf2CardArt != null) so.FindProperty("_bf2CardArt").objectReferenceValue = bf2CardArt;
             if (boardFlashOverlay != null) so.FindProperty("_boardFlashOverlay").objectReferenceValue = boardFlashOverlay;
+
+            // ── DEV-18b: score/rune zone RTs for FloatText positioning ──
+            if (playerScoreCircleImages != null && playerScoreCircleImages.Length > 0 && playerScoreCircleImages[0] != null)
+                so.FindProperty("_playerScoreZoneRT").objectReferenceValue = playerScoreCircleImages[0].transform.parent.GetComponent<RectTransform>();
+            if (enemyScoreCircleImages != null && enemyScoreCircleImages.Length > 0 && enemyScoreCircleImages[0] != null)
+                so.FindProperty("_enemyScoreZoneRT").objectReferenceValue = enemyScoreCircleImages[0].transform.parent.GetComponent<RectTransform>();
+            if (playerRuneContainer != null)
+                so.FindProperty("_playerRuneZoneRT").objectReferenceValue = playerRuneContainer.GetComponent<RectTransform>();
+            if (enemyRuneContainer != null)
+                so.FindProperty("_enemyRuneZoneRT").objectReferenceValue = enemyRuneContainer.GetComponent<RectTransform>();
 
             so.ApplyModifiedPropertiesWithoutUndo();
         }

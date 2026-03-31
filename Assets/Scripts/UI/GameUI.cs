@@ -160,6 +160,14 @@ namespace FWTCG.UI
         [SerializeField] private Image _bf2CardArt;
         private Coroutine _boardFlashCoroutine;
 
+        // ── DEV-18b: Event feedback ───────────────────────────────────────────
+        // Zone anchor RTs used to position FloatText in score/rune areas.
+        // These are set by SceneBuilder.WireGameUI or can be assigned in Inspector.
+        [SerializeField] private RectTransform _playerScoreZoneRT;
+        [SerializeField] private RectTransform _enemyScoreZoneRT;
+        [SerializeField] private RectTransform _playerRuneZoneRT;
+        [SerializeField] private RectTransform _enemyRuneZoneRT;
+
         // ── Callbacks set by GameManager ──────────────────────────────────────
         private Action _onEndTurnClicked;
         private Action<int> _onBFClicked;
@@ -210,6 +218,9 @@ namespace FWTCG.UI
             GameManager.OnUnitDamaged += OnSpellUnitDamaged;
             GameManager.OnUnitDied += OnUnitDiedHandler;
             GameManager.OnCardPlayed += OnCardPlayedHandler; // DEV-18
+            // DEV-18b: event feedback bus
+            GameEventBus.OnUnitFloatText += OnUnitFloatTextHandler;
+            GameEventBus.OnZoneFloatText  += OnZoneFloatTextHandler;
         }
 
         private void OnDestroy()
@@ -224,6 +235,9 @@ namespace FWTCG.UI
             GameManager.OnUnitDamaged -= OnSpellUnitDamaged;
             GameManager.OnUnitDied -= OnUnitDiedHandler;
             GameManager.OnCardPlayed -= OnCardPlayedHandler; // DEV-18
+            // DEV-18b
+            GameEventBus.OnUnitFloatText -= OnUnitFloatTextHandler;
+            GameEventBus.OnZoneFloatText  -= OnZoneFloatTextHandler;
         }
 
         // ── Card shake on play failure ────────────────────────────────────────
@@ -313,6 +327,70 @@ namespace FWTCG.UI
                     var cv = child.GetComponent<CardView>();
                     if (cv != null && cv.Unit == unit) return cv;
                 }
+            }
+            return null;
+        }
+
+        // ── DEV-18b: FloatText handlers ──────────────────────────────────────
+
+        /// <summary>Show float text on a specific unit's CardView position.</summary>
+        private void OnUnitFloatTextHandler(FWTCG.Core.UnitInstance unit, string text, UnityEngine.Color color)
+        {
+            var cv = FindCardView(unit);
+            if (cv == null) return;
+
+            Canvas rootCanvas = GetRootCanvas();
+            if (rootCanvas == null) return;
+
+            var cvRT = cv.GetComponent<RectTransform>();
+            if (cvRT == null) return;
+
+            Vector2 screenPt = RectTransformUtility.WorldToScreenPoint(null, cvRT.position);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                rootCanvas.GetComponent<RectTransform>(), screenPt, rootCanvas.worldCamera, out Vector2 localPos);
+            localPos += new Vector2(0f, 28f);
+
+            FloatText.Show(localPos, text, color, rootCanvas.transform);
+        }
+
+        /// <summary>Show float text at a named zone anchor.</summary>
+        private void OnZoneFloatTextHandler(string zone, string text, UnityEngine.Color color)
+        {
+            Canvas rootCanvas = GetRootCanvas();
+            if (rootCanvas == null) return;
+
+            RectTransform zoneRT = GetZoneRT(zone);
+            if (zoneRT == null) return;
+
+            Vector2 screenPt = RectTransformUtility.WorldToScreenPoint(null, zoneRT.position);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                rootCanvas.GetComponent<RectTransform>(), screenPt, rootCanvas.worldCamera, out Vector2 localPos);
+            localPos += new Vector2(0f, 20f);
+
+            bool large = zone.StartsWith("score_");
+            FloatText.Show(localPos, text, color, rootCanvas.transform, large);
+        }
+
+        private RectTransform GetZoneRT(string zone)
+        {
+            switch (zone)
+            {
+                case "score_player": return _playerScoreZoneRT;
+                case "score_enemy":  return _enemyScoreZoneRT;
+                case "rune_player":  return _playerRuneZoneRT;
+                case "rune_enemy":   return _enemyRuneZoneRT;
+                default:             return null;
+            }
+        }
+
+        private Canvas GetRootCanvas()
+        {
+            Transform t = transform;
+            while (t != null)
+            {
+                var c = t.GetComponent<Canvas>();
+                if (c != null) return c;
+                t = t.parent;
             }
             return null;
         }

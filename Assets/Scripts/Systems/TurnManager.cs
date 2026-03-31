@@ -257,6 +257,7 @@ namespace FWTCG.Systems
 
                 // Shuffle discard into deck
                 Broadcast($"[燃尽] {DisplayName(who)} 牌库耗尽，洗牌！对手 +1分");
+                FWTCG.UI.GameEventBus.FireBurnoutBanner(who); // DEV-18b
                 ShuffleDiscard(deck, discard);
                 _scoreMgr.AddScore(opponent, 1, GameRules.SCORE_TYPE_BURNOUT, null, gs);
                 if (gs.GameOver) return;

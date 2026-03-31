@@ -26,6 +26,7 @@ namespace FWTCG.Systems
             {
                 case "yordel_instructor_enter":
                     DrawCards(owner, 1, gs);
+                    FWTCG.UI.GameEventBus.FireEntryEffectBanner(unit.UnitName, "入场：摸1张牌"); // DEV-18b
                     break;
 
                 case "darius_second_card":
@@ -35,6 +36,8 @@ namespace FWTCG.Systems
                         unit.TempAtkBonus += 2;
                         unit.Exhausted = false;
                         Log($"[入场] {unit.UnitName} — 本回合已出牌，获得+2战力并变为活跃");
+                        FWTCG.UI.GameEventBus.FireEntryEffectBanner(unit.UnitName, "+2战力·变为活跃"); // DEV-18b
+                        FWTCG.UI.GameEventBus.FireUnitAtkBuff(unit, 2); // DEV-18b
                     }
                     break;
 
@@ -45,10 +48,13 @@ namespace FWTCG.Systems
                     foreach (UnitInstance u in AllUnitsFor(enemy, gs))
                     {
                         int newAtk = Mathf.Max(1, u.CurrentAtk - 3);
+                        int delta = newAtk - u.CurrentAtk;
                         u.CurrentAtk = newAtk;
+                        FWTCG.UI.GameEventBus.FireUnitAtkBuff(u, delta); // DEV-18b
                         debuffed++;
                     }
                     Log($"[入场] {unit.UnitName} — 所有敌方单位-3战力（共{debuffed}个）");
+                    FWTCG.UI.GameEventBus.FireEntryEffectBanner(unit.UnitName, $"所有敌方单位-3战力（{debuffed}个）"); // DEV-18b
                     break;
 
                 case "foresight_mech_enter":
@@ -90,6 +96,7 @@ namespace FWTCG.Systems
                     unit.HasReactive = true;
                     gs.AddSch(owner, RuneType.Blazing, 1);
                     Log($"[入场] {unit.UnitName} — 反应+强攻+1炽烈符能");
+                    FWTCG.UI.GameEventBus.FireEntryEffectBanner(unit.UnitName, "反应·强攻·炽烈符能+1"); // DEV-18b
                     break;
 
                 case "kaisa_hero_conquer":
@@ -103,6 +110,7 @@ namespace FWTCG.Systems
                     unit.Exhausted = false; // Haste: enters active
                     gs.AddSch(owner, RuneType.Crushing, 1);
                     Log($"[入场] {unit.UnitName} — 游走+急速+1摧破符能");
+                    FWTCG.UI.GameEventBus.FireEntryEffectBanner(unit.UnitName, "游走·急速·摧破符能+1"); // DEV-18b
                     break;
 
                 case "sandshoal_deserter_enter":
@@ -136,6 +144,7 @@ namespace FWTCG.Systems
                 unit.BuffTokens += 1;
                 unit.CurrentAtk += 1;
                 Log($"[鼓舞] {unit.UnitName} 受到鼓舞，+1战力");
+                FWTCG.UI.GameEventBus.FireUnitAtkBuff(unit, 1); // DEV-18b
             }
         }
 
