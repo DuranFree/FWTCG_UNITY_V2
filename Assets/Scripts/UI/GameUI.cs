@@ -622,24 +622,32 @@ namespace FWTCG.UI
                                      int currentMana = -1)
         {
             if (container == null) return;
+            if (units == null) units = new List<UnitInstance>();
 
-            // Clear existing children
-            for (int i = container.childCount - 1; i >= 0; i--)
+            int existing = container.childCount;
+            int needed = units.Count;
+
+            // Remove excess children from the end
+            for (int i = existing - 1; i >= needed; i--)
                 Destroy(container.GetChild(i).gameObject);
 
-            if (units == null || _cardViewPrefab == null) return;
-
-            foreach (UnitInstance u in units)
+            // Add missing children
+            for (int i = existing; i < needed; i++)
             {
-                GameObject go = Instantiate(_cardViewPrefab, container);
-                CardView cv = go.GetComponent<CardView>();
+                if (_cardViewPrefab != null)
+                    Instantiate(_cardViewPrefab, container);
+            }
+
+            // Update all children in-place (no destroy/recreate flicker)
+            for (int i = 0; i < needed; i++)
+            {
+                CardView cv = container.GetChild(i).GetComponent<CardView>();
                 if (cv != null)
                 {
+                    UnitInstance u = units[i];
                     cv.Setup(u, isPlayer, onClick, _onCardRightClicked);
-                    // Highlight multi-selected base units
                     if (_selectedBaseUnits != null && _selectedBaseUnits.Contains(u))
                         cv.SetSelected(true);
-                    // Dim hand cards that can't be afforded
                     if (currentMana >= 0 && u.CardData.Cost > currentMana)
                         cv.SetCostInsufficient(true);
                 }
@@ -650,23 +658,28 @@ namespace FWTCG.UI
         {
             if (container == null) return;
 
-            for (int i = container.childCount - 1; i >= 0; i--)
+            int existing = container.childCount;
+
+            // Remove excess
+            for (int i = existing - 1; i >= count; i--)
                 Destroy(container.GetChild(i).gameObject);
 
-            // Show placeholder labels for enemy hand cards (face-down)
-            for (int i = 0; i < count; i++)
+            // Add missing
+            for (int i = existing; i < count; i++)
             {
                 if (_cardViewPrefab != null)
                 {
                     GameObject go = Instantiate(_cardViewPrefab, container);
-                    // Disable interaction — just show face-down placeholder
-                    CardView cv = go.GetComponent<CardView>();
-                    if (cv != null)
-                    {
-                        cv.SetFaceDown(true);
-                        go.name = $"EnemyCard_{i}";
-                    }
+                    go.name = $"EnemyCard_{i}";
                 }
+            }
+
+            // Update all in-place
+            for (int i = 0; i < count; i++)
+            {
+                CardView cv = container.GetChild(i).GetComponent<CardView>();
+                if (cv != null)
+                    cv.SetFaceDown(true);
             }
         }
 
@@ -698,30 +711,46 @@ namespace FWTCG.UI
         private void RefreshRuneZone(Transform container, List<RuneInstance> runes, bool isPlayer)
         {
             if (container == null) return;
+            if (runes == null) runes = new List<RuneInstance>();
 
-            for (int i = container.childCount - 1; i >= 0; i--)
+            int existing = container.childCount;
+            int needed = runes.Count;
+
+            // Remove excess rune objects from end
+            for (int i = existing - 1; i >= needed; i--)
                 Destroy(container.GetChild(i).gameObject);
 
-            if (runes == null || _runeButtonPrefab == null) return;
+            // Add missing rune objects
+            for (int i = existing; i < needed; i++)
+            {
+                if (_runeButtonPrefab == null) break;
+                GameObject newGo = Instantiate(_runeButtonPrefab, container);
 
-            for (int i = 0; i < runes.Count; i++)
+                // LayoutElement to prevent vertical stretching (added once)
+                var le = newGo.AddComponent<LayoutElement>();
+                le.preferredWidth = 46f;
+                le.preferredHeight = 46f;
+                le.minWidth = 46f;
+                le.minHeight = 46f;
+            }
+
+            // Update all rune objects in-place
+            for (int i = 0; i < needed; i++)
             {
                 int idx = i;
                 RuneInstance r = runes[i];
-
-                GameObject go = Instantiate(_runeButtonPrefab, container);
+                GameObject go = container.GetChild(i).gameObject;
                 go.name = $"Rune_{r.RuneType}_{i}";
 
-                // Set rune art on circle
                 Transform circleT = go.transform.Find("RuneCircle");
                 if (circleT != null)
                 {
-                    // Circle background color by rune type
+                    // Circle background color
                     Image circleImg = circleT.GetComponent<Image>();
                     if (circleImg != null)
                         circleImg.color = r.Tapped ? GameColors.RuneTapped : GameColors.GetRuneColor(r.RuneType);
 
-                    // Art image inside circle
+                    // Art image
                     Transform artT = circleT.Find("RuneArt");
                     if (artT != null)
                     {
@@ -734,18 +763,17 @@ namespace FWTCG.UI
                         }
                     }
 
-                    // Tap button on circle
+                    // Tap button — clear old listeners, re-bind with current index
                     Button tapBtn = circleT.GetComponent<Button>();
                     if (tapBtn != null)
                     {
+                        tapBtn.onClick.RemoveAllListeners();
                         tapBtn.interactable = isPlayer && !r.Tapped;
-                        tapBtn.onClick.AddListener(() => _onRuneClicked?.Invoke(idx, false));
+                        int capturedTapIdx = idx;
+                        tapBtn.onClick.AddListener(() => _onRuneClicked?.Invoke(capturedTapIdx, false));
                     }
-                }
 
-                // Label on circle
-                if (circleT != null)
-                {
+                    // Label text
                     Transform labelT = circleT.Find("RuneTypeText");
                     if (labelT != null)
                     {
@@ -756,33 +784,26 @@ namespace FWTCG.UI
                             label.color = Color.white;
                         }
                     }
-                }
 
-                // Right-click = recycle (via EventTrigger on RuneCircle, not root)
-                // The Button on RuneCircle consumes pointer events, so EventTrigger must be
-                // on the same GameObject to receive right-click.
-                if (isPlayer && circleT != null)
-                {
-                    var et = circleT.gameObject.AddComponent<UnityEngine.EventSystems.EventTrigger>();
-                    var entry = new UnityEngine.EventSystems.EventTrigger.Entry();
-                    entry.eventID = UnityEngine.EventSystems.EventTriggerType.PointerClick;
-                    int capturedIdx = idx;
-                    entry.callback.AddListener((data) =>
+                    // Right-click EventTrigger — clear old, re-bind
+                    if (isPlayer)
                     {
-                        var pd = (UnityEngine.EventSystems.PointerEventData)data;
-                        if (pd.button == UnityEngine.EventSystems.PointerEventData.InputButton.Right)
-                            _onRuneClicked?.Invoke(capturedIdx, true); // recycle
-                    });
-                    et.triggers.Add(entry);
-                }
+                        var et = circleT.GetComponent<UnityEngine.EventSystems.EventTrigger>();
+                        if (et == null)
+                            et = circleT.gameObject.AddComponent<UnityEngine.EventSystems.EventTrigger>();
+                        et.triggers.Clear();
 
-                // Fix aspect ratio: add LayoutElement to prevent vertical stretching
-                {
-                    var le = go.AddComponent<LayoutElement>();
-                    le.preferredWidth = 46f;
-                    le.preferredHeight = 46f;
-                    le.minWidth = 46f;
-                    le.minHeight = 46f;
+                        var entry = new UnityEngine.EventSystems.EventTrigger.Entry();
+                        entry.eventID = UnityEngine.EventSystems.EventTriggerType.PointerClick;
+                        int capturedRecycleIdx = idx;
+                        entry.callback.AddListener((data) =>
+                        {
+                            var pd = (UnityEngine.EventSystems.PointerEventData)data;
+                            if (pd.button == UnityEngine.EventSystems.PointerEventData.InputButton.Right)
+                                _onRuneClicked?.Invoke(capturedRecycleIdx, true);
+                        });
+                        et.triggers.Add(entry);
+                    }
                 }
             }
         }
