@@ -59,9 +59,10 @@ namespace FWTCG.UI
 
         private void OnDestroy()
         {
-            // Resolve any pending tasks so awaiters are not left hanging (HIGH fix)
-            _cardTcs?.TrySetResult(null);
-            _confirmTcs?.TrySetResult(false);
+            // Cancel pending tasks on scene teardown so awaiters get TaskCanceledException
+            // rather than a sentinel value that looks like a legitimate user decision (H-1 fix)
+            _cardTcs?.TrySetCanceled();
+            _confirmTcs?.TrySetCanceled();
             if (Instance == this) Instance = null;
         }
 
@@ -96,9 +97,10 @@ namespace FWTCG.UI
                 if (_cancelBtnText != null) _cancelBtnText.text = "取消";
             }
 
-            // Auto-complete if nothing to pick
+            // Auto-complete if nothing to pick — also hide any previously visible panel (H-2 fix)
             if (cards == null || cards.Count == 0)
             {
+                Hide();
                 _cardTcs.TrySetResult(null);
                 return _cardTcs.Task;
             }

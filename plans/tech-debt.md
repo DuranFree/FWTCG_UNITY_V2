@@ -41,3 +41,6 @@
 - [ ] ScoreRingRoutine 使用 AddComponent 动态生成 ring Image — 大量快速得分时可积累多个同时运行，实际游戏节奏不触发 — Phase DEV-19（Codex Low）
 - [ ] GameUI.RefreshScoreTrack 多分得分时只动画最终圆圈 — 1分得分触发一次 pulse，多分时中间圆圈无动画 — Phase DEV-19（Codex Medium）
 - [ ] GameUI.NotifyReactButtonState 有空反应路径 — 仅调用 FireHintToast("")，未调用 PlayReactRibbonReveal（设计确认：ribbon reveal 由 GameManager 直接调用）— Phase DEV-19（Codex Low）
+- [ ] ToastUI 去重仅按原始消息文本 — 两个不同来源（BattlefieldSystem / GameManager）发同样文本会跨源折叠；null/空字符串消息也会互相匹配 — Phase DEV-19 patch（Codex Medium）
+- [ ] EventBanner 去重忽略 duration 和 large 参数 — 相同文本但不同时长/样式的第二次触发被静默丢弃，驻留时间以第一次为准 — Phase DEV-19 patch（Codex Medium）
+- [ ] GameUI.ShowCombatResult 无协程句柄 — 每次调用新建 HideCombatResult 协程无保存句柄，旧计时器可能提前隐藏新结果 — Phase DEV-19 patch（Codex Medium）

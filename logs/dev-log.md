@@ -2,6 +2,25 @@
 
 ---
 
+## DEV-19：UI 系统补全（补丁）— 2026-04-01
+
+**Status**: ✅ Completed (patch)
+**Tests**: 350/350 🟢
+
+**Notification system fix + Codex HIGH fixes**:
+
+- **ToastUI.cs + EventBanner.cs** — 通知系统三项修复：(1) 相同消息触发时重置驻留计时器，不重新入队（dedup+extend），(2) 回合切换时立即清除所有队列和当前显示（订阅 `GameEventBus.OnClearBanners`），(3) 动画速度加倍（ToastUI: fade-in 0.15s/stay 0.8s/fade-out 0.2s；EventBanner: anim-in 0.1s/anim-out 0.12s）
+- **GameManager.cs** — AWAKEN 阶段 Fire `GameEventBus.FireClearBanners()` 清除上一回合所有提示
+- **GameUI.cs** — `RefreshRoundPhase` 检测阶段变化，触发 `PhasePulseRoutine`（scale 1→1.18→1，0.4s）
+- **ButtonCharge.cs（新建）** — 悬停激活光流效果（1.5s sweep，RectMask2D 裁切），SceneBuilder 为 EndTurn/React/ConfirmRunes 三按钮自动添加
+- **SceneBuilder.cs** — 完整连线 AskPromptUI 面板（`CreateAskPromptPanel` + `AddButtonCharge` helper）
+- **AskPromptUI.cs（Codex HIGH 修复）** — (H-1) `OnDestroy` 改用 `TrySetCanceled()`，防止 teardown 与用户决策混淆；(H-2) 空列表早返回路径补调 `Hide()`，防止旧面板残留
+- **GameManager.cs（Codex HIGH 修复）** — (H-3) 新增 `OnDestroy`，场景卸载时取消静态 `_reactionTcs`/`_aiReactionTcs`，防止 awaiter 跨场景挂起
+
+**Files changed**: `ToastUI.cs`、`EventBanner.cs`、`AskPromptUI.cs`、`GameManager.cs`、`ButtonCharge.cs`（新建）、`GameUI.cs`、`SceneBuilder.cs`
+
+---
+
 ## DEV-19：UI 系统补全 — 2026-04-01
 
 **Status**: ✅ Completed

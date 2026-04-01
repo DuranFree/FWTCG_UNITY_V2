@@ -46,6 +46,13 @@ namespace FWTCG.UI
         /// </summary>
         public static event Action OnDuelBanner;
 
+        // ── Clear all banners / toasts (turn change) ──────────────────────────
+        /// <summary>
+        /// Fired at the start of each new turn (AWAKEN phase).
+        /// EventBanner and ToastUI immediately clear their queues and hide.
+        /// </summary>
+        public static event Action OnClearBanners;
+
         // ── Fire helpers ──────────────────────────────────────────────────────
 
         public static void FireUnitFloatText(UnitInstance unit, string text, Color color)
@@ -59,6 +66,9 @@ namespace FWTCG.UI
 
         /// <summary>Fires the spell duel banner. Called when player's spell enters the duel window. DEV-19.</summary>
         public static void FireDuelBanner() => OnDuelBanner?.Invoke();
+
+        /// <summary>Clears all queued banners and toasts immediately. Call at turn start.</summary>
+        public static void FireClearBanners() => OnClearBanners?.Invoke();
 
         // ── Convenience: score float texts ───────────────────────────────────
 

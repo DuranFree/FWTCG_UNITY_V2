@@ -70,11 +70,19 @@ public class DEV19UITests
     [Test]
     public void AskPromptUI_Singleton_Instance_NotNullAfterAwake()
     {
+        // Ensure clean state regardless of test execution order
+        AskPromptUI.ResetInstanceForTest();
+
         var go = new GameObject("AskPromptUISingleton");
         var ui = go.AddComponent<AskPromptUI>();
 
-        // Trigger Awake via SendMessage
-        // (In EditMode the component lifecycle runs after AddComponent)
+        // In EditMode, Awake may not auto-fire on AddComponent.
+        // Use reflection to invoke it explicitly; guard in Awake prevents double-init.
+        var awakeMethod = typeof(AskPromptUI).GetMethod(
+            "Awake",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        awakeMethod?.Invoke(ui, null);
+
         Assert.IsNotNull(AskPromptUI.Instance, "Instance should be set after Awake");
         Assert.AreSame(ui, AskPromptUI.Instance);
 

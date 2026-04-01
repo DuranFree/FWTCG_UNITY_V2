@@ -227,6 +227,18 @@ namespace FWTCG
             LegendSystem.OnLegendLog -= HandleMessage;
         }
 
+        private void OnDestroy()
+        {
+            // Cancel static TCS fields so awaiters don't hang after scene unload (H-3 fix)
+            _reactionWindowActive   = false;
+            _aiReactionWindowActive = false;
+            _reactionTcs?.TrySetCanceled();
+            _reactionTcs = null;
+            _aiReactionTcs?.TrySetCanceled();
+            _aiReactionTcs = null;
+            if (Instance == this) Instance = null;
+        }
+
         private void Start()
         {
             // Wire UI callbacks
@@ -1167,9 +1179,10 @@ namespace FWTCG
                 _ui.ShowMessage(msg);
                 _ui.Refresh(_gs);
 
-                // DEV-19: show "回合 N · 玩家/AI的回合" banner at the start of each turn
+                // DEV-19: clear lingering banners/toasts + show turn banner at start of each turn
                 if (_gs.Phase == GameRules.PHASE_AWAKEN)
                 {
+                    UI.GameEventBus.FireClearBanners();
                     string who = _gs.Turn == GameRules.OWNER_PLAYER ? "玩家" : "AI";
                     _ui.ShowBanner($"回合 {_gs.Round + 1} · {who}的回合");
                 }
