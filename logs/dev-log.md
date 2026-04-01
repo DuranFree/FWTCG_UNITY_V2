@@ -2,6 +2,41 @@
 
 ---
 
+## DEV-20：符文自动消耗系统 — 2026-04-01
+
+**Status**: ✅ Completed
+**Tests**: 363/363 🟢
+
+### 实现内容
+
+**核心逻辑**:
+- **RuneAutoConsume.cs（新建）** — `Plan` struct + `Compute()` 静态方法：计算打出某张牌需要自动横置/回收哪些符文（Pass 1 先回收匹配类型满足符能差额，Pass 2 横置剩余符文满足法力差额，CanAfford 标记是否可负担）
+- `BuildConfirmText(unit)` — 生成确认对话框文案
+
+**悬停手牌 → 符文高亮**:
+- **CardView.cs** — 新增 `IPointerEnterHandler`/`IPointerExitHandler` + `onHoverEnter`/`onHoverExit` 回调参数
+- **GameUI.cs** — `SetRuneHighlights(tapIndices, recycleIndices)` / `ClearRuneHighlights()`；`RefreshRuneZone` 中对高亮索引覆盖颜色（蓝=横置，红=回收）；`SetCallbacks` 新增 hover 参数；`RefreshHands` 传递 hover 回调给手牌 CardView
+- **GameManager.cs** — `OnCardHoverEnter`/`OnCardHoverExit`：悬停时计算 Plan 并调用 `SetRuneHighlights`，离开时 `ClearRuneHighlights`
+
+**点击出牌确认流程**:
+- `PlayHandCardWithRuneConfirmAsync` — 替代 `TryPlayCard` 直接调用：若 Plan.NeedsOps 则显示 AskPromptUI 确认弹窗，await 后重新验证 turn/phase/hand/CanAfford，然后执行 `ExecuteRunePlan`
+- `ExecuteRunePlan` — 降序回收（含 `_gs.GetRuneDeck(owner).Add(r)` 归还牌堆），升序横置（offset 补偿已移除项偏移）
+
+**反应按钮符文感知**:
+- `OnReactClicked` — 过滤改为 `RuneAutoConsume.Compute().CanAfford`（含横置/回收后可负担）
+- 选牌后若需消耗符文，展示符文高亮 + 确认弹窗，确认后 `ExecuteRunePlan`，再打出反应牌
+- **ReactiveWindowUI.cs** — `WaitForReaction` 接受可选 `onHoverEnter`/`onHoverExit` 参数，传递给每张卡的 `cv.Setup`；新增 `OnDestroy` TCS 清理
+
+**Codex HIGH 修复**:
+- H-1: `ExecuteRunePlan` 回收后将符文 `Add` 到 RuneDeck（之前丢失）
+- H-2: `OnRuneClicked` recycle 分支新增 `rune.Tapped` 卫语句（横置与回收互斥）
+- H-3: `OnReactClicked` 新增重入守卫（`_reactionWindowActive` 检查）；`ReactiveWindowUI.OnDestroy` 调用 `TrySetCanceled`
+- H-4: `PlayHandCardWithRuneConfirmAsync` 每次 await 后重新验证 turn/phase/hand/CanAfford
+
+**Files changed**: `RuneAutoConsume.cs`（新建）、`CardView.cs`、`GameUI.cs`、`GameManager.cs`、`ReactiveWindowUI.cs`、`DEV20RuneAutoConsumeTests.cs`（新建，13条测试）
+
+---
+
 ## DEV-19：UI 系统补全（补丁）— 2026-04-01
 
 **Status**: ✅ Completed (patch)

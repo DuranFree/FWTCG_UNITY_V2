@@ -199,6 +199,12 @@ namespace FWTCG.UI
         private Action<UnitInstance> _onUnitClicked;
         private Action<int, bool> _onRuneClicked; // (runeIdx, recycle)
         private Action<UnitInstance> _onCardRightClicked;
+        private Action<UnitInstance> _onCardHoverEnter;
+        private Action<UnitInstance> _onCardHoverExit;
+
+        // ── Rune highlight state (set by SetRuneHighlights) ───────────────────
+        private System.Collections.Generic.HashSet<int> _runeHighlightTap     = new System.Collections.Generic.HashSet<int>();
+        private System.Collections.Generic.HashSet<int> _runeHighlightRecycle = new System.Collections.Generic.HashSet<int>();
 
         // ── Message log state ─────────────────────────────────────────────────
         private const int MAX_MESSAGES = 5;
@@ -500,13 +506,37 @@ namespace FWTCG.UI
 
         public void SetCallbacks(Action onEndTurn, Action<int> onBF,
                                  Action<UnitInstance> onUnit, Action<int, bool> onRune,
-                                 Action<UnitInstance> onCardRightClick = null)
+                                 Action<UnitInstance> onCardRightClick = null,
+                                 Action<UnitInstance> onCardHoverEnter = null,
+                                 Action<UnitInstance> onCardHoverExit  = null)
         {
-            _onEndTurnClicked = onEndTurn;
-            _onBFClicked = onBF;
-            _onUnitClicked = onUnit;
-            _onRuneClicked = onRune;
+            _onEndTurnClicked   = onEndTurn;
+            _onBFClicked        = onBF;
+            _onUnitClicked      = onUnit;
+            _onRuneClicked      = onRune;
             _onCardRightClicked = onCardRightClick;
+            _onCardHoverEnter   = onCardHoverEnter;
+            _onCardHoverExit    = onCardHoverExit;
+        }
+
+        /// <summary>
+        /// Highlights rune circles for the auto-consume plan preview.
+        /// Blue pulse = needs tap (for mana), Red pulse = needs recycle (for sch).
+        /// Call Refresh() after this to apply visual state.
+        /// </summary>
+        public void SetRuneHighlights(List<int> tapIndices, List<int> recycleIndices)
+        {
+            _runeHighlightTap.Clear();
+            _runeHighlightRecycle.Clear();
+            if (tapIndices     != null) foreach (int i in tapIndices)     _runeHighlightTap.Add(i);
+            if (recycleIndices != null) foreach (int i in recycleIndices) _runeHighlightRecycle.Add(i);
+        }
+
+        /// <summary>Clears all rune highlights. Call Refresh() to apply.</summary>
+        public void ClearRuneHighlights()
+        {
+            _runeHighlightTap.Clear();
+            _runeHighlightRecycle.Clear();
         }
 
         // ── Selection state (set by GameManager) ─────────────────────────────
@@ -634,8 +664,9 @@ namespace FWTCG.UI
 
         private void RefreshHands(GameState gs)
         {
-            // Player hand (with cost-insufficient dimming)
-            RefreshUnitList(_playerHandContainer, gs.PHand, true, _onUnitClicked, gs.PMana);
+            // Player hand (with cost-insufficient dimming + hover callbacks)
+            RefreshUnitList(_playerHandContainer, gs.PHand, true, _onUnitClicked, gs.PMana,
+                            _onCardHoverEnter, _onCardHoverExit);
             // Enemy hand (face-down — show count only)
             RefreshEnemyHand(_enemyHandContainer, gs.EHand.Count);
         }
@@ -941,7 +972,9 @@ namespace FWTCG.UI
 
         private void RefreshUnitList(Transform container, List<UnitInstance> units,
                                      bool isPlayer, Action<UnitInstance> onClick,
-                                     int currentMana = -1)
+                                     int currentMana = -1,
+                                     Action<UnitInstance> onHoverEnter = null,
+                                     Action<UnitInstance> onHoverExit  = null)
         {
             if (container == null) return;
             if (units == null) units = new List<UnitInstance>();
@@ -967,7 +1000,7 @@ namespace FWTCG.UI
                 if (cv != null)
                 {
                     UnitInstance u = units[i];
-                    cv.Setup(u, isPlayer, onClick, _onCardRightClicked);
+                    cv.Setup(u, isPlayer, onClick, _onCardRightClicked, onHoverEnter, onHoverExit);
                     if (_selectedBaseUnits != null && _selectedBaseUnits.Contains(u))
                         cv.SetSelected(true);
                     if (currentMana >= 0 && u.CardData.Cost > currentMana)
@@ -1070,10 +1103,19 @@ namespace FWTCG.UI
                 Transform circleT = go.transform.Find("RuneCircle");
                 if (circleT != null)
                 {
-                    // Circle background color
+                    // Circle background color (highlight overrides base color for auto-consume preview)
                     Image circleImg = circleT.GetComponent<Image>();
                     if (circleImg != null)
-                        circleImg.color = r.Tapped ? GameColors.RuneTapped : GameColors.GetRuneColor(r.RuneType);
+                    {
+                        Color runeColor;
+                        if (isPlayer && _runeHighlightRecycle.Contains(idx))
+                            runeColor = new Color(1f, 0.25f, 0.25f, 1f);   // red = recycle for sch
+                        else if (isPlayer && _runeHighlightTap.Contains(idx))
+                            runeColor = new Color(0.25f, 0.55f, 1f, 1f);   // blue = tap for mana
+                        else
+                            runeColor = r.Tapped ? GameColors.RuneTapped : GameColors.GetRuneColor(r.RuneType);
+                        circleImg.color = runeColor;
+                    }
 
                     // Art image
                     Transform artT = circleT.Find("RuneArt");

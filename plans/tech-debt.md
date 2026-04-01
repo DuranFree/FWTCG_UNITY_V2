@@ -44,3 +44,5 @@
 - [ ] ToastUI 去重仅按原始消息文本 — 两个不同来源（BattlefieldSystem / GameManager）发同样文本会跨源折叠；null/空字符串消息也会互相匹配 — Phase DEV-19 patch（Codex Medium）
 - [ ] EventBanner 去重忽略 duration 和 large 参数 — 相同文本但不同时长/样式的第二次触发被静默丢弃，驻留时间以第一次为准 — Phase DEV-19 patch（Codex Medium）
 - [ ] GameUI.ShowCombatResult 无协程句柄 — 每次调用新建 HideCombatResult 协程无保存句柄，旧计时器可能提前隐藏新结果 — Phase DEV-19 patch（Codex Medium）
+- [ ] RuneAutoConsume.Compute 与 OnRuneClicked 符文可回收规则不一致 — Compute 跳过已横置符文，但 OnRuneClicked recycle 路径现已同步禁止，DEV-20 H-2 已修复互斥；更深层需统一符文状态机 — Phase DEV-20（Codex Medium）
+- [ ] ReactiveWindowUI 无 OnDisable 回退 — OnDestroy 已 TrySetCanceled，但 panel.SetActive(false) 后 _tcs 仍可能悬空；低风险（当前只通过 HidePanel/SkipReaction 关闭）— Phase DEV-20（Codex Medium）

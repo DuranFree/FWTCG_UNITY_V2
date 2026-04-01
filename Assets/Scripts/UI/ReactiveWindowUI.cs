@@ -29,6 +29,12 @@ namespace FWTCG.UI
             if (_panel != null) _panel.SetActive(false);
         }
 
+        private void OnDestroy()
+        {
+            // H-3: Cancel any pending awaiter when the window is destroyed mid-flow
+            _tcs?.TrySetCanceled();
+        }
+
         // ── Public API ────────────────────────────────────────────────────────
 
         /// <summary>
@@ -41,7 +47,9 @@ namespace FWTCG.UI
         public Task<UnitInstance> WaitForReaction(
             List<UnitInstance> cards,
             string contextMsg,
-            GameState gs)
+            GameState gs,
+            System.Action<UnitInstance> onHoverEnter = null,
+            System.Action<UnitInstance> onHoverExit  = null)
         {
             _tcs = new TaskCompletionSource<UnitInstance>();
             _cardViews.Clear();
@@ -76,7 +84,10 @@ namespace FWTCG.UI
                     var cv = go.GetComponent<CardView>();
                     if (cv != null)
                     {
-                        cv.Setup(captured, true, OnCardClicked);
+                        cv.Setup(captured, true, OnCardClicked,
+                                 onRightClick: null,
+                                 onHoverEnter: onHoverEnter,
+                                 onHoverExit:  onHoverExit);
                         _cardViews.Add(cv);
                     }
                 }

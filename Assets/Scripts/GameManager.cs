@@ -249,7 +249,9 @@ namespace FWTCG
                     onBF: OnBattlefieldClicked,
                     onUnit: OnUnitClicked,
                     onRune: OnRuneClicked,
-                    onCardRightClick: OnCardRightClicked
+                    onCardRightClick: OnCardRightClicked,
+                    onCardHoverEnter: OnCardHoverEnter,
+                    onCardHoverExit:  OnCardHoverExit
                 );
                 _ui.SetPileClickCallback(OnPileClicked);
                 _ui.WirePileButtons();
@@ -415,7 +417,7 @@ namespace FWTCG
             // ── Hand card: play card (unit or spell) ──
             if (_gs.PHand.Contains(unit))
             {
-                TryPlayCard(unit);
+                _ = PlayHandCardWithRuneConfirmAsync(unit);
                 return;
             }
 
@@ -603,7 +605,7 @@ namespace FWTCG
         /// </summary>
         public void OnRuneClicked(int runeIdx, bool recycle)
         {
-            if (_gs.GameOver) return;
+            if (_gs == null || _gs.GameOver) return;
             if (_gs.Turn != GameRules.OWNER_PLAYER) return;
             if (_gs.Phase != GameRules.PHASE_ACTION) return;
 
@@ -618,6 +620,12 @@ namespace FWTCG
 
             if (recycle)
             {
+                // H-2: Tapped runes cannot also be recycled — tap and recycle are mutually exclusive
+                if (rune.Tapped)
+                {
+                    TurnManager.BroadcastMessage_Static("[提示] 已横置的符文无法回收");
+                    return;
+                }
                 // Recycle: remove from active runes, place at bottom of rune deck, gain +1 sch
                 runes.RemoveAt(runeIdx);
                 _gs.PRuneDeck.Add(rune);
@@ -723,6 +731,144 @@ namespace FWTCG
                 }
             }
             return false; // can't afford
+        }
+
+        // ── DEV-20: Rune auto-consume hover ──────────────────────────────────
+
+        private void OnCardHoverEnter(UnitInstance unit)
+        {
+            if (_ui == null || _gs == null) return;
+            if (_gs.Turn != GameRules.OWNER_PLAYER || _gs.Phase != GameRules.PHASE_ACTION) return;
+            if (!_gs.PHand.Contains(unit)) return;
+
+            var plan = RuneAutoConsume.Compute(unit, _gs, GameRules.OWNER_PLAYER);
+            if (plan.NeedsOps)
+            {
+                _ui.SetRuneHighlights(plan.TapIndices, plan.RecycleIndices);
+                _ui.Refresh(_gs);
+            }
+        }
+
+        private void OnCardHoverExit(UnitInstance unit)
+        {
+            if (_ui == null) return;
+            _ui.ClearRuneHighlights();
+            _ui.Refresh(_gs);
+        }
+
+        // ── DEV-20: Async card play with rune confirm dialog ─────────────────
+
+        private async System.Threading.Tasks.Task PlayHandCardWithRuneConfirmAsync(UnitInstance unit)
+        {
+            if (_gs == null || _gs.GameOver) return;
+
+            var plan = RuneAutoConsume.Compute(unit, _gs, GameRules.OWNER_PLAYER);
+
+            if (!plan.CanAfford)
+            {
+                // Not affordable even after consuming all runes — show error
+                int haveMana = _gs.PMana;
+                int haveSch  = _gs.GetSch(GameRules.OWNER_PLAYER, unit.CardData.RuneType);
+                ShowPlayError(
+                    $"[提示] 资源不足：需要法力{unit.CardData.Cost}（当前{haveMana}）" +
+                    (unit.CardData.RuneCost > 0
+                        ? $"，需要符能{unit.CardData.RuneCost} {unit.CardData.RuneType}（当前{haveSch}）"
+                        : ""),
+                    unit);
+                return;
+            }
+
+            if (plan.NeedsOps)
+            {
+                // Show rune highlights immediately
+                _ui?.SetRuneHighlights(plan.TapIndices, plan.RecycleIndices);
+                _ui?.Refresh(_gs);
+
+                bool ok = false;
+                try
+                {
+                    ok = await (AskPromptUI.Instance?.WaitForConfirm(
+                        "出牌确认",
+                        plan.BuildConfirmText(unit),
+                        "确认打出",
+                        "取消") ?? System.Threading.Tasks.Task.FromResult(false));
+                }
+                catch (System.OperationCanceledException)
+                {
+                    ok = false;
+                }
+
+                _ui?.ClearRuneHighlights();
+                _ui?.Refresh(_gs);
+
+                if (!ok) return;
+
+                // H-4: Re-validate state after await — turn/phase may have changed while prompt was open
+                if (_gs == null || _gs.GameOver) return;
+                if (_gs.Turn != GameRules.OWNER_PLAYER || _gs.Phase != GameRules.PHASE_ACTION) return;
+                if (!_gs.PHand.Contains(unit)) return;
+
+                // Re-compute plan to verify runes haven't changed
+                var freshPlan = RuneAutoConsume.Compute(unit, _gs, GameRules.OWNER_PLAYER);
+                if (!freshPlan.CanAfford)
+                {
+                    ShowPlayError("[提示] 资源状态已变更，操作已取消", unit);
+                    return;
+                }
+
+                ExecuteRunePlan(freshPlan, GameRules.OWNER_PLAYER);
+            }
+
+            // H-4: Re-validate once more before the final play
+            if (_gs == null || _gs.GameOver) return;
+            if (_gs.Turn != GameRules.OWNER_PLAYER || _gs.Phase != GameRules.PHASE_ACTION) return;
+            if (!_gs.PHand.Contains(unit)) return;
+
+            TryPlayCard(unit);
+        }
+
+        private void ExecuteRunePlan(RuneAutoConsume.Plan plan, string owner)
+        {
+            var runes = _gs.GetRunes(owner);
+
+            // Recycle indices first (descending to preserve index validity)
+            var sortedRecycle = new List<int>(plan.RecycleIndices);
+            sortedRecycle.Sort((a, b) => b.CompareTo(a));
+            foreach (int idx in sortedRecycle)
+            {
+                if (idx < 0 || idx >= runes.Count) continue;
+                RuneInstance r = runes[idx];
+                _gs.AddSch(owner, r.RuneType, 1);
+                runes.RemoveAt(idx);
+                _gs.GetRuneDeck(owner).Add(r); // H-1: return rune to deck, not lost
+                TurnManager.BroadcastMessage_Static($"[符文] 回收 {r.RuneType} 符文，获得1点符能");
+            }
+
+            // Tap indices (after recycle, indices may have shifted — but tap list is from original state
+            // so we must use original indices adjusted for removed items)
+            // Sort tap indices ascending and adjust for removed runes
+            var sortedTap = new List<int>(plan.TapIndices);
+            sortedTap.Sort();
+            int removedBefore = 0;
+            // Build sorted recycle set for offset calculation
+            var recycleAscending = new List<int>(plan.RecycleIndices);
+            recycleAscending.Sort();
+            int recyclePtr = 0;
+
+            foreach (int origIdx in sortedTap)
+            {
+                // Count how many recycles happened at indices < origIdx
+                while (recyclePtr < recycleAscending.Count && recycleAscending[recyclePtr] < origIdx)
+                {
+                    removedBefore++;
+                    recyclePtr++;
+                }
+                int adjustedIdx = origIdx - removedBefore;
+                if (adjustedIdx < 0 || adjustedIdx >= runes.Count) continue;
+                runes[adjustedIdx].Tapped = true;
+                _gs.AddMana(owner, 1);
+                TurnManager.BroadcastMessage_Static($"[符文] 横置 {runes[adjustedIdx].RuneType} 符文，获得1点法力");
+            }
         }
 
         private void TryPlayCard(UnitInstance unit)
@@ -1244,6 +1390,13 @@ namespace FWTCG
             if (_gs == null || _gs.GameOver) return;
             if (_reactiveWindowUI == null) return;
 
+            // H-3: Block re-entry if a player reaction window is already open
+            if (_reactionWindowActive)
+            {
+                TurnManager.BroadcastMessage_Static("[反应] 反应窗口已开启，请先完成当前操作");
+                return;
+            }
+
             // Block if AI is currently resolving its own reactive card
             if (_aiReactionWindowActive)
             {
@@ -1251,22 +1404,22 @@ namespace FWTCG
                 return;
             }
 
-            // Collect affordable reactive spells from player hand
+            // Collect affordable reactive spells from player hand (including via rune auto-consume)
             var reactives = new List<UnitInstance>();
             foreach (var c in _gs.PHand)
             {
-                if (c.CardData.IsSpell &&
-                    c.CardData.HasKeyword(CardKeyword.Reactive) &&
-                    c.CardData.Cost <= _gs.PMana)
+                if (c.CardData.IsSpell && c.CardData.HasKeyword(CardKeyword.Reactive))
                 {
-                    reactives.Add(c);
+                    var affordPlan = RuneAutoConsume.Compute(c, _gs, GameRules.OWNER_PLAYER);
+                    if (affordPlan.CanAfford)
+                        reactives.Add(c);
                 }
             }
 
             if (reactives.Count == 0)
             {
                 TurnManager.BroadcastMessage_Static(
-                    $"[反应] 当前没有可打出的反应牌（手牌无反应法术或法力不足，当前法力：{_gs.PMana}）");
+                    $"[反应] 当前没有可打出的反应牌（手牌无反应法术或资源不足，当前法力：{_gs.PMana}）");
                 return;
             }
 
@@ -1279,11 +1432,53 @@ namespace FWTCG
 
             var picked = await _reactiveWindowUI.WaitForReaction(
                 reactives,
-                $"选择反应牌打出（必须打出一张，当前法力：{_gs.PMana}）",
-                _gs);
+                $"选择反应牌打出（当前法力：{_gs.PMana}）",
+                _gs,
+                onHoverEnter: u =>
+                {
+                    var p = RuneAutoConsume.Compute(u, _gs, GameRules.OWNER_PLAYER);
+                    if (p.NeedsOps) { _ui?.SetRuneHighlights(p.TapIndices, p.RecycleIndices); _ui?.Refresh(_gs); }
+                },
+                onHoverExit: u => { _ui?.ClearRuneHighlights(); _ui?.Refresh(_gs); });
 
             if (picked != null)
             {
+                var reactPlan = RuneAutoConsume.Compute(picked, _gs, GameRules.OWNER_PLAYER);
+
+                // Show confirm if rune consumption needed
+                if (reactPlan.NeedsOps)
+                {
+                    _ui?.SetRuneHighlights(reactPlan.TapIndices, reactPlan.RecycleIndices);
+                    _ui?.Refresh(_gs);
+
+                    bool ok = false;
+                    try
+                    {
+                        ok = await (AskPromptUI.Instance?.WaitForConfirm(
+                            "反应确认",
+                            reactPlan.BuildConfirmText(picked),
+                            "确认打出",
+                            "取消") ?? System.Threading.Tasks.Task.FromResult(false));
+                    }
+                    catch (System.OperationCanceledException)
+                    {
+                        ok = false;
+                    }
+
+                    _ui?.ClearRuneHighlights();
+                    _ui?.Refresh(_gs);
+
+                    if (!ok)
+                    {
+                        _reactionWindowActive = false;
+                        _reactionTcs?.TrySetResult(true);
+                        _reactionTcs = null;
+                        return;
+                    }
+
+                    ExecuteRunePlan(reactPlan, GameRules.OWNER_PLAYER);
+                }
+
                 _gs.PMana -= picked.CardData.Cost;
                 TurnManager.BroadcastMessage_Static(
                     $"[反应] 打出 {picked.UnitName}（费用{picked.CardData.Cost}），剩余法力 {_gs.PMana}");

@@ -51,6 +51,7 @@
 - ✅ 对决自动触发（移动造成争夺→即时战斗，替代手动按钮）— DEV-1 规则修正
 - ✅ 反应/迅捷牌处理（AI法术触发玩家反应窗口，单轮响应）— DEV-4
 - ✅ 反应窗口（ReactiveWindowUI，TaskCompletionSource 异步等待玩家选择）— DEV-4
+- ✅ 反应按钮符文感知（CanAffordWithAutoTap 过滤：符文可补足时也计为可用；选牌后弹出符文确认）— DEV-20
 - ✅ 对决结束 → 战斗结算（TriggerCombat + 回合结束兜底 ResolveAllBattlefields）— DEV-1
 
 ---
@@ -186,7 +187,7 @@
 - ✅ 点击出牌（OnUnitClicked → TryPlayCard，点击手牌直接打出）— DEV-1
 - [ ] 目标选择高亮（合法目标 .targetable 绿色框 + 已选目标 .spell-targeted 红色框）
 - [ ] 卡牌选中状态视觉（.selected 黄色高亮 + 轨道光环旋转）
-- [ ] 悬停预判符文高亮（canPlayCard：法力+未横置符文>=费用时绿边提示）
+- ✅ 悬停预判符文高亮（悬停手牌→蓝色=横置/红色=回收高亮，点击弹出确认对话框自动执行符文操作）— DEV-20
 - [ ] 拖拽释放时资源消耗提示（目标区域高亮 + 符文消耗预览）
 
 ### 战场交互

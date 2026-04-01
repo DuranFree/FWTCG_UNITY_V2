@@ -13,7 +13,7 @@ namespace FWTCG.UI
     /// Right-click: show card detail popup.
     /// DEV-8: visual states (stunned overlay, buff token, cost dimming).
     /// </summary>
-    public class CardView : MonoBehaviour, IPointerClickHandler
+    public class CardView : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
     {
         [SerializeField] private Text _nameText;
         [SerializeField] private Text _costText;
@@ -40,6 +40,8 @@ namespace FWTCG.UI
         private bool _isPlayerCard;
         private Action<UnitInstance> _onClick;
         private Action<UnitInstance> _onRightClick;
+        private Action<UnitInstance> _onHoverEnter;
+        private Action<UnitInstance> _onHoverExit;
 
         private bool _selected;
         private bool _faceDown;
@@ -118,18 +120,34 @@ namespace FWTCG.UI
         }
 
         public void Setup(UnitInstance unit, bool isPlayerCard, Action<UnitInstance> onClick,
-                          Action<UnitInstance> onRightClick = null)
+                          Action<UnitInstance> onRightClick  = null,
+                          Action<UnitInstance> onHoverEnter  = null,
+                          Action<UnitInstance> onHoverExit   = null)
         {
             _unit = unit;
             _isPlayerCard = isPlayerCard;
             _onClick = onClick;
             _onRightClick = onRightClick;
+            _onHoverEnter = onHoverEnter;
+            _onHoverExit  = onHoverExit;
             _costInsufficient = false;
 
             Refresh();
 
             if (_clickButton != null)
                 _clickButton.interactable = onClick != null;
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            if (_unit != null && _onHoverEnter != null && !_faceDown)
+                _onHoverEnter(_unit);
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            if (_unit != null && _onHoverExit != null && !_faceDown)
+                _onHoverExit(_unit);
         }
 
         public void OnPointerClick(PointerEventData eventData)
