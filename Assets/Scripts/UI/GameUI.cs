@@ -176,6 +176,10 @@ namespace FWTCG.UI
         private int _cachedPScore = -1;
         private int _cachedEScore = -1;
 
+        // Phase indicator pulse — detect phase change in RefreshRoundPhase
+        private string _cachedPhase = null;
+        private Coroutine _phasePulseCoroutine;
+
         // Animated banner coroutine handle
         private Coroutine _bannerAnimCoroutine;
 
@@ -560,6 +564,43 @@ namespace FWTCG.UI
         {
             if (_roundPhaseText != null)
                 _roundPhaseText.text = $"回合 {gs.Round + 1}  [{gs.Turn?.ToUpper() ?? "—"}]  {gs.Phase?.ToUpper() ?? "—"}";
+
+            // Phase indicator pulse: fire when phase changes (DEV-19)
+            if (gs.Phase != _cachedPhase && _roundPhaseText != null)
+            {
+                _cachedPhase = gs.Phase;
+                if (_phasePulseCoroutine != null) StopCoroutine(_phasePulseCoroutine);
+                _phasePulseCoroutine = StartCoroutine(PhasePulseRoutine(_roundPhaseText.GetComponent<RectTransform>()));
+            }
+        }
+
+        private IEnumerator PhasePulseRoutine(RectTransform rt)
+        {
+            if (rt == null) yield break;
+            const float DURATION = 0.4f;
+            const float PEAK     = 1.18f;
+            float half = DURATION * 0.5f;
+
+            // Scale up
+            float t = 0f;
+            while (t < half)
+            {
+                t += Time.deltaTime;
+                float s = Mathf.Lerp(1f, PEAK, t / half);
+                rt.localScale = new Vector3(s, s, 1f);
+                yield return null;
+            }
+            // Scale back down
+            t = 0f;
+            while (t < half)
+            {
+                t += Time.deltaTime;
+                float s = Mathf.Lerp(PEAK, 1f, t / half);
+                rt.localScale = new Vector3(s, s, 1f);
+                yield return null;
+            }
+            rt.localScale = Vector3.one;
+            _phasePulseCoroutine = null;
         }
 
         private void RefreshMana(GameState gs)

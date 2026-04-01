@@ -110,8 +110,8 @@
 - ✅ 得分环扩散（score-ring-expand，scale 1→2.5，alpha→0，SpawnScoreRing + ScoreRingRoutine）— DEV-19
 - ✅ 回合横幅动画（"回合 N · 你/AI的回合"，slide Y-40→0 0.28s + stay + slide out 0.22s）— DEV-19
 - ✅ 法术对决横幅（"⚡ 法术对决！"，FireDuelBanner → OnDuelBannerHandler → ShowBanner）— DEV-19
-- [ ] 阶段指示器脉冲（phase-pulse，3s）
-- [ ] 按钮光流效果（btn-charge 1.5s，悬停时激活）
+- ✅ 阶段指示器脉冲（phase-pulse，0.4s scale 1→1.18→1，PhasePulseRoutine，阶段变化时触发）— DEV-19
+- ✅ 按钮光流效果（btn-charge 1.5s，悬停激活，ButtonCharge.cs + RectMask2D，结束回合/反应/确认符文三个按钮）— DEV-19
 - ✅ 结束按钮常驻脉冲（btn-end-magic-pulse 2s，有可操作时，EndTurnPulseRoutine alpha 1↔0.6）— DEV-19
 - ✅ 反应按钮 ribbon 展开动画（ribbon-reveal scaleX 0→1 0.25s + react-ribbon-pulse 2s）— DEV-19
 

@@ -1323,6 +1323,11 @@ namespace FWTCG.Editor
             endTurnButton = CreateActionButton(actionPanel.transform, "EndTurnButton", "结束行动", GameColors.ActionBtnPrimary);
             reactBtn = CreateActionButton(actionPanel.transform, "ReactButton", "反应", new Color(1f, 0.55f, 0f, 1f));
 
+            // DEV-19: ButtonCharge hover sweep on key buttons
+            AddButtonCharge(endTurnButton.gameObject);
+            AddButtonCharge(reactBtn.gameObject);
+            AddButtonCharge(confirmRunesBtn.gameObject);
+
             return go;
         }
 
@@ -3711,6 +3716,20 @@ namespace FWTCG.Editor
             lblRT.offsetMax = Vector2.zero;
 
             return btn;
+        }
+
+        /// <summary>
+        /// DEV-19: Adds RectMask2D + ButtonCharge to a button GameObject so hover
+        /// triggers the left-to-right light sweep animation.
+        /// </summary>
+        private static void AddButtonCharge(GameObject btnGO)
+        {
+            if (btnGO == null) return;
+            // RectMask2D clips the sweep image so it never overflows the button bounds
+            if (btnGO.GetComponent<RectMask2D>() == null)
+                btnGO.AddComponent<RectMask2D>();
+            if (btnGO.GetComponent<FWTCG.UI.ButtonCharge>() == null)
+                btnGO.AddComponent<FWTCG.UI.ButtonCharge>();
         }
 
         private static CardData LoadCard(string id)
