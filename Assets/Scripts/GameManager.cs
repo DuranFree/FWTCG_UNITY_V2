@@ -527,14 +527,23 @@ namespace FWTCG
                     }
                 }
 
-                UI.GameEventBus.FireDuelBanner(); // unit(s) entered battlefield
+                // Refresh UI first so CardViews are at BF position before combat animations fire
+                RefreshUI();
+
+                if (_gs.BF[bfId].EnemyUnits.Count > 0)
+                {
+                    await System.Threading.Tasks.Task.Delay(500);  // unit lands → 0.5s pause
+                    UI.GameEventBus.FireDuelBanner();
+                    await System.Threading.Tasks.Task.Delay(2000); // banner 1.5s + 0.5s gap
+                    UI.GameEventBus.FireSetBannerDelay(0.5f);      // combat EventBanners wait 0.5s
+                }
 
                 // After all units moved, check combat on this BF
                 _combatSys.CheckAndResolveCombat(bfId, GameRules.OWNER_PLAYER, _gs, _scoreMgr);
 
                 _selectedUnit = null;
                 _selectedUnitLoc = null;
-                // DEV-17: wait for hit flash + death animation before destroying CardViews
+                // DEV-17: wait for hit flash + death animation before destroying CardViews (≈0.5s gap after combat)
                 _bfClickInFlight = true;
                 try
                 {
@@ -557,12 +566,21 @@ namespace FWTCG
                 }
 
                 _combatSys.MoveUnit(_selectedUnit, _selectedUnitLoc, bfId, GameRules.OWNER_PLAYER, _gs);
-                UI.GameEventBus.FireDuelBanner(); // unit entered battlefield
+                RefreshUI(); // move CardView to BF position before combat animations fire
+
+                if (_gs.BF[bfId].EnemyUnits.Count > 0)
+                {
+                    await System.Threading.Tasks.Task.Delay(500);  // unit lands → 0.5s pause
+                    UI.GameEventBus.FireDuelBanner();
+                    await System.Threading.Tasks.Task.Delay(2000); // banner 1.5s + 0.5s gap
+                    UI.GameEventBus.FireSetBannerDelay(0.5f);      // combat EventBanners wait 0.5s
+                }
+
                 _combatSys.CheckAndResolveCombat(bfId, GameRules.OWNER_PLAYER, _gs, _scoreMgr);
 
                 _selectedUnit = null;
                 _selectedUnitLoc = null;
-                // DEV-17: wait for hit flash + death animation before destroying CardViews
+                // DEV-17: wait for hit flash + death animation before destroying CardViews (≈0.5s gap after combat)
                 _bfClickInFlight = true;
                 try
                 {
@@ -881,10 +899,10 @@ namespace FWTCG
             else if (unit.CardData.IsEquipment)
                 TryPlayEquipment(unit);
             else
-                TryPlayUnit(unit);
+                _ = TryPlayUnitAsync(unit);
         }
 
-        private void TryPlayUnit(UnitInstance unit)
+        private async Task TryPlayUnitAsync(UnitInstance unit)
         {
             if (unit.CardData.Cost > _gs.PMana)
             {
@@ -905,12 +923,49 @@ namespace FWTCG
                 }
             }
 
+            // Rule 717: Haste — optional extra [1] mana + [1C] sch to enter active
+            bool useHaste = false;
+            if (unit.CardData.HasKeyword(CardKeyword.Haste))
+            {
+                int extraManaNeeded = unit.CardData.Cost + 1; // base cost + 1 extra
+                int extraSchNeeded  = unit.CardData.RuneCost + 1;
+                int haveSch = _gs.GetSch(GameRules.OWNER_PLAYER, unit.CardData.RuneType);
+                bool canAfford = _gs.PMana >= extraManaNeeded && haveSch >= extraSchNeeded;
+
+                if (canAfford && AskPromptUI.Instance != null)
+                {
+                    try
+                    {
+                        useHaste = await AskPromptUI.Instance.WaitForConfirm(
+                            "急速",
+                            $"额外支付 [1] 法力 + [1{unit.CardData.RuneType}] 符能，让 {unit.UnitName} 以活跃状态进场？",
+                            "使用急速",
+                            "休眠进场");
+                    }
+                    catch { useHaste = false; }
+                }
+            }
+
             _gs.PHand.Remove(unit);
             _gs.PBase.Add(unit);
             _gs.PMana -= unit.CardData.Cost;
             if (unit.CardData.RuneCost > 0)
                 _gs.SpendSch(GameRules.OWNER_PLAYER, unit.CardData.RuneType, unit.CardData.RuneCost);
-            unit.Exhausted = true;
+
+            // Pay Haste extra cost if chosen
+            if (useHaste)
+            {
+                _gs.PMana -= 1;
+                _gs.SpendSch(GameRules.OWNER_PLAYER, unit.CardData.RuneType, 1);
+                unit.Exhausted = false;
+                TurnManager.BroadcastMessage_Static(
+                    $"[急速] {unit.UnitName} 支付额外1法力+1{unit.CardData.RuneType}符能，以活跃状态进场");
+            }
+            else
+            {
+                unit.Exhausted = true;
+            }
+
             if (unit.IsEphemeral) unit.SummonedOnRound = _gs.Round;
             _gs.CardsPlayedThisTurn++;
             FireCardPlayed(unit, GameRules.OWNER_PLAYER);
@@ -1405,6 +1460,9 @@ namespace FWTCG
                 return;
             }
 
+            // Clear any lingering event banners before opening the reaction window
+            UI.GameEventBus.FireClearBanners();
+
             // Collect affordable reactive spells from player hand (including via rune auto-consume)
             var reactives = new List<UnitInstance>();
             foreach (var c in _gs.PHand)
@@ -1534,6 +1592,15 @@ namespace FWTCG
                     : cardType == "reactive"        ? (u.CardData.IsSpell && u.CardData.HasKeyword(CardKeyword.Reactive))
                     : !u.CardData.IsSpell && !u.CardData.IsEquipment;
                 if (match) { found = u; break; }
+            }
+
+            // Equipment cards are in the enemy deck (Yi); also search there for debug purposes
+            if (found == null && cardType == "equip")
+            {
+                foreach (UnitInstance u in _gs.EDeck)
+                {
+                    if (u.CardData.IsEquipment) { found = u; deck = _gs.EDeck; break; }
+                }
             }
 
             if (found != null)

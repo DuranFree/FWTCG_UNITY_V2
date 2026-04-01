@@ -10,14 +10,14 @@ namespace FWTCG.Data
     public enum CardKeyword
     {
         None        = 0,
-        Haste       = 1 << 0,  // 急速: enter active (pay extra rune cost)
-        Barrier     = 1 << 1,  // 壁垒: absorbs one damage instance
-        SpellShield = 1 << 2,  // 法盾: immune to targeted spells
-        Inspire     = 1 << 3,  // 鼓舞: other allies cost -1 on entry
+        Haste       = 1 << 0,  // 急速: unit-only, optional pay [1]+[C] to enter active (Rule 717)
+        Barrier     = 1 << 1,  // 壁垒: must take lethal damage first in combat (Rule 727)
+        SpellShield = 1 << 2,  // 法盾: opponent pays extra sch to target (Rule 721)
+        Inspire     = 1 << 3,  // 鼓舞: condition — triggers only if another card played this turn (Rule 724)
         Conquest    = 1 << 4,  // 征服: trigger on conquering a BF
         Deathwish   = 1 << 5,  // 绝念: trigger on death
         Reactive    = 1 << 6,  // 反应: can be played as reaction
-        StrongAtk   = 1 << 7,  // 强攻: +2 power when attacking
+        StrongAtk   = 1 << 7,  // 强攻: +X power when attacking, default X=1 (Rule 719)
         Roam        = 1 << 8,  // 游走: can move between battlefields
         Foresight   = 1 << 9,  // 预知: view top deck on entry
         Standby     = 1 << 10, // 待命: face-down 0-cost reactive
@@ -25,5 +25,6 @@ namespace FWTCG.Data
         Echo        = 1 << 12, // 回响: can be played a second time this turn
         Guard       = 1 << 13, // 坚守: +1 power when defending
         Ephemeral   = 1 << 14, // 瞬息: destroyed at start of next turn (Rule 728)
+        Swift       = 1 << 15, // 迅捷: can be played during spell duel (Rule 718)
     }
 }

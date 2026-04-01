@@ -1516,7 +1516,7 @@ namespace FWTCG.Editor
             rt.offsetMax = Vector2.zero;
 
             var img = go.AddComponent<Image>();
-            img.color = new Color(0f, 0f, 0f, 0.78f);
+            img.color = new Color(0f, 0f, 0f, 0.96f); // near-opaque to block zone borders showing through
 
             bannerText = CreateTMPText(go.transform, "BannerText", "", Color.yellow, 44, TextAnchor.MiddleCenter);
             var btRT = bannerText.GetComponent<RectTransform>();
@@ -1540,10 +1540,10 @@ namespace FWTCG.Editor
             go.transform.SetParent(parent, false);
 
             var rt = go.AddComponent<RectTransform>();
-            rt.anchorMin = new Vector2(0.25f, 0.52f);
-            rt.anchorMax = new Vector2(0.75f, 0.62f);
-            rt.offsetMin = Vector2.zero;
-            rt.offsetMax = Vector2.zero;
+            rt.anchorMin = new Vector2(0.5f, 0.57f);
+            rt.anchorMax = new Vector2(0.5f, 0.57f);
+            rt.pivot     = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2(200f, 36f); // Awake() resizes per text content
 
             var cg = go.AddComponent<CanvasGroup>();
             cg.alpha = 0f;
@@ -2868,12 +2868,12 @@ namespace FWTCG.Editor
 
             // ── Kaisa spells ──────────────────────────────────────────────────
             CDS("hex_ray",        "虚空射线",   1, RuneType.Blazing, 1,
-                "急速。对目标敌方单位造成3点伤害",
-                SpellTargetType.EnemyUnit, "hex_ray", CardKeyword.Haste);
+                "迅捷。对目标敌方单位造成3点伤害",
+                SpellTargetType.EnemyUnit, "hex_ray", CardKeyword.Swift);
 
             CDS("void_seek",      "虚空追迹",   3, RuneType.Blazing, 1,
-                "急速。对目标敌方单位造成4点伤害，摸1张牌",
-                SpellTargetType.EnemyUnit, "void_seek", CardKeyword.Haste);
+                "迅捷。对目标敌方单位造成4点伤害，摸1张牌",
+                SpellTargetType.EnemyUnit, "void_seek", CardKeyword.Swift);
 
             CDS("stardrop",       "星陨",       2, RuneType.Blazing, 2,
                 "对目标敌方单位造成3点伤害两次（共6点）",
@@ -2905,20 +2905,20 @@ namespace FWTCG.Editor
 
             // ── Yi spells ─────────────────────────────────────────────────────
             CDS("rally_call",     "集结号令",   2, RuneType.Verdant, 0,
-                "急速。所有己方单位进入活跃状态，摸1张牌",
-                SpellTargetType.None, "rally_call", CardKeyword.Haste);
+                "迅捷。所有己方单位进入活跃状态，摸1张牌",
+                SpellTargetType.None, "rally_call", CardKeyword.Swift);
 
             CDS("balance_resolve","平衡意志",   3, RuneType.Verdant, 0,
-                "急速。摸1张牌，召出1张符文",
-                SpellTargetType.None, "balance_resolve", CardKeyword.Haste);
+                "迅捷。摸1张牌，召出1张符文",
+                SpellTargetType.None, "balance_resolve", CardKeyword.Swift);
 
             CDS("slam",           "冲击",       2, RuneType.Crushing, 0,
-                "急速+回响。使目标敌方单位眩晕（法盾可抵消）",
-                SpellTargetType.EnemyUnit, "slam", CardKeyword.Haste | CardKeyword.Echo);
+                "迅捷+回响。使目标敌方单位眩晕（法盾可抵消）",
+                SpellTargetType.EnemyUnit, "slam", CardKeyword.Swift | CardKeyword.Echo);
 
             CDS("strike_ask_later","先斩后奏",  1, RuneType.Crushing, 2,
-                "急速。使目标己方单位本回合+5战力",
-                SpellTargetType.FriendlyUnit, "strike_ask_later", CardKeyword.Haste);
+                "迅捷。使目标己方单位本回合+5战力",
+                SpellTargetType.FriendlyUnit, "strike_ask_later", CardKeyword.Swift);
 
             // ── Kaisa reactive spells ─────────────────────────────────────────
             CDS("swindle",        "诡计",       1, RuneType.Blazing, 1,

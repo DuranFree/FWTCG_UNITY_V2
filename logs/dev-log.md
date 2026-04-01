@@ -2,6 +2,40 @@
 
 ---
 
+## DEV-25b：规则对齐补丁（迅捷/急速/注释） — 2026-04-01
+
+**Status**: ✅ Completed
+**Tests**: 385/385 🟢（MCP EditMode 全绿）
+
+### 实现内容
+
+**CardKeyword.cs**:
+- 新增 `Swift = 1 << 15`（迅捷，Rule 718：法术对决期间可打出）
+- 修正 Haste/Barrier/SpellShield/Inspire/StrongAtk 注释，对齐规则
+
+**SceneBuilder.cs**:
+- 6 张法术卡关键词从 `Haste` → `Swift`（hex_ray, void_seek, rally_call, balance_resolve, slam, strike_ask_later）
+- 卡面文字从"急速"→"迅捷"
+
+**GameManager.cs**:
+- `TryPlayUnit` → `TryPlayUnitAsync`，新增 Haste 付费弹窗
+- Rule 717：有 Haste 的单位可选额外支付 [1] mana + [1C] sch 以活跃状态进场
+- 通过 AskPromptUI.WaitForConfirm 弹窗让玩家选择
+
+**EntryEffectSystem.cs**:
+- `yi_hero_enter` 删除 `unit.Exhausted = false` — 急速付费统一交给出牌流程处理
+
+**CardDetailPopup.cs**:
+- 新增 Swift 名称/描述
+- 修正 Haste/Barrier/SpellShield/Inspire 描述文案
+
+**Roadmap 整理**:
+- 迅捷时机限制、反应闭环权限、待命机制（#3）、结算链（#11/#13）统一归入 DEV-27
+- 瞬息 #4 标记为已完成
+- DEV-27 新增"回合状态机（4态）"为核心架构目标
+
+---
+
 ## DEV-21：粒子特效系统 — 2026-04-01
 
 **Status**: ✅ Completed

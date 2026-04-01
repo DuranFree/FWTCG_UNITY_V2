@@ -49,7 +49,9 @@
 
 ### 法术对决系统（Spell Duel）
 - ✅ 对决自动触发（移动造成争夺→即时战斗，替代手动按钮）— DEV-1 规则修正
-- ✅ 反应/迅捷牌处理（AI法术触发玩家反应窗口，单轮响应）— DEV-4
+- ✅ 反应牌处理（AI法术触发玩家反应窗口，单轮响应）— DEV-4
+- ✅ 迅捷关键词定义（CardKeyword.Swift，法术标记从 Haste→Swift）— DEV-25b
+- [ ] 迅捷时机限制（需要法术对决状态机）— DEV-27
 - ✅ 反应窗口（ReactiveWindowUI，TaskCompletionSource 异步等待玩家选择）— DEV-4
 - ✅ 反应按钮符文感知（CanAffordWithAutoTap 过滤：符文可补足时也计为可用；选牌后弹出符文确认）— DEV-20
 - ✅ 对决结束 → 战斗结算（TriggerCombat + 回合结束兜底 ResolveAllBattlefields）— DEV-1
@@ -60,7 +62,7 @@
 
 ### 数据结构
 - ✅ CardData ScriptableObject（id/cardName/cost/atk/runeType/runeCost/description）— DEV-1（简化版，完整字段 DEV-2）
-- ✅ 关键词枚举（Haste/Barrier/SpellShield/Inspire/Conquest/Deathwish/Reactive/StrongAtk/Roam/Foresight/Standby/Stun/Ephemeral）— DEV-2 + DEV-18（Ephemeral Rule 728）
+- ✅ 关键词枚举（Haste/Barrier/SpellShield/Inspire/Conquest/Deathwish/Reactive/StrongAtk/Roam/Foresight/Standby/Stun/Ephemeral/Swift）— DEV-2 + DEV-18 + DEV-25b
 - ✅ 装备卡数据结构（附着机制：UnitInstance.AttachedEquipment/AttachedTo + TryPlayEquipment自动附着）— DEV-13
 - ✅ 传奇卡数据结构（abilities数组：被动/触发/主动技能）— DEV-10（LegendInstance.DisplayData + kaisa_legend/yi_legend CardData）
 - ✅ 英雄牌标记（hero: true，游戏开始时单独提取到英雄区，不进牌库）— DEV-10
@@ -135,7 +137,7 @@
 - ✅ flash_counter（反应，反制敌方法术）— DEV-4
 - ✅ slam（回响，眩晕单位）— DEV-3
 - ✅ strike_ask_later（+5战力，2摧破符能）— DEV-3
-- ✅ yi_hero 入场（游走+急速+1摧破符能）— DEV-11
+- ✅ yi_hero 入场（游走+急速+1摧破符能，急速付费走 TryPlayUnitAsync）— DEV-11 + DEV-25b
 - ✅ jax 入场（法盾+入场效果）— DEV-2（日志显示）
 - ✅ tiyana_warden 被动（阻止对手据守得分）— DEV-2
 - ✅ wailing_poro 绝念（孤独阵亡时抽1张）— DEV-2

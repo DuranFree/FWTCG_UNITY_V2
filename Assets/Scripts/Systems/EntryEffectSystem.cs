@@ -106,8 +106,8 @@ namespace FWTCG.Systems
                     break;
 
                 case "yi_hero_enter":
-                    // Roam + Haste + gain 1 Crushing sch
-                    unit.Exhausted = false; // Haste: enters active
+                    // Roam + Haste (payment handled by TryPlayUnitAsync/AI) + gain 1 Crushing sch
+                    // Rule 717: Do NOT set Exhausted here — Haste payment is done at play time
                     gs.AddSch(owner, RuneType.Crushing, 1);
                     Log($"[入场] {unit.UnitName} — 游走+急速+1摧破符能");
                     FWTCG.UI.GameEventBus.FireEntryEffectBanner(unit.UnitName, "游走·急速·摧破符能+1"); // DEV-18b

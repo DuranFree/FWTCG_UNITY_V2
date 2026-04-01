@@ -42,14 +42,15 @@ namespace FWTCG.UI
             { CardKeyword.Echo,       "回响" },
             { CardKeyword.Guard,      "坚守" },
             { CardKeyword.Ephemeral,  "瞬息" },
+            { CardKeyword.Swift,      "迅捷" },
         };
 
         private static readonly Dictionary<CardKeyword, string> KeywordDescriptions = new Dictionary<CardKeyword, string>
         {
-            { CardKeyword.Haste,      "进场不休眠，可立即行动" },
-            { CardKeyword.Barrier,    "抵挡一次伤害" },
-            { CardKeyword.SpellShield,"免疫指向法术" },
-            { CardKeyword.Inspire,    "后续友方单位费用-1" },
+            { CardKeyword.Haste,      "可选支付[1]+[C]以活跃状态进场（Rule 717）" },
+            { CardKeyword.Barrier,    "战斗中必须先承受致命伤害（Rule 727）" },
+            { CardKeyword.SpellShield,"对手须支付符能才能将我选为目标（Rule 721）" },
+            { CardKeyword.Inspire,    "本回合已打出过其他牌时触发（Rule 724）" },
             { CardKeyword.Conquest,   "征服战场时触发效果" },
             { CardKeyword.Deathwish,  "阵亡时触发效果" },
             { CardKeyword.Reactive,   "可作为反应牌打出" },
@@ -61,6 +62,7 @@ namespace FWTCG.UI
             { CardKeyword.Echo,       "本回合可再次施放" },
             { CardKeyword.Guard,      "+1 防御战力" },
             { CardKeyword.Ephemeral,  "下回合开始前销毁（Rule 728）" },
+            { CardKeyword.Swift,      "可在法术对决期间打出（Rule 718）" },
         };
 
         private void Awake()

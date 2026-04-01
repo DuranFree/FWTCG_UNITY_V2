@@ -82,13 +82,13 @@ namespace FWTCG.Tests
         }
 
         [Test]
-        public void CardDetailPopup_15KeywordsExist()
+        public void CardDetailPopup_16KeywordsExist()
         {
-            // Count non-None keywords (14 original + Ephemeral added in DEV-18)
+            // Count non-None keywords (14 original + Ephemeral DEV-18 + Swift DEV-25b)
             int count = 0;
             foreach (CardKeyword kw in System.Enum.GetValues(typeof(CardKeyword)))
                 if (kw != CardKeyword.None) count++;
-            Assert.AreEqual(15, count);
+            Assert.AreEqual(16, count);
         }
 
         // ── Visual state logic ────────────────────────────────────────────────
