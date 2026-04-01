@@ -206,7 +206,7 @@
 - [ ] 对决界面（法术对决期间的特殊 UI）
 - ✅ 飘屏提示（ToastUI：队列式 fade-in 0.3s + stay 1.5s + fade-out 0.4s，订阅 BattlefieldLog + HintToast）— DEV-16b
 - ✅ 法术目标选择弹窗（SpellTargetPopup：敌/己方两栏 + Task<UnitInstance> 异步返回）— DEV-16b
-- [ ] askPrompt 通用弹窗系统（确认弹窗 / 卡片选择弹窗，Promise 异步）
+- ✅ askPrompt 通用弹窗系统（确认弹窗 / 卡片选择弹窗，TaskCompletionSource 异步，AskPromptUI singleton）— DEV-19
 - ✅ 弃牌堆点击浏览器（ShowDiscardViewer，网格展示所有弃牌，可点击查看详情）— DEV-10
 - ✅ 放逐堆点击浏览器（ShowExileViewer，同上）— DEV-10
 - ✅ 法术展示动画（SpellShowcaseUI：全屏覆盖，飞入0.4s+停留0.5s+飞出0.35s，玩家/AI法术均触发）— DEV-16

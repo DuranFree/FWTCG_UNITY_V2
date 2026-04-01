@@ -17,6 +17,8 @@ namespace FWTCG.Systems
     {
         public static event Action<string> OnGameOver;
         public static event Action<string> OnScoreChanged;
+        /// <summary>Fired after a score is successfully added. (owner, newScore) — DEV-19 score pulse.</summary>
+        public static event Action<string, int> OnScoreAdded;
 
         [SerializeField] private BattlefieldSystem _bfSys;
 
@@ -80,6 +82,7 @@ namespace FWTCG.Systems
 
             // Award the score
             gs.AddScore(who, pts);
+            OnScoreAdded?.Invoke(who, gs.GetScore(who)); // DEV-19
 
             // Track battlefield scoring
             if (bfId.HasValue)

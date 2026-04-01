@@ -205,6 +205,12 @@ namespace FWTCG.Editor
             // ── ToastPanel ────────────────────────────────────────────────────
             var toastPanel = CreateToastPanel(canvasGO.transform, out var toastText);
 
+            // ── DEV-19: AskPromptPanel ────────────────────────────────────────
+            var askPromptPanel = CreateAskPromptPanel(canvasGO.transform,
+                out var askTitleText, out var askMessageText,
+                out var askCardContainer, out var askConfirmBtn, out var askCancelBtn,
+                out var askConfirmBtnText, out var askCancelBtnText);
+
             // ── DEV-10: LogToggleButton (anchored to right side, above message panel) ──
             var logToggleGO = new GameObject("LogToggleBtn");
             logToggleGO.transform.SetParent(canvasGO.transform, false);
@@ -385,7 +391,8 @@ namespace FWTCG.Editor
             var bfSys        = gmGO.AddComponent<FWTCG.Systems.BattlefieldSystem>();
             var toastUI      = gmGO.AddComponent<FWTCG.UI.ToastUI>();
             var cardDetailPopupComp = gmGO.AddComponent<FWTCG.UI.CardDetailPopup>();
-            var combatAnimator = gmGO.AddComponent<FWTCG.UI.CombatAnimator>(); // DEV-18
+            var combatAnimator    = gmGO.AddComponent<FWTCG.UI.CombatAnimator>(); // DEV-18
+            var askPromptUI       = gmGO.AddComponent<FWTCG.UI.AskPromptUI>();  // DEV-19
 
             // ── Wire UI references via SerializedObject ───────────────────────
             WireGameUI(gameUI, canvasGO.GetComponent<Canvas>(), cardPrefab, runePrefab,
@@ -500,6 +507,26 @@ namespace FWTCG.Editor
                 caSO.FindProperty("_bf2Panel").objectReferenceValue =
                     bf2Panel?.GetComponent<RectTransform>();
                 caSO.ApplyModifiedPropertiesWithoutUndo();
+            }
+
+            // ── DEV-19: Wire AskPromptUI ─────────────────────────────────────
+            {
+                var apSO = new SerializedObject(askPromptUI);
+                apSO.FindProperty("_panel").objectReferenceValue             = askPromptPanel;
+                apSO.FindProperty("_canvasGroup").objectReferenceValue       = askPromptPanel.GetComponent<CanvasGroup>();
+                apSO.FindProperty("_titleText").objectReferenceValue         = askTitleText;
+                apSO.FindProperty("_messageText").objectReferenceValue       = askMessageText;
+                apSO.FindProperty("_cardContainer").objectReferenceValue     = askCardContainer;
+                apSO.FindProperty("_cardViewPrefab").objectReferenceValue    = cardPrefab;
+                apSO.FindProperty("_confirmBtn").objectReferenceValue        = askConfirmBtn;
+                apSO.FindProperty("_cancelBtn").objectReferenceValue         = askCancelBtn;
+                apSO.FindProperty("_confirmBtnText").objectReferenceValue    = askConfirmBtnText;
+                apSO.FindProperty("_cancelBtnText").objectReferenceValue     = askCancelBtnText;
+                apSO.ApplyModifiedPropertiesWithoutUndo();
+
+                var guiSO3 = new SerializedObject(gameUI);
+                guiSO3.FindProperty("_askPromptUI").objectReferenceValue = askPromptUI;
+                guiSO3.ApplyModifiedPropertiesWithoutUndo();
             }
 
             // ── Save scene ────────────────────────────────────────────────────
@@ -1738,6 +1765,93 @@ namespace FWTCG.Editor
 
             go.SetActive(false);
             return go;
+        }
+
+        // ── DEV-19: AskPromptPanel (general async dialog) ────────────────────
+
+        private static GameObject CreateAskPromptPanel(Transform parent,
+            out Text titleText, out Text messageText,
+            out Transform cardContainer,
+            out Button confirmBtn, out Button cancelBtn,
+            out Text confirmBtnText, out Text cancelBtnText)
+        {
+            // Full-screen dim overlay
+            var panel = CreateFullscreenPanel(parent, "AskPromptPanel", new Color(0f, 0f, 0f, 0.75f));
+            panel.AddComponent<CanvasGroup>();
+
+            var vlg = panel.AddComponent<VerticalLayoutGroup>();
+            vlg.childControlWidth     = false;
+            vlg.childControlHeight    = false;
+            vlg.childForceExpandWidth = false;
+            vlg.childForceExpandHeight= false;
+            vlg.childAlignment        = TextAnchor.MiddleCenter;
+            vlg.spacing               = 16f;
+
+            // Title
+            var titleGO = new GameObject("TitleText");
+            titleGO.transform.SetParent(panel.transform, false);
+            titleText = titleGO.AddComponent<Text>();
+            titleText.text      = "标题";
+            titleText.color     = GameColors.GoldLight;
+            titleText.fontSize  = 28;
+            titleText.fontStyle = FontStyle.Bold;
+            titleText.alignment = TextAnchor.MiddleCenter;
+            if (_font != null) titleText.font = _font;
+            var titleLE = titleGO.AddComponent<LayoutElement>();
+            titleLE.preferredWidth  = 700f;
+            titleLE.preferredHeight = 50f;
+
+            // Message
+            var msgGO = new GameObject("MessageText");
+            msgGO.transform.SetParent(panel.transform, false);
+            messageText = msgGO.AddComponent<Text>();
+            messageText.text       = "";
+            messageText.color      = Color.white;
+            messageText.fontSize   = 20;
+            messageText.alignment  = TextAnchor.MiddleCenter;
+            messageText.horizontalOverflow = HorizontalWrapMode.Wrap;
+            messageText.verticalOverflow   = VerticalWrapMode.Overflow;
+            if (_font != null) messageText.font = _font;
+            var msgLE = msgGO.AddComponent<LayoutElement>();
+            msgLE.preferredWidth  = 700f;
+            msgLE.preferredHeight = 50f;
+
+            // Card container (horizontal row, for card-pick mode)
+            var ccGO = new GameObject("CardContainer");
+            ccGO.transform.SetParent(panel.transform, false);
+            var ccLE = ccGO.AddComponent<LayoutElement>();
+            ccLE.preferredWidth  = 700f;
+            ccLE.preferredHeight = 150f;
+            var hlg = ccGO.AddComponent<HorizontalLayoutGroup>();
+            hlg.childControlWidth     = false;
+            hlg.childControlHeight    = true;
+            hlg.childForceExpandWidth = false;
+            hlg.childForceExpandHeight= true;
+            hlg.spacing               = 10f;
+            hlg.childAlignment        = TextAnchor.MiddleCenter;
+            cardContainer             = ccGO.transform;
+
+            // Button row
+            var btnRowGO = new GameObject("ButtonRow");
+            btnRowGO.transform.SetParent(panel.transform, false);
+            var btnLE = btnRowGO.AddComponent<LayoutElement>();
+            btnLE.preferredWidth  = 700f;
+            btnLE.preferredHeight = 60f;
+            var btnHlg = btnRowGO.AddComponent<HorizontalLayoutGroup>();
+            btnHlg.childControlWidth     = false;
+            btnHlg.childControlHeight    = false;
+            btnHlg.childForceExpandWidth = false;
+            btnHlg.childForceExpandHeight= false;
+            btnHlg.spacing               = 40f;
+            btnHlg.childAlignment        = TextAnchor.MiddleCenter;
+
+            confirmBtn     = CreateButton(btnRowGO.transform, "ConfirmBtn", "确认");
+            cancelBtn      = CreateButton(btnRowGO.transform, "CancelBtn",  "取消");
+            confirmBtnText = confirmBtn.GetComponentInChildren<Text>();
+            cancelBtnText  = cancelBtn.GetComponentInChildren<Text>();
+
+            panel.SetActive(false);
+            return panel;
         }
 
         // ── Startup panels ────────────────────────────────────────────────────

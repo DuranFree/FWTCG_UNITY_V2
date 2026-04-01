@@ -171,6 +171,24 @@ namespace FWTCG.UI
         [SerializeField] private RectTransform _playerRuneZoneRT;
         [SerializeField] private RectTransform _enemyRuneZoneRT;
 
+        // ── DEV-19: UI animations ─────────────────────────────────────────────
+        // Score pulse — track cached scores to detect change in RefreshScoreTrack
+        private int _cachedPScore = -1;
+        private int _cachedEScore = -1;
+
+        // Animated banner coroutine handle
+        private Coroutine _bannerAnimCoroutine;
+
+        // End-turn button persistent pulse
+        private Coroutine _endTurnPulseCoroutine;
+        private bool      _endTurnPulseActive;
+
+        // React button ribbon — previous interactable state to detect transitions
+        private bool _reactBtnWasInteractable;
+
+        // AskPromptUI reference (optional, set by SceneBuilder)
+        [SerializeField] private AskPromptUI _askPromptUI;
+
         // ── Callbacks set by GameManager ──────────────────────────────────────
         private Action _onEndTurnClicked;
         private Action<int> _onBFClicked;
@@ -224,6 +242,9 @@ namespace FWTCG.UI
             // DEV-18b: event feedback bus
             GameEventBus.OnUnitFloatText += OnUnitFloatTextHandler;
             GameEventBus.OnZoneFloatText  += OnZoneFloatTextHandler;
+            // DEV-19
+            FWTCG.Systems.ScoreManager.OnScoreAdded += OnScoreAddedHandler;
+            GameEventBus.OnDuelBanner               += OnDuelBannerHandler;
         }
 
         private void OnDestroy()
@@ -241,6 +262,9 @@ namespace FWTCG.UI
             // DEV-18b
             GameEventBus.OnUnitFloatText -= OnUnitFloatTextHandler;
             GameEventBus.OnZoneFloatText  -= OnZoneFloatTextHandler;
+            // DEV-19
+            FWTCG.Systems.ScoreManager.OnScoreAdded -= OnScoreAddedHandler;
+            GameEventBus.OnDuelBanner               -= OnDuelBannerHandler;
         }
 
         // ── Card shake on play failure ────────────────────────────────────────
@@ -421,15 +445,51 @@ namespace FWTCG.UI
         {
             if (_bannerPanel == null) return;
             if (_bannerText != null) _bannerText.text = text;
-            _bannerPanel.SetActive(true);
-            StopCoroutine(nameof(HideBannerCoroutine));
-            StartCoroutine(nameof(HideBannerCoroutine));
+            if (_bannerAnimCoroutine != null) StopCoroutine(_bannerAnimCoroutine);
+            _bannerAnimCoroutine = StartCoroutine(BannerSlideRoutine());
         }
 
-        private IEnumerator HideBannerCoroutine()
+        // DEV-19: animated slide-in banner (replaces simple SetActive on/off)
+        private IEnumerator BannerSlideRoutine()
         {
+            _bannerPanel.SetActive(true);
+            var rt = _bannerPanel.GetComponent<RectTransform>();
+            var cg = _bannerPanel.GetComponent<CanvasGroup>();
+            if (cg == null) cg = _bannerPanel.AddComponent<CanvasGroup>();
+
+            Vector2 restPos = rt != null ? rt.anchoredPosition : Vector2.zero;
+            Vector2 startPos = restPos + new Vector2(0f, -40f);
+
+            const float IN_DUR = 0.28f;
+            float elapsed = 0f;
+            while (elapsed < IN_DUR)
+            {
+                float t = elapsed / IN_DUR;
+                if (rt != null) rt.anchoredPosition = Vector2.Lerp(startPos, restPos, t * t);
+                cg.alpha = t;
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+            if (rt != null) rt.anchoredPosition = restPos;
+            cg.alpha = 1f;
+
             yield return new WaitForSeconds(BANNER_DURATION);
-            if (_bannerPanel != null) _bannerPanel.SetActive(false);
+
+            const float OUT_DUR = 0.22f;
+            elapsed = 0f;
+            Vector2 exitPos = restPos + new Vector2(0f, 20f);
+            while (elapsed < OUT_DUR)
+            {
+                float t = elapsed / OUT_DUR;
+                if (rt != null) rt.anchoredPosition = Vector2.Lerp(restPos, exitPos, t);
+                cg.alpha = 1f - t;
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+            cg.alpha = 0f;
+            _bannerPanel.SetActive(false);
+            if (rt != null) rt.anchoredPosition = restPos;
+            _bannerAnimCoroutine = null;
         }
 
         // ── Setup ─────────────────────────────────────────────────────────────
@@ -1091,6 +1151,12 @@ namespace FWTCG.UI
 
         public void RefreshScoreTrack(GameState gs)
         {
+            // DEV-19: detect score increase → trigger pulse on newly-lit circle
+            bool pScoreUp = gs.PScore > _cachedPScore && _cachedPScore >= 0;
+            bool eScoreUp = gs.EScore > _cachedEScore && _cachedEScore >= 0;
+            _cachedPScore = gs.PScore;
+            _cachedEScore = gs.EScore;
+
             if (_playerScoreCircles != null)
             {
                 for (int i = 0; i < _playerScoreCircles.Length; i++)
@@ -1103,6 +1169,9 @@ namespace FWTCG.UI
                     else
                         _playerScoreCircles[i].color = GameColors.ScoreCircleInactive;
                 }
+                // Pulse the circle that just lit up (index = newScore - 1)
+                if (pScoreUp && gs.PScore > 0 && gs.PScore - 1 < _playerScoreCircles.Length)
+                    TriggerScorePulse(_playerScoreCircles[gs.PScore - 1]);
             }
             if (_enemyScoreCircles != null)
             {
@@ -1116,6 +1185,8 @@ namespace FWTCG.UI
                     else
                         _enemyScoreCircles[i].color = GameColors.ScoreCircleInactive;
                 }
+                if (eScoreUp && gs.EScore > 0 && gs.EScore - 1 < _enemyScoreCircles.Length)
+                    TriggerScorePulse(_enemyScoreCircles[gs.EScore - 1]);
             }
         }
 
@@ -1284,6 +1355,18 @@ namespace FWTCG.UI
                 _confirmRunesBtn.interactable = isPlayerAction;
             if (_skipReactionBtn != null)
                 _skipReactionBtn.interactable = isPlayerAction;
+
+            // DEV-19: end turn button persistent pulse during player action
+            UpdateEndTurnPulse(isPlayerAction);
+        }
+
+        // DEV-19: called by GameManager when react button interactability changes
+        public void NotifyReactButtonState(bool isInteractable)
+        {
+            bool transition = !_reactBtnWasInteractable && isInteractable;
+            _reactBtnWasInteractable = isInteractable;
+            if (transition)
+                GameManager.FireHintToast(""); // no-op, ribbon animation below
         }
 
         // ── Log panel toggle (DEV-10) ────────────────────────────────────────
@@ -1584,6 +1667,206 @@ namespace FWTCG.UI
             Transform t = parent.transform.Find(name);
             if (t != null) return t.GetComponent<Button>();
             return null;
+        }
+
+        // ── DEV-19: Score pulse + ring expand ─────────────────────────────────
+
+        /// <summary>Subscribed to ScoreManager.OnScoreAdded — caches are already updated by RefreshScoreTrack.</summary>
+        private void OnScoreAddedHandler(string owner, int newScore)
+        {
+            // Actual pulse is triggered inside RefreshScoreTrack via cached score comparison.
+            // This handler is kept for future extensions (e.g., audio cue).
+        }
+
+        /// <summary>Scales a score circle 1→1.15→1 over 1.8 s and spawns an expanding ring.</summary>
+        private void TriggerScorePulse(Image circle)
+        {
+            if (circle == null) return;
+            StartCoroutine(ScorePulseRoutine(circle));
+            SpawnScoreRing(circle);
+        }
+
+        private IEnumerator ScorePulseRoutine(Image circle)
+        {
+            var rt = circle.GetComponent<RectTransform>();
+            if (rt == null) yield break;
+
+            Vector3 orig = rt.localScale;
+            Vector3 peak = orig * 1.15f;
+            const float HALF = 0.9f; // 1.8s total / 2
+
+            float elapsed = 0f;
+            while (elapsed < HALF)
+            {
+                rt.localScale = Vector3.Lerp(orig, peak, elapsed / HALF);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+            elapsed = 0f;
+            while (elapsed < HALF)
+            {
+                rt.localScale = Vector3.Lerp(peak, orig, elapsed / HALF);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+            rt.localScale = orig;
+        }
+
+        private void SpawnScoreRing(Image circle)
+        {
+            Canvas rootCanvas = GetRootCanvas();
+            if (rootCanvas == null) return;
+
+            var circleRT = circle.GetComponent<RectTransform>();
+            if (circleRT == null) return;
+
+            // Convert circle's world position to canvas local space
+            Vector2 screenPt = RectTransformUtility.WorldToScreenPoint(null, circleRT.position);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                rootCanvas.GetComponent<RectTransform>(), screenPt,
+                rootCanvas.worldCamera, out Vector2 localPos);
+
+            var ringGO  = new GameObject("ScoreRing_temp");
+            ringGO.transform.SetParent(rootCanvas.transform, false);
+            var ringImg = ringGO.AddComponent<Image>();
+            ringImg.color = new Color(0.78f, 0.67f, 0.43f, 0.75f); // gold
+
+            var rt = ringGO.GetComponent<RectTransform>();
+            rt.anchoredPosition = localPos;
+            rt.sizeDelta        = circleRT.sizeDelta;
+
+            StartCoroutine(ScoreRingRoutine(ringImg, rt));
+        }
+
+        private IEnumerator ScoreRingRoutine(Image ring, RectTransform rt)
+        {
+            if (ring == null || rt == null) yield break;
+            const float DUR = 2f;
+            float elapsed = 0f;
+            Vector3 initScale = rt.localScale;
+            Color initColor   = ring.color;
+
+            while (elapsed < DUR)
+            {
+                float t = elapsed / DUR;
+                rt.localScale = initScale * Mathf.Lerp(1f, 2.5f, t);
+                ring.color    = new Color(initColor.r, initColor.g, initColor.b,
+                                          Mathf.Lerp(initColor.a, 0f, t));
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+            Destroy(ring.gameObject);
+        }
+
+        // ── DEV-19: End-turn button persistent pulse ───────────────────────────
+
+        private void UpdateEndTurnPulse(bool active)
+        {
+            if (active == _endTurnPulseActive) return;
+            _endTurnPulseActive = active;
+
+            if (active)
+            {
+                if (_endTurnPulseCoroutine == null && _endTurnButton != null)
+                    _endTurnPulseCoroutine = StartCoroutine(EndTurnPulseRoutine());
+            }
+            else
+            {
+                if (_endTurnPulseCoroutine != null)
+                {
+                    StopCoroutine(_endTurnPulseCoroutine);
+                    _endTurnPulseCoroutine = null;
+                }
+                // Restore full opacity
+                if (_endTurnButton != null)
+                {
+                    var cg = _endTurnButton.GetComponent<CanvasGroup>();
+                    if (cg != null) cg.alpha = 1f;
+                }
+            }
+        }
+
+        private IEnumerator EndTurnPulseRoutine()
+        {
+            var cg = _endTurnButton.GetComponent<CanvasGroup>();
+            if (cg == null) cg = _endTurnButton.gameObject.AddComponent<CanvasGroup>();
+
+            const float PERIOD = 2f;
+            const float MIN_ALPHA = 0.60f;
+
+            while (true)
+            {
+                float elapsed = 0f;
+                // Fade dim
+                while (elapsed < PERIOD * 0.5f)
+                {
+                    cg.alpha = Mathf.Lerp(1f, MIN_ALPHA, elapsed / (PERIOD * 0.5f));
+                    elapsed += Time.deltaTime;
+                    yield return null;
+                }
+                elapsed = 0f;
+                // Fade bright
+                while (elapsed < PERIOD * 0.5f)
+                {
+                    cg.alpha = Mathf.Lerp(MIN_ALPHA, 1f, elapsed / (PERIOD * 0.5f));
+                    elapsed += Time.deltaTime;
+                    yield return null;
+                }
+            }
+        }
+
+        // ── DEV-19: Spell duel banner ─────────────────────────────────────────
+
+        private void OnDuelBannerHandler()
+        {
+            ShowBanner("⚡ 法术对决！");
+        }
+
+        // ── DEV-19: React button ribbon reveal ────────────────────────────────
+
+        /// <summary>
+        /// Called by GameManager when the React button transitions to active.
+        /// Plays a scale-X ribbon reveal animation on the button.
+        /// </summary>
+        public void PlayReactRibbonReveal(Button reactBtn)
+        {
+            if (reactBtn == null) return;
+            StartCoroutine(ReactRibbonRevealRoutine(reactBtn));
+        }
+
+        private IEnumerator ReactRibbonRevealRoutine(Button btn)
+        {
+            var rt = btn.GetComponent<RectTransform>();
+            if (rt == null) yield break;
+
+            Vector3 orig = rt.localScale;
+            Vector3 flat = new Vector3(0f, orig.y, orig.z);
+
+            const float REVEAL_DUR = 0.25f;
+            float elapsed = 0f;
+
+            rt.localScale = flat;
+            while (elapsed < REVEAL_DUR)
+            {
+                float t = elapsed / REVEAL_DUR;
+                rt.localScale = Vector3.Lerp(flat, orig, t);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+            rt.localScale = orig;
+
+            // Brief pulse after reveal (2 s period, 1 cycle)
+            const float PULSE_DUR = 2f;
+            elapsed = 0f;
+            while (elapsed < PULSE_DUR)
+            {
+                float t   = elapsed / PULSE_DUR;
+                float sin = Mathf.Sin(t * Mathf.PI * 2f); // one full cycle
+                rt.localScale = orig * (1f + sin * 0.06f);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+            rt.localScale = orig;
         }
 
         /// <summary>

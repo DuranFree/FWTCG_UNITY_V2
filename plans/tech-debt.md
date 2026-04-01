@@ -37,3 +37,7 @@
 - [ ] FloatText._pool 静态列表跨场景不清空 — _poolRoot 场景销毁后变成 null 引用，EnsurePool 需检测 destroyed 状态 — Phase DEV-18b（Claude 审查 Low）
 - [ ] EventBanner.DrainQueue 协程在 OnDisable 时不会停止 — 组件禁用后仍可能继续运行（本项目 EventBanner 不会被禁用，风险低）— Phase DEV-18b（Claude 审查 Low）
 - [ ] GameEventBus 测试中 lambda 退订写法无效 — Action 委托退订需保存引用，测试间若有残留订阅可能互相干扰（当前测试全绿，实际无影响）— Phase DEV-18b（Claude 审查 Medium）
+- [ ] AskPromptUI._cardViewPrefab 为 null 时 card-pick 模式静默跳过卡片渲染 — 功能降级但不崩溃，SceneBuilder 已连线 cardPrefab — Phase DEV-19（Codex Medium）
+- [ ] ScoreRingRoutine 使用 AddComponent 动态生成 ring Image — 大量快速得分时可积累多个同时运行，实际游戏节奏不触发 — Phase DEV-19（Codex Low）
+- [ ] GameUI.RefreshScoreTrack 多分得分时只动画最终圆圈 — 1分得分触发一次 pulse，多分时中间圆圈无动画 — Phase DEV-19（Codex Medium）
+- [ ] GameUI.NotifyReactButtonState 有空反应路径 — 仅调用 FireHintToast("")，未调用 PlayReactRibbonReveal（设计确认：ribbon reveal 由 GameManager 直接调用）— Phase DEV-19（Codex Low）

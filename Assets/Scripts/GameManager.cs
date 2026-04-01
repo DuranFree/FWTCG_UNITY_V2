@@ -970,6 +970,9 @@ namespace FWTCG
                 $"[法术] {spell.UnitName}{targetName}！⚡ AI响应中…");
             RefreshUI();
 
+            // DEV-19: fire duel banner as soon as we enter the reaction window
+            UI.GameEventBus.FireDuelBanner();
+
             await Task.Delay(GameRules.AI_ACTION_DELAY_MS);
             if (_gs.GameOver) { _aiReactionPending = false; return; }
 
@@ -1164,9 +1167,21 @@ namespace FWTCG
                 _ui.ShowMessage(msg);
                 _ui.Refresh(_gs);
 
+                // DEV-19: show "回合 N · 玩家/AI的回合" banner at the start of each turn
+                if (_gs.Phase == GameRules.PHASE_AWAKEN)
+                {
+                    string who = _gs.Turn == GameRules.OWNER_PLAYER ? "玩家" : "AI";
+                    _ui.ShowBanner($"回合 {_gs.Round + 1} · {who}的回合");
+                }
+
                 // Start/clear turn timer based on phase (DEV-10)
                 if (_gs.Phase == GameRules.PHASE_ACTION && _gs.Turn == GameRules.OWNER_PLAYER)
+                {
                     _ui.StartTurnTimer(OnTimerExpired);
+                    // DEV-19: ribbon reveal on react button when player action starts
+                    if (_reactBtn != null)
+                        _ui.PlayReactRibbonReveal(_reactBtn);
+                }
                 else
                     _ui.ClearTurnTimer();
             }

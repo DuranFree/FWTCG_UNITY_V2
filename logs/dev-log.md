@@ -2,6 +2,31 @@
 
 ---
 
+## DEV-19：UI 系统补全 — 2026-04-01
+
+**Status**: ✅ Completed
+**Tests**: 332/332 🟢
+
+**What was done**:
+
+- **AskPromptUI.cs（新建）** — 通用异步弹窗，支持卡片选择（`WaitForCardChoice`）和确认对话框（`WaitForConfirm`）两种模式，TaskCompletionSource 异步等待，Singleton MonoBehaviour。修复：重入弹窗先 cancel 旧 TCS；OnDestroy 解析所有挂起 Task，防止 awaiter 永久挂起。
+- **ScoreManager.cs** — 新增 `OnScoreAdded` 静态事件（owner, newScore），得分成功后 Fire，供 GameUI 触发得分脉冲。
+- **GameEventBus.cs** — 新增 `OnDuelBanner` 事件 + `FireDuelBanner()`，法术对决进入反应窗口时触发。
+- **GameUI.cs** — DEV-19 动画系统：
+  - 得分脉冲（`TriggerScorePulse` → `ScorePulseRoutine` scale 1→1.15→1，1.8s）
+  - 得分环扩散（`SpawnScoreRing` → `ScoreRingRoutine` scale 1→2.5 + alpha→0，自动 Destroy）
+  - 横幅 slide 动画（`BannerSlideRoutine`：Y -40→0 淡入 0.28s，停留 1.8s，Y +20 淡出 0.22s）
+  - 结束按钮常驻脉冲（`EndTurnPulseRoutine`：alpha 1↔0.6，2s 周期，UpdateEndTurnPulse 控制启停）
+  - 反应按钮 ribbon 展开（`PlayReactRibbonReveal`：scaleX 0→1 0.25s + 1 脉冲周期）
+  - `OnDuelBannerHandler` 订阅 GameEventBus.OnDuelBanner，显示"⚡ 法术对决！"
+- **GameManager.cs** — `HandlePhaseChanged` 在 AWAKEN 阶段 ShowBanner 显示"回合 N · 玩家/AI的回合"；ACTION 阶段触发 `PlayReactRibbonReveal`；`CastPlayerSpellWithReactionAsync` Fire `FireDuelBanner()`。
+- **SceneBuilder.cs** — 新增 `CreateAskPromptPanel`（全屏遮罩 + 标题/消息/卡片容器/确认取消按钮），AddComponent `AskPromptUI`，完整 SerializedObject 连线，`_askPromptUI` 连线到 GameUI。
+- **测试** — 新建 `DEV19UITests.cs`（18 tests）：AskPromptUI 单例/异步行为/重入取消、ScoreManager.OnScoreAdded 触发/跳过、GameEventBus.OnDuelBanner 触发、得分脉冲索引、回合横幅文本、react ribbon 条件、结束键脉冲条件。
+
+**Files changed**: `AskPromptUI.cs`（新建）、`DEV19UITests.cs`（新建）；`ScoreManager.cs`、`GameEventBus.cs`、`GameUI.cs`、`GameManager.cs`、`SceneBuilder.cs`（修改）
+
+---
+
 ## DEV-18b：全局事件反馈系统 — 2026-03-31
 
 **Status**: ✅ Completed

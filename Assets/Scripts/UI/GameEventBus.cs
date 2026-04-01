@@ -39,6 +39,13 @@ namespace FWTCG.UI
         /// </summary>
         public static event Action<string, float, bool> OnEventBanner;
 
+        // ── Spell duel banner (DEV-19) ────────────────────────────────────────
+        /// <summary>
+        /// Fired when a spell duel starts (player spell played + reaction window opens).
+        /// GameUI shows a prominent "⚡ 法术对决！" overlay banner.
+        /// </summary>
+        public static event Action OnDuelBanner;
+
         // ── Fire helpers ──────────────────────────────────────────────────────
 
         public static void FireUnitFloatText(UnitInstance unit, string text, Color color)
@@ -49,6 +56,9 @@ namespace FWTCG.UI
 
         public static void FireEventBanner(string text, float duration = 1.5f, bool large = false)
             => OnEventBanner?.Invoke(text, duration, large);
+
+        /// <summary>Fires the spell duel banner. Called when player's spell enters the duel window. DEV-19.</summary>
+        public static void FireDuelBanner() => OnDuelBanner?.Invoke();
 
         // ── Convenience: score float texts ───────────────────────────────────
 

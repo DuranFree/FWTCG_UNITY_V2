@@ -79,7 +79,7 @@
 - ✅ 战场卡牌展示（战场特殊卡的图片显示）— DEV-18（GameUI.UpdateBFCardArt Resources.Load）
 - [ ] 战斗触发特效（单位冲向对方 + 碰撞闪光）
 - ✅ 战斗冲击波（playCombatShockwave，中央扩散金色光环）— DEV-18（CombatAnimator.PlayShockwave 0.45s scale 0→1.5）
-- [ ] 征服动画（Duel Banner 横幅）
+- ✅ 征服/对决横幅动画（Duel Banner，FireDuelBanner → ShowBanner slide 动画）— DEV-19
 - ✅ 出牌时环境光闪烁（board-event-fade 0.85s）— DEV-18（GameUI.BoardFlashRoutine OnCardPlayed 事件驱动）
 
 ---
@@ -105,15 +105,15 @@
 ## 八、得分与状态 UI 动画
 
 - ✅ 得分圆圈（金色边框 + 颜色填充，9个圆圈0-8）— DEV-9
-- [ ] 玩家得分脉冲（绿色，1.8s scale 1→1.12）
-- [ ] 敌方得分脉冲（红色，1.8s）
-- [ ] 得分环扩散（score-ring-expand，2s scale 1→2.2）
-- [ ] 回合横幅动画（显示"回合 N · 你的回合"）
-- [ ] 法术对决横幅（showDuelBanner）
+- ✅ 玩家得分脉冲（绿色，1.8s scale 1→1.15，TriggerScorePulse + ScorePulseRoutine）— DEV-19
+- ✅ 敌方得分脉冲（红色，1.8s）— DEV-19
+- ✅ 得分环扩散（score-ring-expand，scale 1→2.5，alpha→0，SpawnScoreRing + ScoreRingRoutine）— DEV-19
+- ✅ 回合横幅动画（"回合 N · 你/AI的回合"，slide Y-40→0 0.28s + stay + slide out 0.22s）— DEV-19
+- ✅ 法术对决横幅（"⚡ 法术对决！"，FireDuelBanner → OnDuelBannerHandler → ShowBanner）— DEV-19
 - [ ] 阶段指示器脉冲（phase-pulse，3s）
 - [ ] 按钮光流效果（btn-charge 1.5s，悬停时激活）
-- [ ] 结束按钮常驻脉冲（btn-end-magic-pulse 2s，有可操作时）
-- [ ] 反应按钮 ribbon 展开动画（ribbon-reveal 0.25s + react-ribbon-pulse 2s）
+- ✅ 结束按钮常驻脉冲（btn-end-magic-pulse 2s，有可操作时，EndTurnPulseRoutine alpha 1↔0.6）— DEV-19
+- ✅ 反应按钮 ribbon 展开动画（ribbon-reveal scaleX 0→1 0.25s + react-ribbon-pulse 2s）— DEV-19
 
 ---
 
