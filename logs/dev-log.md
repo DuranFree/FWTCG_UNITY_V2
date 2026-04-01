@@ -7,6 +7,22 @@
 **Status**: ✅ Completed
 **Tests**: 385/385 🟢（MCP EditMode 全绿）
 
+### Codex 审查修复（2026-04-01）
+
+**HIGH #1 已修复 — TryPlayUnitAsync 事后重验证**:
+- await Haste 弹窗后新增完整状态重验证（H-5）
+- 检查：GameOver / 回合/阶段 / hand membership / PMana / Sch
+- useHaste 资源再验证：若 await 期间资源被花掉，静默降级为休眠进场
+- 参考模式：PlayHandCardWithRuneConfirmAsync 的 H-4 验证块
+
+**HIGH #2 设计确认 — Swift 时机延迟**:
+- Swift 时机（法术对决期间可打出）需要 4 状态回合状态机
+- 已在两处 spell-duel 筛选处加 `// DEV-27 TODO` 注释
+- 记入 tech-debt，归入 DEV-27
+
+**LOW — 测试覆盖**:
+- 记入 tech-debt，待 DEV-27 一起补
+
 ### 实现内容
 
 **CardKeyword.cs**:

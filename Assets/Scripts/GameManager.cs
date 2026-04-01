@@ -946,6 +946,31 @@ namespace FWTCG
                 }
             }
 
+            // H-5: Re-validate after async Haste prompt — turn/resources may have changed
+            if (_gs == null || _gs.GameOver) return;
+            if (_gs.Turn != GameRules.OWNER_PLAYER || _gs.Phase != GameRules.PHASE_ACTION) return;
+            if (!_gs.PHand.Contains(unit)) return;
+            if (_gs.PMana < unit.CardData.Cost)
+            {
+                ShowPlayError("[提示] 资源状态已变更，操作已取消", unit);
+                _selectedUnit = null;
+                return;
+            }
+            if (unit.CardData.RuneCost > 0 &&
+                _gs.GetSch(GameRules.OWNER_PLAYER, unit.CardData.RuneType) < unit.CardData.RuneCost)
+            {
+                ShowPlayError("[提示] 资源状态已变更，操作已取消", unit);
+                _selectedUnit = null;
+                return;
+            }
+            // If Haste was chosen, re-verify extra cost is still affordable; downgrade silently if not
+            if (useHaste)
+            {
+                bool stillCanAffordHaste = _gs.PMana >= unit.CardData.Cost + 1 &&
+                    _gs.GetSch(GameRules.OWNER_PLAYER, unit.CardData.RuneType) >= unit.CardData.RuneCost + 1;
+                if (!stillCanAffordHaste) useHaste = false;
+            }
+
             _gs.PHand.Remove(unit);
             _gs.PBase.Add(unit);
             _gs.PMana -= unit.CardData.Cost;
@@ -1229,6 +1254,7 @@ namespace FWTCG
             if (_reactiveSys == null) return false;
 
             // Collect AI's affordable reactive cards
+            // DEV-27 TODO: Also include CardKeyword.Swift here once 4-state turn model is implemented (Rule 718)
             var reactives = new System.Collections.Generic.List<UnitInstance>();
             foreach (var c in _gs.EHand)
             {
@@ -1464,6 +1490,7 @@ namespace FWTCG
             UI.GameEventBus.FireClearBanners();
 
             // Collect affordable reactive spells from player hand (including via rune auto-consume)
+            // DEV-27 TODO: Also include CardKeyword.Swift here once 4-state turn model is implemented (Rule 718)
             var reactives = new List<UnitInstance>();
             foreach (var c in _gs.PHand)
             {
