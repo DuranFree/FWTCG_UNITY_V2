@@ -132,15 +132,15 @@ namespace FWTCG.Tests.EditMode
         }
 
         [Test]
-        public void UnitInstance_EffectiveAtk_NeverBelowOne()
+        public void UnitInstance_EffectiveAtk_NeverBelowZero()
         {
             CardData data = MakeCardData("WeakUnit", 1, 1);
             var gs = MakeGameState();
             UnitInstance unit = gs.MakeUnit(data, GameRules.OWNER_PLAYER);
 
             unit.CurrentAtk = -5; // Extreme debuff
-            Assert.AreEqual(1, unit.EffectiveAtk(),
-                "EffectiveAtk must return at least 1");
+            Assert.AreEqual(0, unit.EffectiveAtk(),
+                "Rule 139.2: EffectiveAtk floor is 0, not 1");
         }
 
         // ── Tests: Hand (no limit) ────────────────────────────────────────────

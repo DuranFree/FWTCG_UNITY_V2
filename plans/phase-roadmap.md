@@ -666,6 +666,7 @@
 | BF卡 SceneBuilder 缺 CardData asset | DEV-6 | Low |
 | 入场 Foil Sweep 未实现 | DEV-8 | Low |
 | kaisa_legend/yi_legend 缺卡图 | DEV-10 | Low |
+| 预知 UI（查看牌库顶+选择回收，Rule 729） | DEV-6 简化 | Medium |
 | *(执行时以 tech-debt.md 当前内容为准，此处为预估)* | — | — |
 
 ---

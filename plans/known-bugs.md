@@ -17,3 +17,5 @@
 - ✅ SpellTargetPopup coroutine inactive 同类问题 — 已修复：同上 CanvasGroup 方案 — 发现于 DEV-16c
 - ✅ CardView 重复 Unit 属性编译错误 — 已修复：移除行39的重复定义，保留行299原有属性 — 发现于 DEV-16b
 - ✅ AI 不出单位牌（符能被提前耗尽）— 已修复：AiRecycleRunes 跳过本回合法力不足的卡牌，防止无意义的 sch 预消耗 — 发现于 DEV-16c
+- ✅ EffectiveAtk 最小值为 1 而非 0 — 已修复：Mathf.Max(1,…) 改为 Mathf.Max(0,…)，符合 Rule 139.2 — 发现于规则对比，修复于 DEV-25b patch
+- ✅ 游走关键词检查缺失 — 已修复：OnBattlefieldClicked 移动前加 HasKeyword(Roam) 检查，无游走单位无法跨战场 — 发现于规则对比，修复于 DEV-25b patch

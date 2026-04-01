@@ -557,6 +557,15 @@ namespace FWTCG
             // ── Single BF unit move (to different BF) ──
             if (_selectedUnit != null && _selectedUnitLoc != null && _selectedUnitLoc != "base")
             {
+                // Rule 722: only units with Roam keyword can move between battlefields
+                if (!_selectedUnit.CardData.HasKeyword(CardKeyword.Roam))
+                {
+                    TurnManager.BroadcastMessage_Static($"[提示] {_selectedUnit.UnitName} 没有游走，无法移动到其他战场");
+                    _selectedUnit = null;
+                    _selectedUnitLoc = null;
+                    return;
+                }
+
                 if (_selectedUnit.Exhausted)
                 {
                     TurnManager.BroadcastMessage_Static($"[提示] {_selectedUnit.UnitName} 已休眠，无法移动");

@@ -49,3 +49,4 @@
 - [ ] SpellVFX.BurstParticles/LegendFlame 协程被中断时粒子 GO 泄漏 — OnDestroy 时若协程仍运行，已创建的 Image GO 无法被 Destroy 回收；低风险（SpellVFX 生命周期与场景同步）— Phase DEV-21（Codex Medium）
 - [ ] Swift 关键词仅数据/UI层，法术对决实际判断仍只看 Reactive — 完整实现需 DEV-27 4状态回合状态机（Rule 718），两处 spell-duel 筛选已加 DEV-27 TODO 注释 — Phase DEV-25b（Codex High → 设计已知，延迟到 DEV-27）
 - [ ] TryPlayUnitAsync 缺少 Haste prompt 的行为测试 — 仅有枚举计数测试，缺 Haste confirm/cancel/资源不足/状态变更后回退流程测试 — Phase DEV-25b（Codex Low）
+- [ ] 预知 UI 未实现（Rule 729）— foresight_mech_enter 只打日志，缺查看牌库顶+选择回收的弹窗 — Phase DEV-26
