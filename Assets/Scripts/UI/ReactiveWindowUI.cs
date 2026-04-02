@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -10,29 +11,54 @@ namespace FWTCG.UI
     /// Reaction window: shown when the player clicks the React button.
     /// Displays the player's reactive cards in hand.
     /// The player MUST select one card — there is no pass/cancel option.
+    /// Auto-times out after REACTION_TIMEOUT seconds (SkipReaction called).
     ///
     /// Uses TaskCompletionSource for async/await integration.
     /// Returns the chosen card. Auto-completes with null if no cards provided.
     /// </summary>
     public class ReactiveWindowUI : MonoBehaviour
     {
-        [SerializeField] private GameObject _panel;
-        [SerializeField] private Text _contextText;
-        [SerializeField] private Transform _cardContainer;
-        [SerializeField] private GameObject _cardViewPrefab;
+        [SerializeField] private GameObject    _panel;
+        [SerializeField] private Text          _contextText;
+        [SerializeField] private Transform     _cardContainer;
+        [SerializeField] private GameObject    _cardViewPrefab;
+        [SerializeField] private Image         _countdownFill;  // Radial360 clock fill
+        [SerializeField] private Text          _countdownText;  // seconds label
+
+        private const float REACTION_TIMEOUT = 15f;
 
         private TaskCompletionSource<UnitInstance> _tcs;
         private readonly List<CardView> _cardViews = new List<CardView>();
+        private List<UnitInstance> _pendingCards;
+        private Coroutine _countdownRoutine;
+        private GameState _gs;
 
         private void Awake()
         {
             if (_panel != null) _panel.SetActive(false);
         }
 
+        private void OnEnable()  { GameEventBus.OnClearBanners += AutoPlayRandom; }
+        private void OnDisable() { GameEventBus.OnClearBanners -= AutoPlayRandom; }
+
         private void OnDestroy()
         {
             // H-3: Cancel any pending awaiter when the window is destroyed mid-flow
             _tcs?.TrySetCanceled();
+        }
+
+        /// <summary>
+        /// Called on turn change: must play a random card — reactive cards cannot be skipped.
+        /// </summary>
+        private void AutoPlayRandom()
+        {
+            if (_tcs == null || _tcs.Task.IsCompleted) return;
+            if (_pendingCards == null || _pendingCards.Count == 0) { SkipReaction(); return; }
+            var chosen = _pendingCards[UnityEngine.Random.Range(0, _pendingCards.Count)];
+            // H-2: guard — card must still be in hand (state may have changed since window opened)
+            if (_gs != null && !_gs.PHand.Contains(chosen)) { SkipReaction(); return; }
+            HidePanel();
+            _tcs.TrySetResult(chosen);
         }
 
         // ── Public API ────────────────────────────────────────────────────────
@@ -53,6 +79,8 @@ namespace FWTCG.UI
         {
             _tcs = new TaskCompletionSource<UnitInstance>();
             _cardViews.Clear();
+            _pendingCards = cards != null ? new List<UnitInstance>(cards) : null;
+            _gs = gs;
 
             // Update context text
             if (_contextText != null)
@@ -96,6 +124,10 @@ namespace FWTCG.UI
             // Show the panel (no pass button — player must pick)
             if (_panel != null) _panel.SetActive(true);
 
+            // Start countdown
+            if (_countdownRoutine != null) StopCoroutine(_countdownRoutine);
+            _countdownRoutine = StartCoroutine(CountdownRoutine());
+
             return _tcs.Task;
         }
 
@@ -112,6 +144,26 @@ namespace FWTCG.UI
             }
         }
 
+        // ── Countdown ─────────────────────────────────────────────────────────
+
+        private IEnumerator CountdownRoutine()
+        {
+            float remaining = REACTION_TIMEOUT;
+            while (remaining > 0f)
+            {
+                remaining -= Time.deltaTime;
+                float t = Mathf.Clamp01(remaining / REACTION_TIMEOUT);
+                if (_countdownFill != null)  _countdownFill.fillAmount = t;
+                if (_countdownText != null)  _countdownText.text = Mathf.CeilToInt(remaining).ToString();
+                yield return null;
+            }
+            // Time's up → auto-skip
+            if (_countdownFill != null) _countdownFill.fillAmount = 0f;
+            if (_countdownText != null) _countdownText.text = "0";
+            _countdownRoutine = null;
+            SkipReaction();
+        }
+
         // ── Private callbacks ─────────────────────────────────────────────────
 
         private void OnCardClicked(UnitInstance card)
@@ -122,6 +174,11 @@ namespace FWTCG.UI
 
         private void HidePanel()
         {
+            if (_countdownRoutine != null)
+            {
+                StopCoroutine(_countdownRoutine);
+                _countdownRoutine = null;
+            }
             if (_panel != null) _panel.SetActive(false);
 
             if (_cardContainer != null)

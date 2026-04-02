@@ -214,6 +214,7 @@ namespace FWTCG.UI
         private System.Collections.Generic.HashSet<int> _runeHighlightTap     = new System.Collections.Generic.HashSet<int>();
         private System.Collections.Generic.HashSet<int> _runeHighlightRecycle = new System.Collections.Generic.HashSet<int>();
         private Coroutine _runeHighlightPulseCoroutine;
+        private System.Action _pendingEquipOnDone; // H-1: unblocks tcs2 if GameUI destroyed mid-animation
 
         // ── Message log state ─────────────────────────────────────────────────
         private const int MAX_MESSAGES = 5;
@@ -291,6 +292,10 @@ namespace FWTCG.UI
             CardDragHandler.BaseZoneRT = null;
             CardDragHandler.Bf1ZoneRT  = null;
             CardDragHandler.Bf2ZoneRT  = null;
+            // H-1: unblock any pending equip-fly awaiter so ActivateEquipmentAsync doesn't hang
+            var cb = _pendingEquipOnDone;
+            _pendingEquipOnDone = null;
+            cb?.Invoke();
         }
 
         // ── Card shake on play failure ────────────────────────────────────────
@@ -804,7 +809,7 @@ namespace FWTCG.UI
                 if (kv.Value > 0)
                 {
                     if (any) sb.Append(" | ");
-                    sb.Append($"{RuneTypeShortName(kv.Key)}×{kv.Value}");
+                    sb.Append($"{kv.Key.ToShort()}×{kv.Value}");
                     any = true;
                 }
             }
@@ -875,6 +880,7 @@ namespace FWTCG.UI
             entry.callback.AddListener((data) =>
             {
                 if (CardDragHandler.BlockPointerEvents) return;
+                if (Input.GetMouseButton(0)) return;
                 var pd = (UnityEngine.EventSystems.PointerEventData)data;
                 if (pd.button == UnityEngine.EventSystems.PointerEventData.InputButton.Right)
                 {
@@ -1001,6 +1007,7 @@ namespace FWTCG.UI
                 entry.callback.AddListener((data) =>
                 {
                     if (CardDragHandler.BlockPointerEvents) return;
+                    if (Input.GetMouseButton(0)) return;
                     var pointerData = (UnityEngine.EventSystems.PointerEventData)data;
                     if (pointerData.button == UnityEngine.EventSystems.PointerEventData.InputButton.Right)
                     {
@@ -1317,7 +1324,7 @@ namespace FWTCG.UI
                         Text label = labelT.GetComponent<Text>();
                         if (label != null)
                         {
-                            label.text = r.Tapped ? "横" : RuneTypeShortName(r.RuneType);
+                            label.text = r.Tapped ? "横" : r.RuneType.ToShort();
                             label.color = Color.white;
                         }
                     }
@@ -1335,6 +1342,7 @@ namespace FWTCG.UI
                         int capturedRecycleIdx = idx;
                         entry.callback.AddListener((data) =>
                         {
+                            if (Input.GetMouseButton(0)) return;
                             var pd = (UnityEngine.EventSystems.PointerEventData)data;
                             if (pd.button == UnityEngine.EventSystems.PointerEventData.InputButton.Right)
                                 _onRuneClicked?.Invoke(capturedRecycleIdx, true);
@@ -1959,19 +1967,7 @@ namespace FWTCG.UI
             return "无人控制";
         }
 
-        private string RuneTypeShortName(RuneType rt)
-        {
-            switch (rt)
-            {
-                case RuneType.Blazing: return "炽";
-                case RuneType.Radiant: return "灵";
-                case RuneType.Verdant: return "翠";
-                case RuneType.Crushing: return "摧";
-                case RuneType.Chaos: return "混";
-                case RuneType.Order: return "序";
-                default: return rt.ToString();
-            }
-        }
+
 
         private Button FindChildButton(GameObject parent, string name)
         {
@@ -2236,6 +2232,100 @@ namespace FWTCG.UI
             // Hide the old RuneTypeText that was directly on prefab root (if any)
             Transform oldLabel = runeGo.transform.Find("RuneTypeText");
             if (oldLabel != null) oldLabel.gameObject.SetActive(false);
+        }
+
+        // ── Equipment card activation animations ─────────────────────────────
+
+        /// <summary>
+        /// Hides the CardView for an equipment card in base and returns its canvas-local position.
+        /// Call before showing the target-selection popup.
+        /// </summary>
+        public Vector2 HideEquipCardInBase(FWTCG.Core.UnitInstance equip)
+        {
+            var cv = FindCardView(equip);
+            if (cv == null) return Vector2.zero;
+            var cg = cv.GetComponent<CanvasGroup>();
+            if (cg == null) cg = cv.gameObject.AddComponent<CanvasGroup>();
+            cg.alpha = 0f;
+            return RectTransformToCanvasLocal(cv.GetComponent<RectTransform>());
+        }
+
+        /// <summary>
+        /// Restores the CardView alpha for equipment still in base (cancel case).
+        /// </summary>
+        public void RestoreEquipCardInBase(FWTCG.Core.UnitInstance equip)
+        {
+            var cv = FindCardView(equip);
+            if (cv == null) return;
+            var cg = cv.GetComponent<CanvasGroup>();
+            if (cg != null) cg.alpha = 1f;
+        }
+
+        /// <summary>
+        /// Spawns a ghost card that flies from fromCanvasPos to a target unit's CardView,
+        /// then calls onDone when complete.
+        /// </summary>
+        public void AnimateEquipFlyToUnit(Vector2 fromCanvasPos, FWTCG.Core.UnitInstance target,
+                                          System.Action onDone)
+        {
+            var targetCV = FindCardView(target);
+            Vector2 toPos = targetCV != null
+                ? RectTransformToCanvasLocal(targetCV.GetComponent<RectTransform>())
+                : Vector2.zero;
+            StartCoroutine(EquipFlyRoutine(fromCanvasPos, toPos, onDone));
+        }
+
+        /// <summary>
+        /// Spawns a ghost card that flies from fromCanvasPos back to basePos, then calls onDone.
+        /// </summary>
+        public void AnimateEquipFlyToBase(Vector2 fromCanvasPos, Vector2 basePos,
+                                          System.Action onDone)
+        {
+            StartCoroutine(EquipFlyRoutine(fromCanvasPos, basePos, onDone));
+        }
+
+        /// <summary>Convert any RectTransform's centre to canvas-root local coords.</summary>
+        private Vector2 RectTransformToCanvasLocal(RectTransform rt)
+        {
+            if (rt == null || _rootCanvas == null) return Vector2.zero;
+            Camera cam = _rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay
+                ? null : _rootCanvas.worldCamera;
+            Vector2 screenPoint = RectTransformUtility.WorldToScreenPoint(cam, rt.position);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                _rootCanvas.GetComponent<RectTransform>(), screenPoint, cam, out Vector2 local);
+            return local;
+        }
+
+        private IEnumerator EquipFlyRoutine(Vector2 from, Vector2 to, System.Action onDone)
+        {
+            _pendingEquipOnDone = onDone;
+            if (_rootCanvas == null) { _pendingEquipOnDone = null; onDone?.Invoke(); yield break; }
+
+            var ghost = new GameObject("EquipFlyGhost");
+            ghost.transform.SetParent(_rootCanvas.transform, false);
+            var ghostRT = ghost.AddComponent<RectTransform>();
+            ghostRT.sizeDelta = new Vector2(80f, 112f);
+            ghostRT.anchoredPosition = from;
+
+            var img = ghost.AddComponent<Image>();
+            img.color = new Color(0.85f, 0.75f, 0.25f, 0.85f); // gold ghost
+
+            var cg = ghost.AddComponent<CanvasGroup>();
+
+            const float dur = 0.35f;
+            float t = 0f;
+            while (t < dur)
+            {
+                t += Time.unscaledDeltaTime;
+                float p = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t / dur));
+                ghostRT.anchoredPosition = Vector2.Lerp(from, to, p);
+                cg.alpha = 1f - p * 0.3f; // slight fade toward end
+                yield return null;
+            }
+
+            Destroy(ghost);
+            _pendingEquipOnDone = null;
+            onDone?.Invoke();
         }
     }
 }

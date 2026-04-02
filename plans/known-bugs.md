@@ -19,3 +19,10 @@
 - ✅ AI 不出单位牌（符能被提前耗尽）— 已修复：AiRecycleRunes 跳过本回合法力不足的卡牌，防止无意义的 sch 预消耗 — 发现于 DEV-16c
 - ✅ EffectiveAtk 最小值为 1 而非 0 — 已修复：Mathf.Max(1,…) 改为 Mathf.Max(0,…)，符合 Rule 139.2 — 发现于规则对比，修复于 DEV-25b patch
 - ✅ 游走关键词检查缺失 — 已修复：OnBattlefieldClicked 移动前加 HasKeyword(Roam) 检查，无游走单位无法跨战场 — 发现于规则对比，修复于 DEV-25b patch
+- ✅ 装备弹窗出现时卡牌提前弹回 — 已修复：SpellTargetPopup.IsShowing 静态标志，DropFlowRoutine 等待弹窗关闭后再执行弹回动画 — 发现于 DEV-22
+- ✅ 装备飞行动画落点错误 — 已修复：RectTransformToCanvasLocal() 统一转换所有位置到 canvas-root 局部坐标系 — 发现于 DEV-22
+- ✅ RefreshUI 覆盖 HideEquipCardInBase 的 alpha 设置 — 已修复：ActivateEquipmentAsync 先 RefreshUI 后 HideEquipCardInBase — 发现于 DEV-22
+- ✅ 弹窗回合结束未自动关闭 — 已修复：SpellTargetPopup/AskPromptUI 订阅 GameEventBus.OnClearBanners，ReactiveWindowUI 随机出牌 — 发现于 DEV-22
+- ✅ 符文类型显示英文 — 已修复：RuneTypeExtensions.ToChinese/ToColoredText()，所有用户提示改用彩色中文 — 发现于 DEV-22
+- ✅ EquipFlyRoutine onDone 挂起（GameUI 销毁）— 已修复：_pendingEquipOnDone 字段，OnDestroy 调用回调解锁 tcs2 — 发现于 DEV-22 Codex H-1
+- ✅ _statusTooltip 泄漏（CardView 销毁）— 已修复：CardView.OnDestroy 销毁 _statusTooltip — 发现于 DEV-22 Codex H-3

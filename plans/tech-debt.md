@@ -54,3 +54,4 @@
 - [ ] CardDragHandler: HandleDrop 未在 drop 时重验证游戏状态（GameManager 回调内部已验证，深度防御待补）— Phase DEV-22（Codex Medium）
 - [ ] CardDragHandler: GatherCluster 中对每个选中单位各调用一次 FindObjectsOfType，应由 GameUI 维护 UnitInstance→CardView 查找表 — Phase DEV-22（Codex Medium）
 - [ ] DEV-22 测试套件以常量断言为主，缺 HandleDrop 路径、CanStartDrag false、ghost 清理等行为测试 — Phase DEV-22（Codex Low）
+- [ ] ReactiveWindowUI._gs 仅在 WaitForReaction 时更新，AutoPlayRandom guard 仅能防止失效卡；若需更严格防御应在 SkipReaction 前遍历 _pendingCards — Phase DEV-22 patch（Codex Low）

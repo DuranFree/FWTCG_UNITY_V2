@@ -52,6 +52,11 @@ namespace FWTCG.UI
         private Coroutine _death;
         private CardGlow _cardGlow;
 
+        // ── Status badges (buff ▲ / debuff ▼) ───────────────────────────────
+        private GameObject _buffBadge;
+        private GameObject _debuffBadge;
+        private GameObject _statusTooltip;   // shared one-at-a-time tooltip panel
+
         // ── Selection lift + float animation ────────────────────────────────
         private bool      _isLifted;
         private Coroutine _liftFloat;
@@ -128,6 +133,8 @@ namespace FWTCG.UI
             if (_stunPulse    != null) StopCoroutine(_stunPulse);
             if (_liftFloat    != null) StopCoroutine(_liftFloat);
             if (_returnToRest != null) StopCoroutine(_returnToRest);
+            // H-3: destroy floating tooltip to prevent canvas leak when card is removed
+            if (_statusTooltip != null) { Destroy(_statusTooltip); _statusTooltip = null; }
         }
 
         public void Setup(UnitInstance unit, bool isPlayerCard, Action<UnitInstance> onClick,
@@ -168,6 +175,7 @@ namespace FWTCG.UI
             if (CardDragHandler.BlockPointerEvents) return;
             if (eventData.button == PointerEventData.InputButton.Right)
             {
+                if (Input.GetMouseButton(0)) return;
                 if (_unit != null && _onRightClick != null && !_faceDown)
                     _onRightClick(_unit);
             }
@@ -282,14 +290,11 @@ namespace FWTCG.UI
                     _cardGlow.SetPlayable(false);
             }
 
-            // Buff token indicator
-            if (_buffTokenIcon != null)
-            {
-                bool hasBuff = _unit.BuffTokens > 0;
-                _buffTokenIcon.SetActive(hasBuff);
-                if (hasBuff && _buffTokenText != null)
-                    _buffTokenText.text = $"+{_unit.BuffTokens}";
-            }
+            // Buff token indicator (legacy icon — kept for backward compat)
+            if (_buffTokenIcon != null) _buffTokenIcon.SetActive(false);
+
+            // Status badges: ▲ buff (left-bottom) and ▼ debuff (right-bottom)
+            RefreshStatusBadges();
 
             // Schematic (rune) cost display
             if (_schCostText != null && _schCostBg != null)
@@ -420,6 +425,7 @@ namespace FWTCG.UI
 
         private void HandleClick()
         {
+            if (CardDragHandler.BlockPointerEvents) return;
             if (_unit != null && _onClick != null)
                 _onClick(_unit);
         }
@@ -499,6 +505,185 @@ namespace FWTCG.UI
         {
             if (_death != null) return;
             _death = StartCoroutine(DeathRoutine());
+        }
+
+        // ── Status badge logic ────────────────────────────────────────────────
+
+        private void RefreshStatusBadges()
+        {
+            if (_unit == null || _faceDown) { HideBadges(); return; }
+
+            // Only show badges on in-play cards (base/BF), not hand cards
+            bool inPlay = !_unit.CardData.IsSpell && !_unit.CardData.IsEquipment;
+            if (!inPlay && _unit.AttachedTo == null) { HideBadges(); return; }
+
+            bool showBuff   = _unit.HasBuff;
+            bool showDebuff = _unit.HasDebuff;
+
+            if (showBuff)
+            {
+                if (_buffBadge == null) _buffBadge = CreateBadge("▲", GameColors.PlayerGreen, new Vector2(-14f, 14f));
+                _buffBadge.SetActive(true);
+            }
+            else if (_buffBadge != null) _buffBadge.SetActive(false);
+
+            if (showDebuff)
+            {
+                if (_debuffBadge == null) _debuffBadge = CreateBadge("▼", GameColors.EnemyRed, new Vector2(14f, 14f));
+                _debuffBadge.SetActive(true);
+            }
+            else if (_debuffBadge != null) _debuffBadge.SetActive(false);
+        }
+
+        private void HideBadges()
+        {
+            if (_buffBadge   != null) _buffBadge.SetActive(false);
+            if (_debuffBadge != null) _debuffBadge.SetActive(false);
+        }
+
+        private GameObject CreateBadge(string symbol, Color color, Vector2 anchorOffset)
+        {
+            var go = new GameObject("StatusBadge_" + symbol);
+            go.transform.SetParent(transform, false);
+
+            var rt = go.AddComponent<RectTransform>();
+            rt.sizeDelta        = new Vector2(18f, 18f);
+            rt.anchorMin        = new Vector2(0.5f, 0f);
+            rt.anchorMax        = new Vector2(0.5f, 0f);
+            rt.pivot            = new Vector2(0.5f, 0f);
+            rt.anchoredPosition = anchorOffset;
+
+            var bg = go.AddComponent<Image>();
+            bg.color = new Color(0f, 0f, 0f, 0.65f);
+
+            var txt = new GameObject("Sym").AddComponent<Text>();
+            txt.transform.SetParent(go.transform, false);
+            var txtRT = txt.GetComponent<RectTransform>();
+            txtRT.anchorMin = Vector2.zero;
+            txtRT.anchorMax = Vector2.one;
+            txtRT.offsetMin = txtRT.offsetMax = Vector2.zero;
+            txt.text      = symbol;
+            txt.fontSize  = 10;
+            txt.color     = color;
+            txt.alignment = TextAnchor.MiddleCenter;
+            txt.font      = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf")
+                         ?? Resources.GetBuiltinResource<Font>("Arial.ttf");
+            txt.raycastTarget = false;
+
+            // Right-click handler on badge
+            var trigger = go.AddComponent<UnityEngine.EventSystems.EventTrigger>();
+            var entry   = new UnityEngine.EventSystems.EventTrigger.Entry();
+            entry.eventID = UnityEngine.EventSystems.EventTriggerType.PointerClick;
+            entry.callback.AddListener(data =>
+            {
+                var ped = (UnityEngine.EventSystems.PointerEventData)data;
+                if (ped.button == UnityEngine.EventSystems.PointerEventData.InputButton.Right)
+                    ShowStatusTooltip();
+            });
+            trigger.triggers.Add(entry);
+
+            return go;
+        }
+
+        private void ShowStatusTooltip()
+        {
+            if (_unit == null) return;
+
+            // Dismiss existing tooltip if same card
+            if (_statusTooltip != null) { Destroy(_statusTooltip); _statusTooltip = null; return; }
+
+            // Find root canvas
+            Canvas rootCanvas = GetComponentInParent<Canvas>();
+            if (rootCanvas == null) return;
+
+            var go = new GameObject("StatusTooltip");
+            go.transform.SetParent(rootCanvas.transform, false);
+            _statusTooltip = go;
+
+            var rt = go.AddComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(200f, 0f); // height auto via VLG
+
+            var bg = go.AddComponent<Image>();
+            bg.color = new Color(0.04f, 0.08f, 0.18f, 0.96f);
+
+            // Position: above the card
+            var cardRT = (RectTransform)transform;
+            Vector2 cardPos;
+            UnityEngine.RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                rootCanvas.GetComponent<RectTransform>(),
+                UnityEngine.RectTransformUtility.WorldToScreenPoint(rootCanvas.worldCamera, cardRT.position),
+                rootCanvas.renderMode == UnityEngine.RenderMode.ScreenSpaceOverlay ? null : rootCanvas.worldCamera,
+                out cardPos);
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot     = new Vector2(0.5f, 0f);
+            rt.anchoredPosition = cardPos + new Vector2(0f, cardRT.rect.height * 0.5f + 8f);
+
+            var vlg = go.AddComponent<UnityEngine.UI.VerticalLayoutGroup>();
+            vlg.padding  = new UnityEngine.RectOffset(8, 8, 6, 6);
+            vlg.spacing  = 4f;
+            vlg.childForceExpandWidth  = true;
+            vlg.childForceExpandHeight = false;
+            go.AddComponent<UnityEngine.UI.ContentSizeFitter>().verticalFit =
+                UnityEngine.UI.ContentSizeFitter.FitMode.PreferredSize;
+
+            // Buff section
+            if (_unit.HasBuff)
+                AddTooltipRow(go.transform, "▲ 强化", _unit.BuildBuffSummary(), GameColors.PlayerGreen);
+
+            // Debuff section
+            if (_unit.HasDebuff)
+                AddTooltipRow(go.transform, "▼ 削弱", _unit.BuildDebuffSummary(), GameColors.EnemyRed);
+
+            // Auto-destroy on next click anywhere
+            StartCoroutine(AutoDismissTooltip());
+        }
+
+        private void AddTooltipRow(Transform parent, string header, string body, Color headerColor)
+        {
+            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf")
+                    ?? Resources.GetBuiltinResource<Font>("Arial.ttf");
+
+            // Header
+            var hgo  = new GameObject("H");
+            hgo.transform.SetParent(parent, false);
+            hgo.AddComponent<UnityEngine.UI.LayoutElement>().minHeight = 16f;
+            var htxt = hgo.AddComponent<Text>();
+            htxt.text      = header;
+            htxt.font      = font;
+            htxt.fontSize  = 12;
+            htxt.fontStyle = FontStyle.Bold;
+            htxt.color     = headerColor;
+            htxt.raycastTarget = false;
+
+            // Body
+            var bgo  = new GameObject("B");
+            bgo.transform.SetParent(parent, false);
+            var ble = bgo.AddComponent<UnityEngine.UI.LayoutElement>();
+            ble.minHeight = 14f;
+            var btxt = bgo.AddComponent<Text>();
+            btxt.text             = body;
+            btxt.font             = font;
+            btxt.fontSize         = 11;
+            btxt.color            = new Color(0.82f, 0.82f, 0.82f, 1f);
+            btxt.horizontalOverflow = HorizontalWrapMode.Wrap;
+            btxt.verticalOverflow   = VerticalWrapMode.Overflow;
+            btxt.raycastTarget      = false;
+        }
+
+        private IEnumerator AutoDismissTooltip()
+        {
+            // Wait one frame so the click that opened it doesn't immediately close it
+            yield return null;
+            while (_statusTooltip != null)
+            {
+                if (UnityEngine.Input.GetMouseButtonDown(0) ||
+                    UnityEngine.Input.GetMouseButtonDown(1))
+                {
+                    if (_statusTooltip != null) { Destroy(_statusTooltip); _statusTooltip = null; }
+                    yield break;
+                }
+                yield return null;
+            }
         }
 
         private IEnumerator DeathRoutine()

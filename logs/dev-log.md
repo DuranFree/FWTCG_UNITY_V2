@@ -35,6 +35,45 @@
 - M-2: HandleDrop 未在 drop 时重验证游戏状态（GameManager 回调内部已验证，深度防御待补）
 - M-4: GatherCluster 中 FindObjectsOfType 多次调用，待 GameUI 维护 UnitInstance→CardView 查找表
 
+## DEV-22 补丁：装备 UX + Buff 徽章 + 弹窗超时 — 2026-04-02
+
+**Status**: ✅ Completed
+**Tests**: 编译全绿（1 个预存警告，与本次无关）
+
+### 实现内容
+
+**装备牌双阶段流程**：
+- 手牌→基地（TryDeployEquipmentToBase：扣费/加入 PBase/按 Standby 关键词决定是否休眠）
+- 基地→附着（ActivateEquipmentAsync：RefreshUI → HideEquipCardInBase → SpellTargetPopup 选目标 → 飞行动画）
+- 装备卡隐藏（alpha=0）等待选择完成，确认飞向目标单位，取消飞回基地原位
+- 坐标系修正：RectTransformToCanvasLocal() 将任意 RectTransform 中心转换为 canvas-root 局部坐标
+
+**符文彩色文字**：
+- RuneTypeExtensions.ToChinese() / ToShort() / ToColoredText() 集中管理
+- 所有用户可见提示（法力不足/符能不足/拖拽 toast）统一改用 ToColoredText()
+- ToastUI / AskPromptUI 的 Text.supportRichText = true
+
+**等待弹窗超时自动取消**：
+- SpellTargetPopup：OnEnable/OnDisable 订阅 GameEventBus.OnClearBanners → CancelSelection
+- AskPromptUI：OnEnable/OnDisable 订阅 → OnCancelClicked
+- SpellTargetPopup.IsShowing 静态标志：DropFlowRoutine 等待弹窗消失再执行弹回动画，防止装备牌提前弹回
+- ReactiveWindowUI：OnClearBanners → AutoPlayRandom（反应牌不可取消，随机出牌）
+
+**Buff/Debuff 状态徽章**：
+- UnitInstance.HasBuff / HasDebuff 计算属性
+- UnitInstance.BuildBuffSummary() / BuildDebuffSummary()
+- CardView：底部 ▲（绿）/ ▼（红）18×18 徽章，右键弹出浮动详情面板
+- 详情面板：VLG 排列，点击任意鼠标键关闭
+
+**Codex HIGH 修复**（第二轮审查）：
+- H-1：EquipFlyRoutine 设置 _pendingEquipOnDone 字段，GameUI.OnDestroy 调用，防止 tcs2 永久挂起
+- H-2：ReactiveWindowUI.AutoPlayRandom 增加 _gs.PHand.Contains(chosen) 守卫，状态变化时降级为 SkipReaction
+- H-3：CardView.OnDestroy 销毁 _statusTooltip，防止 canvas root 泄漏
+
+### 技术债新增
+
+无新增（H-1/H-2/H-3 已全部修复）
+
 ---
 
 ## DEV-25b：规则对齐补丁（迅捷/急速/注释） — 2026-04-01
