@@ -2,6 +2,41 @@
 
 ---
 
+## DEV-22：拖拽出牌系统（含漩涡视觉） — 2026-04-02
+
+**Status**: ✅ Completed
+**Tests**: 412/412 🟢（batchmode EditMode 全绿）
+
+### 实现内容
+
+**新增文件**：
+- `CardDragHandler.cs`：IBeginDragHandler/IDragHandler/IEndDragHandler，ghost 克隆跟随，集群动画，drop 区域检测
+- `PortalVFX.cs`：3 层同心旋转圆盘 + 8 轨道粒子，淡入 0.28s / 淡出 0.22s，纯 UGUI 实现
+
+**修改文件**：
+- `GameManager.cs`：新增 IsPlayerActionPhase、IsUnitInHand、IsUnitInBase、GetSelectedBaseUnits、OnDragCardToBase、OnSpellDraggedOut、OnDragUnitsToBF
+- `GameUI.cs`：SetDragCallbacks、SetupDragZones，RefreshUnitList 中为玩家牌线路回调，OnDestroy 清空静态字段
+- `SceneBuilder.cs`：CardPrefab 追加 CardDragHandler + PortalVFX 组件
+
+**新增测试**：
+- `DEV22DragTests.cs`：14 个 EditMode 测试（PortalVFX 常量、拖拽回调分配、zone 静态引用、null 安全）
+
+### Codex 审查修复
+
+- **H-1**：GameUI.OnDestroy 清空 CardDragHandler 5 个静态字段，防止场景重载后持有 destroyed 引用
+- **H-2**：CardDragHandler.OnDestroy 恢复 cluster 位置 + 销毁 ghost，防止 mid-drag 刷新时 ghost 泄漏
+- **H-3**：ClusterFollowRoutine 内 ghostRT 获取后再次检查 null，消除同帧 NRE
+- **H-4**：CreateGhost 中 Destroy(PortalVFX)，防止 ghost 销毁时破坏原始 VFX 子对象
+- **M-3**：删除 PortalVFX 中 dead `cut` GameObject 代码
+
+### 技术债记录
+
+- M-1: PortalVFX.EnsureBuilt fallback canvas 查找方式（GetComponentInParent 更安全）
+- M-2: HandleDrop 未在 drop 时重验证游戏状态（GameManager 回调内部已验证，深度防御待补）
+- M-4: GatherCluster 中 FindObjectsOfType 多次调用，待 GameUI 维护 UnitInstance→CardView 查找表
+
+---
+
 ## DEV-25b：规则对齐补丁（迅捷/急速/注释） — 2026-04-01
 
 **Status**: ✅ Completed

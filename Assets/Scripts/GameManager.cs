@@ -159,6 +159,75 @@ namespace FWTCG
         private bool _aiReactionPending;          // DEV-15: true while AI reaction resolves
         private bool _bfClickInFlight;            // DEV-17: true while OnBattlefieldClicked awaits post-combat delay
 
+        // ── DEV-22: Drag query helpers (used by CardDragHandler) ─────────────
+
+        /// <summary>True when it is the player's action phase and no AI reaction is blocking.</summary>
+        public bool IsPlayerActionPhase()
+        {
+            if (_gs == null || _gs.GameOver) return false;
+            if (_gs.Turn != GameRules.OWNER_PLAYER) return false;
+            if (_gs.Phase != GameRules.PHASE_ACTION) return false;
+            if (_aiReactionPending) return false;
+            if (_aiReactionWindowActive) return false;
+            return true;
+        }
+
+        /// <summary>Returns true if <paramref name="unit"/> is in the player's hand.</summary>
+        public bool IsUnitInHand(UnitInstance unit) => _gs != null && _gs.PHand.Contains(unit);
+
+        /// <summary>Returns true if <paramref name="unit"/> is in the player's base.</summary>
+        public bool IsUnitInBase(UnitInstance unit) => _gs != null && _gs.PBase.Contains(unit);
+
+        /// <summary>
+        /// Returns the current multi-select list for the player base.
+        /// CardDragHandler uses this to build the cluster group.
+        /// </summary>
+        public List<UnitInstance> GetSelectedBaseUnits() => _selectedBaseUnits;
+
+        /// <summary>
+        /// DEV-22: Drag-to-base — equivalent to clicking a hand card.
+        /// Handles both unit cards (plays to base) and spell cards (enters targeting mode).
+        /// </summary>
+        public void OnDragCardToBase(UnitInstance unit)
+        {
+            if (!IsPlayerActionPhase()) return;
+            if (_gs == null || !_gs.PHand.Contains(unit)) return;
+            _ = PlayHandCardWithRuneConfirmAsync(unit);
+        }
+
+        /// <summary>
+        /// DEV-22: Spell dragged outside hand zone — equivalent to clicking the spell.
+        /// Enters targeting mode (or casts immediately for SpellTargetType.None).
+        /// </summary>
+        public void OnSpellDraggedOut(UnitInstance unit)
+        {
+            if (!IsPlayerActionPhase()) return;
+            if (_gs == null || !_gs.PHand.Contains(unit)) return;
+            if (!unit.CardData.IsSpell) return;
+            _ = PlayHandCardWithRuneConfirmAsync(unit);
+        }
+
+        /// <summary>
+        /// DEV-22: Drag base units to a battlefield — equivalent to multi-selecting then clicking the BF.
+        /// Replaces the current selection with <paramref name="units"/> and routes to OnBattlefieldClicked.
+        /// </summary>
+        public void OnDragUnitsToBF(List<UnitInstance> units, int bfId)
+        {
+            if (!IsPlayerActionPhase()) return;
+            if (units == null || units.Count == 0) return;
+            // Replace current selection with dragged group
+            _selectedBaseUnits.Clear();
+            _selectedUnit     = null;
+            _selectedUnitLoc  = null;
+            foreach (var u in units)
+            {
+                if (_gs.PBase.Contains(u) && !u.Exhausted)
+                    _selectedBaseUnits.Add(u);
+            }
+            if (_selectedBaseUnits.Count == 0) return;
+            OnBattlefieldClicked(bfId);
+        }
+
         // ── Unity lifecycle ───────────────────────────────────────────────────
 
         private void Awake()
@@ -255,6 +324,13 @@ namespace FWTCG
                 );
                 _ui.SetPileClickCallback(OnPileClicked);
                 _ui.WirePileButtons();
+                // DEV-22: wire drag callbacks and push zone RTs to CardDragHandler
+                _ui.SetDragCallbacks(
+                    onDragCardToBase: OnDragCardToBase,
+                    onSpellDragOut:   OnSpellDraggedOut,
+                    onDragUnitsToBF:  OnDragUnitsToBF
+                );
+                _ui.SetupDragZones();
             }
 
             InitGame();
@@ -375,6 +451,7 @@ namespace FWTCG
             if (_gs.Turn != GameRules.OWNER_PLAYER) return;
             if (_gs.Phase != GameRules.PHASE_ACTION) return;
             if (_aiReactionPending) return; // DEV-15: block input while AI resolves reaction
+            if (_aiReactionWindowActive) { TurnManager.BroadcastMessage_Static("[反应] AI 正在使用反应牌，请等待结算完毕…"); return; }
 
             // ── Spell targeting mode: resolve target ──
             if (_targetingSpell != null)
@@ -494,6 +571,7 @@ namespace FWTCG
             if (_gs.Phase != GameRules.PHASE_ACTION) return;
             if (_aiReactionPending) return; // DEV-15
             if (_bfClickInFlight) return;   // DEV-17: block reentrant clicks during post-combat delay
+            if (_aiReactionWindowActive) { TurnManager.BroadcastMessage_Static("[反应] AI 正在使用反应牌，请等待结算完毕…"); return; }
 
             // Ignore BF click while in spell targeting mode
             if (_targetingSpell != null)
@@ -903,6 +981,7 @@ namespace FWTCG
 
         private void TryPlayCard(UnitInstance unit)
         {
+            if (_aiReactionWindowActive) { TurnManager.BroadcastMessage_Static("[反应] AI 正在使用反应牌，请等待结算完毕…"); return; }
             if (unit.CardData.IsSpell)
                 _ = TryPlaySpellAsync(unit);
             else if (unit.CardData.IsEquipment)
@@ -1456,7 +1535,9 @@ namespace FWTCG
 
         private void HandleCombatResult(CombatSystem.CombatResult result)
         {
-            if (_ui != null) _ui.ShowCombatResult(result);
+            // CombatResultPanel removed — outcome is visible on battlefield.
+            // All post-combat info (deathwish, score, legend passives) shown via
+            // EventBanner batch after the 0.5s FireSetBannerDelay.
         }
 
         private void HandleGameOver(string msg)

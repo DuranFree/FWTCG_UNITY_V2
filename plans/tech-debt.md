@@ -50,3 +50,7 @@
 - [ ] Swift 关键词仅数据/UI层，法术对决实际判断仍只看 Reactive — 完整实现需 DEV-27 4状态回合状态机（Rule 718），两处 spell-duel 筛选已加 DEV-27 TODO 注释 — Phase DEV-25b（Codex High → 设计已知，延迟到 DEV-27）
 - [ ] TryPlayUnitAsync 缺少 Haste prompt 的行为测试 — 仅有枚举计数测试，缺 Haste confirm/cancel/资源不足/状态变更后回退流程测试 — Phase DEV-25b（Codex Low）
 - [ ] 预知 UI 未实现（Rule 729）— foresight_mech_enter 只打日志，缺查看牌库顶+选择回收的弹窗 — Phase DEV-26
+- [ ] CardDragHandler: PortalVFX.EnsureBuilt fallback 用 FindObjectOfType<Canvas>，应改 GetComponentInParent — Phase DEV-22（Codex Medium）
+- [ ] CardDragHandler: HandleDrop 未在 drop 时重验证游戏状态（GameManager 回调内部已验证，深度防御待补）— Phase DEV-22（Codex Medium）
+- [ ] CardDragHandler: GatherCluster 中对每个选中单位各调用一次 FindObjectsOfType，应由 GameUI 维护 UnitInstance→CardView 查找表 — Phase DEV-22（Codex Medium）
+- [ ] DEV-22 测试套件以常量断言为主，缺 HandleDrop 路径、CanStartDrag false、ghost 清理等行为测试 — Phase DEV-22（Codex Low）

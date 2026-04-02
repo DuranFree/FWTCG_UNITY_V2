@@ -1601,8 +1601,8 @@ namespace FWTCG.Editor
             var cardPanelGO = new GameObject("CardPanel");
             cardPanelGO.transform.SetParent(go.transform, false);
             var cpRT = cardPanelGO.AddComponent<RectTransform>();
-            cpRT.anchorMin = new Vector2(0.41f, 0.25f);
-            cpRT.anchorMax = new Vector2(0.59f, 0.75f);
+            cpRT.anchorMin = new Vector2(0.40f, 0.36f);
+            cpRT.anchorMax = new Vector2(0.60f, 0.64f);
             cpRT.offsetMin = Vector2.zero;
             cpRT.offsetMax = Vector2.zero;
 
@@ -2211,9 +2211,63 @@ namespace FWTCG.Editor
             vlg.childForceExpandWidth = false;
             vlg.childForceExpandHeight = false;
             vlg.childAlignment = TextAnchor.MiddleCenter;
-            vlg.spacing = 12f;
+            vlg.spacing = 14f;
 
-            // Context text
+            // ── Countdown Timer Widget (top, above everything) ─────────────────
+            var timerGO = new GameObject("TimerWidget");
+            timerGO.transform.SetParent(panel.transform, false);
+            var timerLE = timerGO.AddComponent<LayoutElement>();
+            timerLE.preferredWidth  = 80f;
+            timerLE.preferredHeight = 80f;
+            timerGO.AddComponent<RectTransform>();
+
+            // Background circle (dark, subtle)
+            var bgCircleGO = new GameObject("BgCircle");
+            bgCircleGO.transform.SetParent(timerGO.transform, false);
+            var bgRT = bgCircleGO.AddComponent<RectTransform>();
+            bgRT.anchorMin = Vector2.zero;
+            bgRT.anchorMax = Vector2.one;
+            bgRT.offsetMin = Vector2.zero;
+            bgRT.offsetMax = Vector2.zero;
+            var bgImg = bgCircleGO.AddComponent<Image>();
+            bgImg.color = new Color(1f, 1f, 1f, 0.12f);
+
+            // Gold radial fill (clock face draining clockwise)
+            var fillGO = new GameObject("ClockFill");
+            fillGO.transform.SetParent(timerGO.transform, false);
+            var fillRT = fillGO.AddComponent<RectTransform>();
+            fillRT.anchorMin = Vector2.zero;
+            fillRT.anchorMax = Vector2.one;
+            fillRT.offsetMin = new Vector2(4f, 4f);
+            fillRT.offsetMax = new Vector2(-4f, -4f);
+            var fillImg = fillGO.AddComponent<Image>();
+            fillImg.color = new Color(1f, 0.82f, 0.2f, 1f); // gold
+            fillImg.type  = Image.Type.Filled;
+            fillImg.fillMethod  = Image.FillMethod.Radial360;
+            fillImg.fillOrigin  = (int)Image.Origin360.Top;
+            fillImg.fillClockwise = true;
+            fillImg.fillAmount  = 1f;
+
+            // Seconds text (centered, on top)
+            var secGO = new GameObject("SecondsText");
+            secGO.transform.SetParent(timerGO.transform, false);
+            var secRT = secGO.AddComponent<RectTransform>();
+            secRT.anchorMin = Vector2.zero;
+            secRT.anchorMax = Vector2.one;
+            secRT.offsetMin = Vector2.zero;
+            secRT.offsetMax = Vector2.zero;
+            var secText = secGO.AddComponent<Text>();
+            secText.text = "15";
+            secText.color = Color.white;
+            secText.fontSize = 28;
+            secText.fontStyle = FontStyle.Bold;
+            secText.alignment = TextAnchor.MiddleCenter;
+            secText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            secText.verticalOverflow   = VerticalWrapMode.Overflow;
+            secText.raycastTarget = false;
+            if (_font != null) secText.font = _font;
+
+            // ── Context text ───────────────────────────────────────────────────
             var ctGO = new GameObject("ContextText");
             ctGO.transform.SetParent(panel.transform, false);
             contextText = ctGO.AddComponent<Text>();
@@ -2226,9 +2280,9 @@ namespace FWTCG.Editor
             if (_font != null) contextText.font = _font;
             var ctLE = ctGO.AddComponent<LayoutElement>();
             ctLE.preferredWidth  = 700f;
-            ctLE.preferredHeight = 70f;
+            ctLE.preferredHeight = 40f;
 
-            // Card container (horizontal row)
+            // ── Card container (horizontal row, below text) ────────────────────
             var ccGO = new GameObject("CardContainer");
             ccGO.transform.SetParent(panel.transform, false);
             var ccLE = ccGO.AddComponent<LayoutElement>();
@@ -2243,9 +2297,17 @@ namespace FWTCG.Editor
             hlg.childAlignment = TextAnchor.MiddleCenter;
             cardContainer = ccGO.transform;
 
+            // Store fill/text refs for wiring to ReactiveWindowUI
+            _reactiveTimerFill = fillImg;
+            _reactiveTimerText = secText;
+
             panel.SetActive(false);
             return panel;
         }
+
+        // Temp storage between CreateReactiveWindowPanel and WireGameManager
+        private static Image _reactiveTimerFill;
+        private static Text  _reactiveTimerText;
 
         // ── Legend Panels (DEV-5) ─────────────────────────────────────────────
 
@@ -2663,6 +2725,10 @@ namespace FWTCG.Editor
 
             // ── DEV-10: CardHoverScale (lightweight hover zoom, replaces CardTilt) ──
             root.AddComponent<FWTCG.UI.CardHoverScale>();
+
+            // ── DEV-22: CardDragHandler + PortalVFX (drag-to-play) ──────────────
+            root.AddComponent<FWTCG.UI.CardDragHandler>();
+            root.AddComponent<FWTCG.UI.PortalVFX>();
 
             // Wire CardView serialized fields
             var so = new SerializedObject(cardView);
@@ -3331,10 +3397,12 @@ namespace FWTCG.Editor
 
             // Wire ReactiveWindowUI panels
             var reactiveWindowSO = new SerializedObject(reactiveWindowUI);
-            reactiveWindowSO.FindProperty("_panel").objectReferenceValue       = reactivePanel;
-            reactiveWindowSO.FindProperty("_contextText").objectReferenceValue = reactiveContextText;
-            reactiveWindowSO.FindProperty("_cardContainer").objectReferenceValue = reactiveCardContainer;
-            reactiveWindowSO.FindProperty("_cardViewPrefab").objectReferenceValue = cardPrefab;
+            reactiveWindowSO.FindProperty("_panel").objectReferenceValue            = reactivePanel;
+            reactiveWindowSO.FindProperty("_contextText").objectReferenceValue      = reactiveContextText;
+            reactiveWindowSO.FindProperty("_cardContainer").objectReferenceValue    = reactiveCardContainer;
+            reactiveWindowSO.FindProperty("_cardViewPrefab").objectReferenceValue   = cardPrefab;
+            reactiveWindowSO.FindProperty("_countdownFill").objectReferenceValue    = _reactiveTimerFill;
+            reactiveWindowSO.FindProperty("_countdownText").objectReferenceValue    = _reactiveTimerText;
             reactiveWindowSO.ApplyModifiedPropertiesWithoutUndo();
 
             // Wire React button and Legend skill button into GameManager
@@ -3518,13 +3586,15 @@ namespace FWTCG.Editor
             defRT.offsetMin = Vector2.zero;
             defRT.offsetMax = Vector2.zero;
 
-            // Outcome (bottom)
-            outcomeText = CreateTMPText(go.transform, "CROutcome", "结果", GameColors.GoldLight, 18, TextAnchor.MiddleCenter);
+            // Outcome + death list (bottom half, multi-line)
+            outcomeText = CreateTMPText(go.transform, "CROutcome", "结果", GameColors.GoldLight, 16, TextAnchor.UpperCenter);
             outcomeText.fontStyle = FontStyle.Bold;
+            outcomeText.horizontalOverflow = HorizontalWrapMode.Wrap;
+            outcomeText.verticalOverflow   = VerticalWrapMode.Overflow;
             outcomeText.gameObject.AddComponent<Shadow>().effectColor = new Color(0f, 0f, 0f, 1f);
             var outRT = outcomeText.GetComponent<RectTransform>();
-            outRT.anchorMin = new Vector2(0.1f, 0.05f);
-            outRT.anchorMax = new Vector2(0.9f, 0.25f);
+            outRT.anchorMin = new Vector2(0.05f, 0.04f);
+            outRT.anchorMax = new Vector2(0.95f, 0.28f);
             outRT.offsetMin = Vector2.zero;
             outRT.offsetMax = Vector2.zero;
 

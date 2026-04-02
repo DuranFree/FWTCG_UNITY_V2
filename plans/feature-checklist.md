@@ -185,7 +185,7 @@
 - [ ] 悬停放大 + 发光效果
 - ✅ 可出牌提示（发光边框 Shader：绿色动态粒子轨迹）— DEV-8
 - ✅ 3D 倾斜效果（鼠标跟随 18°，CardTilt.cs）— DEV-8
-- [ ] 拖拽出牌（dragAnim.js 移植：漩涡/传送门视觉效果）
+- ✅ 拖拽出牌（dragAnim.js 移植：漩涡/传送门视觉效果）— DEV-22
 - ✅ 点击出牌（OnUnitClicked → TryPlayCard，点击手牌直接打出）— DEV-1
 - [ ] 目标选择高亮（合法目标 .targetable 绿色框 + 已选目标 .spell-targeted 红色框）
 - [ ] 卡牌选中状态视觉（.selected 黄色高亮 + 轨道光环旋转）
@@ -340,7 +340,7 @@
 
 ### 关键移植陷阱
 - ✅ atk = HP 同步规则（currentHp = currentAtk，dealDamage 是唯一入口）— UnitInstance构造+ResetEndOfTurn（DEV-1）
-- [ ] 拖拽覆写：Unity 直接实现 dragAnim.js 逻辑，不参考 spell.js 中的 startDrag
+- ✅ 拖拽覆写：Unity 直接实现 dragAnim.js 逻辑，不参考 spell.js 中的 startDrag — DEV-22
 - ✅ 异步交互锁（prompting 标记）→ async/await + TaskCompletionSource 实现 — DEV-4
 - ✅ 反应窗口系统（reactionWindowOpen 冻结 AI 行动）— ReactiveWindowUI + WaitIfReactionActive（DEV-4）
 - [ ] 符文操作待确认队列（pendingRunes，需维持中间状态）

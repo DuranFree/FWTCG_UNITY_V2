@@ -150,7 +150,7 @@ namespace FWTCG.UI
         // ── Banner overlay ────────────────────────────────────────────────────
         [SerializeField] private GameObject _bannerPanel;
         [SerializeField] private Text _bannerText;
-        private const float BANNER_DURATION = 1.8f;
+        private const float BANNER_DURATION = 1.0f;
 
         // ── Card detail popup ─────────────────────────────────────────────────
         [SerializeField] private CardDetailPopup _cardDetailPopup;
@@ -201,6 +201,11 @@ namespace FWTCG.UI
         private Action<UnitInstance> _onCardRightClicked;
         private Action<UnitInstance> _onCardHoverEnter;
         private Action<UnitInstance> _onCardHoverExit;
+
+        // ── DEV-22: Drag callbacks ────────────────────────────────────────────
+        private Action<UnitInstance>            _onDragCardToBase;   // hand unit → base
+        private Action<UnitInstance>            _onSpellDragOut;     // hand spell → target popup
+        private Action<List<UnitInstance>, int> _onDragUnitsToBF;    // base units → BF
 
         // ── Rune highlight state (set by SetRuneHighlights) ───────────────────
         private System.Collections.Generic.HashSet<int> _runeHighlightTap     = new System.Collections.Generic.HashSet<int>();
@@ -277,6 +282,12 @@ namespace FWTCG.UI
             // DEV-19
             FWTCG.Systems.ScoreManager.OnScoreAdded -= OnScoreAddedHandler;
             GameEventBus.OnDuelBanner               -= OnDuelBannerHandler;
+            // DEV-22: clear static drag zone refs to prevent stale references after scene reload
+            CardDragHandler.RootCanvas = null;
+            CardDragHandler.HandZoneRT = null;
+            CardDragHandler.BaseZoneRT = null;
+            CardDragHandler.Bf1ZoneRT  = null;
+            CardDragHandler.Bf2ZoneRT  = null;
         }
 
         // ── Card shake on play failure ────────────────────────────────────────
@@ -309,7 +320,12 @@ namespace FWTCG.UI
             string msg = string.IsNullOrEmpty(spellName)
                 ? $"{unit.UnitName} 受到 {damage} 点伤害"
                 : $"{spellName} 击中 {unit.UnitName}，造成 {damage} 点伤害";
-            GameManager.FireHintToast(msg);
+            // Combat hits batch into EventBanner (waits for FireSetBannerDelay)
+            // Spell/other hits show immediately via ToastUI
+            if (spellName == "战斗")
+                GameEventBus.FireEventBanner(msg, 1.0f);
+            else
+                GameManager.FireHintToast(msg);
         }
 
         /// <summary>Spawns a floating damage number at the card's position on the root canvas. DEV-17.</summary>
@@ -479,46 +495,35 @@ namespace FWTCG.UI
             _bannerAnimCoroutine = StartCoroutine(BannerSlideRoutine());
         }
 
-        // DEV-19: animated slide-in banner (replaces simple SetActive on/off)
+        // DEV-19: fade-only turn banner (no position slide)
         private IEnumerator BannerSlideRoutine()
         {
             _bannerPanel.SetActive(true);
-            var rt = _bannerPanel.GetComponent<RectTransform>();
             var cg = _bannerPanel.GetComponent<CanvasGroup>();
             if (cg == null) cg = _bannerPanel.AddComponent<CanvasGroup>();
 
-            Vector2 restPos = rt != null ? rt.anchoredPosition : Vector2.zero;
-            Vector2 startPos = restPos + new Vector2(0f, -40f);
-
-            const float IN_DUR = 0.28f;
+            const float IN_DUR = 0.2f;
             float elapsed = 0f;
             while (elapsed < IN_DUR)
             {
-                float t = elapsed / IN_DUR;
-                if (rt != null) rt.anchoredPosition = Vector2.Lerp(startPos, restPos, t * t);
-                cg.alpha = t;
+                cg.alpha = elapsed / IN_DUR;
                 elapsed += Time.deltaTime;
                 yield return null;
             }
-            if (rt != null) rt.anchoredPosition = restPos;
             cg.alpha = 1f;
 
             yield return new WaitForSeconds(BANNER_DURATION);
 
-            const float OUT_DUR = 0.22f;
+            const float OUT_DUR = 0.2f;
             elapsed = 0f;
-            Vector2 exitPos = restPos + new Vector2(0f, 20f);
             while (elapsed < OUT_DUR)
             {
-                float t = elapsed / OUT_DUR;
-                if (rt != null) rt.anchoredPosition = Vector2.Lerp(restPos, exitPos, t);
-                cg.alpha = 1f - t;
+                cg.alpha = 1f - elapsed / OUT_DUR;
                 elapsed += Time.deltaTime;
                 yield return null;
             }
             cg.alpha = 0f;
             _bannerPanel.SetActive(false);
-            if (rt != null) rt.anchoredPosition = restPos;
             _bannerAnimCoroutine = null;
         }
 
@@ -537,6 +542,38 @@ namespace FWTCG.UI
             _onCardRightClicked = onCardRightClick;
             _onCardHoverEnter   = onCardHoverEnter;
             _onCardHoverExit    = onCardHoverExit;
+        }
+
+        /// <summary>
+        /// DEV-22: Set drag-to-play callbacks (called by GameManager.Start after SetCallbacks).
+        /// </summary>
+        public void SetDragCallbacks(
+            Action<UnitInstance>            onDragCardToBase,
+            Action<UnitInstance>            onSpellDragOut,
+            Action<List<UnitInstance>, int> onDragUnitsToBF)
+        {
+            _onDragCardToBase = onDragCardToBase;
+            _onSpellDragOut   = onSpellDragOut;
+            _onDragUnitsToBF  = onDragUnitsToBF;
+        }
+
+        /// <summary>
+        /// DEV-22: Push zone RectTransforms to CardDragHandler static fields so every
+        /// handler instance can detect drop zones without holding per-instance refs.
+        /// Call once after scene is built.
+        /// </summary>
+        public void SetupDragZones()
+        {
+            CardDragHandler.RootCanvas = _rootCanvas;
+            CardDragHandler.HandZoneRT = _playerHandZoneRT;
+
+            // Base zone: parent panel of _playerBaseContainer
+            if (_playerBaseContainer != null && _playerBaseContainer.parent != null)
+                CardDragHandler.BaseZoneRT = _playerBaseContainer.parent.GetComponent<RectTransform>();
+
+            // BF zones: use the BF button RTs (they cover the full BF panel area)
+            if (_bf1Button != null) CardDragHandler.Bf1ZoneRT = _bf1Button.GetComponent<RectTransform>();
+            if (_bf2Button != null) CardDragHandler.Bf2ZoneRT = _bf2Button.GetComponent<RectTransform>();
         }
 
         /// <summary>
@@ -1107,6 +1144,18 @@ namespace FWTCG.UI
                         cv.SetSelected(true);
                     if (currentMana >= 0 && u.CardData.Cost > currentMana)
                         cv.SetCostInsufficient(true);
+
+                    // DEV-22: Wire drag callbacks for player cards only
+                    if (isPlayer)
+                    {
+                        var dh = cv.GetComponent<CardDragHandler>();
+                        if (dh != null)
+                        {
+                            dh.OnDragToBase  = _onDragCardToBase;
+                            dh.OnSpellDragOut = _onSpellDragOut;
+                            dh.OnDragToBF    = _onDragUnitsToBF;
+                        }
+                    }
                 }
             }
         }
@@ -1314,6 +1363,7 @@ namespace FWTCG.UI
 
         private void HandleEndTurn()
         {
+            GameEventBus.FireClearBanners(); // immediately dismiss any showing banner
             _onEndTurnClicked?.Invoke();
         }
 
@@ -1749,40 +1799,97 @@ namespace FWTCG.UI
         [SerializeField] private Text _crOutcomeText;
         [SerializeField] private Text _crBfNameText;
 
+        private Coroutine _crHideRoutine;
+
         public void ShowCombatResult(Systems.CombatSystem.CombatResult result)
         {
             if (_combatResultPanel == null) return;
 
+            // Stop any in-progress hide
+            if (_crHideRoutine != null) { StopCoroutine(_crHideRoutine); _crHideRoutine = null; }
+
             if (_crBfNameText != null) _crBfNameText.text = $"⚔ {result.BFName}";
+
+            // Attacker side
             if (_crAttackerText != null)
             {
-                _crAttackerText.text = $"{result.AttackerName}\n⚔ {result.AttackerPower}";
+                _crAttackerText.text  = $"{result.AttackerName}\n⚔ {result.AttackerPower}";
                 _crAttackerText.color = result.AttackerName == "玩家" ? GameColors.PlayerGreen : GameColors.EnemyRed;
             }
+
+            // Defender side
             if (_crDefenderText != null)
             {
-                _crDefenderText.text = $"{result.DefenderName}\n🛡 {result.DefenderPower}";
+                _crDefenderText.text  = $"{result.DefenderName}\n🛡 {result.DefenderPower}";
                 _crDefenderText.color = result.DefenderName == "玩家" ? GameColors.PlayerGreen : GameColors.EnemyRed;
             }
+
+            // Outcome + death list merged into one text block
             if (_crOutcomeText != null)
             {
+                // Line 1: outcome
+                string outcomeStr;
+                Color  outcomeColor;
                 switch (result.Outcome)
                 {
-                    case "attacker_win": _crOutcomeText.text = $"🏆 {result.AttackerName} 征服！"; _crOutcomeText.color = GameColors.PlayerGreen; break;
-                    case "defender_win": _crOutcomeText.text = $"🛡 {result.DefenderName} 防守成功"; _crOutcomeText.color = GameColors.EnemyRed; break;
-                    case "both_survive": _crOutcomeText.text = "⚖ 双方存活，攻方召回"; _crOutcomeText.color = GameColors.GoldLight; break;
-                    case "both_dead": _crOutcomeText.text = "💀 同归于尽"; _crOutcomeText.color = new Color(0.7f, 0.7f, 0.7f, 1f); break;
+                    case "attacker_win":
+                        outcomeStr   = $"🏆 {result.AttackerName} 征服！";
+                        outcomeColor = result.AttackerName == "玩家" ? GameColors.PlayerGreen : GameColors.EnemyRed;
+                        break;
+                    case "defender_win":
+                        outcomeStr   = $"🛡 {result.DefenderName} 防守成功";
+                        outcomeColor = result.DefenderName == "玩家" ? GameColors.PlayerGreen : GameColors.EnemyRed;
+                        break;
+                    case "both_survive":
+                        outcomeStr   = "⚖ 双方存活，攻方召回";
+                        outcomeColor = GameColors.GoldLight;
+                        break;
+                    default: // both_dead
+                        outcomeStr   = "💀 同归于尽";
+                        outcomeColor = new Color(0.72f, 0.72f, 0.72f, 1f);
+                        break;
                 }
+
+                // Line 2+: deaths (灰色)
+                var deaths = new System.Text.StringBuilder();
+                if (result.DeadAttackers != null)
+                    foreach (var n in result.DeadAttackers)
+                        deaths.Append($"\n💀 {n}（{result.AttackerName}）");
+                if (result.DeadDefenders != null)
+                    foreach (var n in result.DeadDefenders)
+                        deaths.Append($"\n💀 {n}（{result.DefenderName}）");
+
+                _crOutcomeText.text  = outcomeStr + deaths;
+                _crOutcomeText.color = outcomeColor;
             }
 
+            // Ensure CanvasGroup exists for fade
+            var cg = _combatResultPanel.GetComponent<CanvasGroup>();
+            if (cg == null) cg = _combatResultPanel.AddComponent<CanvasGroup>();
+            cg.alpha = 0f;
             _combatResultPanel.SetActive(true);
-            StartCoroutine(HideCombatResult());
+            _crHideRoutine = StartCoroutine(ShowHideCombatResult(cg));
         }
 
-        private IEnumerator HideCombatResult()
+        private IEnumerator ShowHideCombatResult(CanvasGroup cg)
         {
-            yield return new WaitForSeconds(2.5f);
+            const float FADE_IN  = 0.2f;
+            const float STAY     = 3.5f;   // 2.5s + 1s extra
+            const float FADE_OUT = 0.3f;
+
+            // Fade in
+            float t = 0f;
+            while (t < FADE_IN) { t += Time.deltaTime; cg.alpha = Mathf.Clamp01(t / FADE_IN); yield return null; }
+            cg.alpha = 1f;
+
+            yield return new WaitForSeconds(STAY);
+
+            // Fade out
+            t = 0f;
+            while (t < FADE_OUT) { t += Time.deltaTime; cg.alpha = Mathf.Clamp01(1f - t / FADE_OUT); yield return null; }
+            cg.alpha = 0f;
             if (_combatResultPanel != null) _combatResultPanel.SetActive(false);
+            _crHideRoutine = null;
         }
 
         // ── Discard/Exile click setup (DEV-10) ──────────────────────────────
