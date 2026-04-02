@@ -142,7 +142,7 @@ namespace FWTCG.Core
         private static readonly System.Collections.Generic.Dictionary<string, int> CardCopies =
             new System.Collections.Generic.Dictionary<string, int>
         {
-            // Kaisa deck (19 total)
+            // ── Kaisa deck: 19 units + 21 spells = 40 ────────────────────────
             { "noxus_recruit",      2 },
             { "alert_sentinel",     3 },
             { "yordel_instructor",  3 },
@@ -152,7 +152,20 @@ namespace FWTCG.Core
             { "darius",             1 },
             { "thousand_tail",      3 },
             { "foresight_mech",     2 },
-            // Yi deck (units: 11 + equipment: 8 = 19)
+            { "swindle",            3 },
+            { "void_seek",          1 },
+            { "evolve_day",         1 },
+            { "retreat_rune",       2 },
+            { "furnace_blast",      2 },
+            { "guilty_pleasure",    1 },
+            { "starburst",          1 },
+            { "hex_ray",            2 },
+            { "time_warp",          2 },
+            { "stardrop",           3 },
+            { "smoke_bomb",         1 },
+            { "divine_ray",         1 },
+            { "akasi_storm",        1 },
+            // ── Yi deck: 18 units/equipment + 22 spells = 40 ─────────────────
             { "yi_hero",            1 },
             { "jax",                2 },
             { "tiyana_warden",      2 },
@@ -162,28 +175,14 @@ namespace FWTCG.Core
             { "trinity_force",      2 },
             { "guardian_angel",     2 },
             { "dorans_blade",       3 },
-            // ── Kaisa spells (+11 cards → 30 total) ──────────────────────────
-            { "hex_ray",            3 },
-            { "void_seek",          2 },
-            { "stardrop",           2 },
-            { "starburst",          2 },
-            { "evolve_day",         1 },
-            { "akasi_storm",        1 },
-            // ── Yi spells (+7 cards → 26 total) ──────────────────────────────
             { "slam",               2 },
-            { "rally_call",         2 },
+            { "rally_call",         3 },
             { "strike_ask_later",   2 },
-            { "balance_resolve",    1 },
-            // ── Kaisa reactive spells (+8 cards → 38 total) ───────────────────
-            { "swindle",            2 },
-            { "retreat_rune",       2 },
-            { "guilty_pleasure",    1 },
-            { "smoke_bomb",         3 },
-            // ── Yi reactive spells (+9 cards → 35 total) ─────────────────────
-            { "scoff",              2 },
+            { "balance_resolve",    3 },
+            { "scoff",              3 },
             { "duel_stance",        2 },
-            { "well_trained",       2 },
-            { "wind_wall",          1 },
+            { "well_trained",       3 },
+            { "wind_wall",          2 },
             { "flash_counter",      2 },
         };
 
