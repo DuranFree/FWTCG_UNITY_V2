@@ -2,6 +2,57 @@
 
 ---
 
+## DEV-31：Tech-Debt Cleanup — 2026-04-03
+
+**Status**: ✅ Completed
+
+**What was done**:
+
+### 批次 1 — SpellDuelUI
+- 添加单例守卫：Awake 加 `if (Instance != null && Instance != this) { Destroy(this); return; }` 防双重订阅
+- _rootCanvas 在 Awake 缓存，移除每次 ShowDuelOverlay 调用 FindObjectsOfType<Canvas>()（O(n) 分配）
+
+### 批次 2 — ReactiveWindowUI
+- WaitForReaction 开头加 `_tcs?.TrySetCanceled()` 防止旧 Task 永久挂起（重入场景）
+- OnDisable 加 `_tcs?.TrySetCanceled()` 防止组件禁用后悬挂 Task
+
+### 批次 3 — 已确认已解决项
+- ToastUI 去重 null/empty 守卫：已在 DEV-26 修复，确认无需处理
+- EventBanner 去重忽略参数：已重构为 batch 系统，确认无问题
+- GameUI.ShowCombatResult 无句柄：_crHideRoutine 已存在并正确使用，确认无问题
+- SceneryUI.DividerOrbLoop 基准位置：DEV-26 已修复，仅缓存 baseY，确认正确
+- AskPromptUI._cardViewPrefab null：SceneBuilder 已连线，优雅降级属设计预期，WONTFIX
+
+### 批次 4 — CardDragHandler
+- PortalVFX.EnsureBuilt 改用 GetComponentInParent<Canvas>() + rootCanvas 解析，移除 FindObjectOfType
+- HandleDrop 开头加 GameManager.Instance null 检查（深度防御）
+
+### 批次 5 — 配置/LOW 项
+- GlassPanelFX Shader.Find：属项目配置项，标注打包前添加 Always Included Shaders
+- 其余 LOW 项评估为实际风险极低，保留在 tech-debt.md
+
+### 批次 6 — Low 项代码改动 + Codex HIGH 修复
+- CombatAnimator.OnDestroy：补注释说明 Remove-before-Destroy 的单线程协程安全原因
+- CreateOverlayImage sizeDelta 修复：offsetMin/offsetMax 加入 sizeDelta*0.5，HeroAura 现在正确扩展 4px/边
+- CardView.Refresh PlayableSparkRoutine：加 `gameObject.activeInHierarchy` 守卫，防非活跃 GO 启动协程（Mulligan 面板场景）
+- GameManager.cs：WaitForReaction await 加 try/catch OperationCanceledException，防 _reactionWindowActive 卡死
+- tech-debt.md：标记 6 项已在 batches 1-4 修复，2 项设计待确认，1 项 WONTFIX
+
+**Decisions made**:
+- SpellDuelUI.OnClearBanners + ReactiveWindowUI.AutoPlayRandom 同步触发：设计待确认，保留
+- AI 出牌不触发 OnCardPlayed：设计待确认，保留
+- GlassPanelFX 配置项：待打包前处理
+
+**Technical debt**:
+- 仍有 ~15 项 Low/Medium 项保留（DamagePopup 对象池、BF卡 asset 创建、反应牌目标选择 UI 等），属功能后续 Phase 或配置项
+
+**Problems encountered**:
+- Codex 审查发现 HIGH：WaitForReaction await 无 catch，TrySetCanceled 导致 _reactionWindowActive 卡死 → 已修复
+
+**Tests**: 527/527 EditMode 全绿
+
+---
+
 ## DEV-30：视觉 + 功能收尾（最后功能 Phase）— 2026-04-03
 
 **Status**: ✅ Completed

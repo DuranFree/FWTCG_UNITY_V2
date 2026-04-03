@@ -456,6 +456,8 @@ namespace FWTCG.UI
         {
             var unit = _cardView != null ? _cardView.Unit : null;
             if (unit == null) return;
+            // Defense-in-depth: game state may have changed during async prompts between drag and drop
+            if (GameManager.Instance == null) return;
 
             Camera cam = RootCanvas != null ? RootCanvas.worldCamera : null;
 

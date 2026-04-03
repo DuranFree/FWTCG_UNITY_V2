@@ -26,3 +26,5 @@
 - ✅ 符文类型显示英文 — 已修复：RuneTypeExtensions.ToChinese/ToColoredText()，所有用户提示改用彩色中文 — 发现于 DEV-22
 - ✅ EquipFlyRoutine onDone 挂起（GameUI 销毁）— 已修复：_pendingEquipOnDone 字段，OnDestroy 调用回调解锁 tcs2 — 发现于 DEV-22 Codex H-1
 - ✅ _statusTooltip 泄漏（CardView 销毁）— 已修复：CardView.OnDestroy 销毁 _statusTooltip — 发现于 DEV-22 Codex H-3
+- ✅ Mulligan 面板中 PlayableSparkRoutine 报 "Coroutine couldn't be started because the game object is inactive" — 已修复：CardView.Refresh 加 `gameObject.activeInHierarchy` 守卫，Mulligan 面板隐藏时不启动协程 — 发现于 DEV-31
+- ✅ WaitForReaction await 无 OperationCanceledException 保护，ReactiveWindowUI 被禁用时 _reactionWindowActive 永久卡死 — 已修复：GameManager try/catch OperationCanceledException — 发现于 DEV-31 Codex HIGH

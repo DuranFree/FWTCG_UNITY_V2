@@ -2023,16 +2023,26 @@ namespace FWTCG
             TurnManager.BroadcastMessage_Static(
                 $"[反应] 反应窗口开启，双方行动暂停（{reactives.Count}张可用，当前法力：{_gs.PMana}）");
 
-            var picked = await _reactiveWindowUI.WaitForReaction(
-                reactives,
-                $"选择反应牌打出（当前法力：{_gs.PMana}）",
-                _gs,
-                onHoverEnter: u =>
-                {
-                    var p = RuneAutoConsume.Compute(u, _gs, GameRules.OWNER_PLAYER);
-                    if (p.NeedsOps) { _ui?.SetRuneHighlights(p.TapIndices, p.RecycleIndices); _ui?.Refresh(_gs); }
-                },
-                onHoverExit: u => { _ui?.ClearRuneHighlights(); _ui?.Refresh(_gs); });
+            UnitInstance picked = null;
+            try
+            {
+                picked = await _reactiveWindowUI.WaitForReaction(
+                    reactives,
+                    $"选择反应牌打出（当前法力：{_gs.PMana}）",
+                    _gs,
+                    onHoverEnter: u =>
+                    {
+                        var p = RuneAutoConsume.Compute(u, _gs, GameRules.OWNER_PLAYER);
+                        if (p.NeedsOps) { _ui?.SetRuneHighlights(p.TapIndices, p.RecycleIndices); _ui?.Refresh(_gs); }
+                    },
+                    onHoverExit: u => { _ui?.ClearRuneHighlights(); _ui?.Refresh(_gs); });
+            }
+            catch (System.OperationCanceledException)
+            {
+                // ReactiveWindowUI was disabled/destroyed mid-flow (e.g. scene reload);
+                // treat as skip — cleanup runs below.
+                picked = null;
+            }
 
             if (picked != null)
             {

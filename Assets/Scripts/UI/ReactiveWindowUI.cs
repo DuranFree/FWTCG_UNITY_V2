@@ -45,7 +45,12 @@ namespace FWTCG.UI
         }
 
         private void OnEnable()  { GameEventBus.OnClearBanners += AutoPlayRandom; }
-        private void OnDisable() { GameEventBus.OnClearBanners -= AutoPlayRandom; }
+        private void OnDisable()
+        {
+            GameEventBus.OnClearBanners -= AutoPlayRandom;
+            // Cancel any pending awaiter when this component is disabled (e.g. scene reload)
+            _tcs?.TrySetCanceled();
+        }
 
         private void OnDestroy()
         {
@@ -84,6 +89,8 @@ namespace FWTCG.UI
             System.Action<UnitInstance> onHoverEnter = null,
             System.Action<UnitInstance> onHoverExit  = null)
         {
+            // Cancel any previous awaiter before replacing — prevents the old Task from hanging
+            _tcs?.TrySetCanceled();
             _tcs = new TaskCompletionSource<UnitInstance>();
             _cardViews.Clear();
             _pendingCards = cards != null ? new List<UnitInstance>(cards) : null;

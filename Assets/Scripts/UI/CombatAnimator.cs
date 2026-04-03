@@ -167,7 +167,10 @@ namespace FWTCG.UI
                 yield return null;
             }
 
-            _activeGhosts.Remove(host); // DEV-29: remove from tracking before destroy
+            // Remove BEFORE Destroy: Unity coroutines are single-threaded, so removing the
+            // reference first ensures OnDestroy won't encounter this ghost and double-Destroy it
+            // (Destroy only marks for end-of-frame, the reference stays non-null until then).
+            _activeGhosts.Remove(host);
             Destroy(host);
         }
 

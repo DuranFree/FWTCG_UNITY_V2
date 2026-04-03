@@ -27,41 +27,42 @@
 - ✅ 弃牌堆/放逐堆 Button onClick — 已通过 GameUI.SetPileClickCallback + WirePileButtons() 在运行时连线，实现正常 — Phase DEV-10
 - [ ] DamagePopup 每次 new GameObject（GC churn）— 高频伤害时压力大，应改为对象池 — Phase DEV-17（Codex Medium/Low）
 - ✅ Ephemeral 单位打出时未设置 IsEphemeral/SummonedOnRound — 已修复：UnitInstance 构造函数从 CardData.HasKeyword(Ephemeral) 初始化 IsEphemeral；TryPlayUnit 打出瞬息单位时设置 SummonedOnRound=gs.Round — Phase DEV-18（Claude 审查 High → 已解决）
-- [ ] AI 出牌不触发 OnCardPlayed/BoardFlash — FireCardPlayed 只在玩家三条出牌路径调用，AI 出牌无棋盘闪烁；如需视觉对称须补充 AI 路径调用 — Phase DEV-18（Claude 审查 Medium，设计待确认）
+- [ ] AI 出牌不触发 OnCardPlayed/BoardFlash — FireCardPlayed 只在玩家三条出牌路径调用，AI 出牌无棋盘闪烁；如需视觉对称须补充 AI 路径调用 — Phase DEV-18（设计待确认，DEV-31 保留）
 - ✅ Ephemeral 销毁未加入弃牌堆 — 已修复：DestroyEphemeralUnits 两处（base + battlefield）均加 gs.GetDiscard(owner).Add(u) — Phase DEV-18→DEV-28
 - [ ] EventBanner.DrainQueue 协程在 OnDisable 时不会停止 — 组件禁用后仍可能继续运行（本项目 EventBanner 不会被禁用，风险低）— Phase DEV-18b（Claude 审查 Low）
-- [ ] AskPromptUI._cardViewPrefab 为 null 时 card-pick 模式静默跳过卡片渲染 — 功能降级但不崩溃，SceneBuilder 已连线 cardPrefab — Phase DEV-19（Codex Medium）
+- ✅ AskPromptUI._cardViewPrefab 为 null 时 card-pick 静默跳过 — 已确认：SceneBuilder 已连线，优雅降级属设计预期，不修复 — Phase DEV-19 → DEV-31 WONTFIX
 - [ ] ScoreRingRoutine 使用 AddComponent 动态生成 ring Image — 大量快速得分时可积累多个同时运行，实际游戏节奏不触发 — Phase DEV-19（Codex Low）
 - [ ] GameUI.RefreshScoreTrack 多分得分时只动画最终圆圈 — 1分得分触发一次 pulse，多分时中间圆圈无动画 — Phase DEV-19（Codex Medium）
 - [ ] GameUI.NotifyReactButtonState 有空反应路径 — 仅调用 FireHintToast("")，未调用 PlayReactRibbonReveal（设计确认：ribbon reveal 由 GameManager 直接调用）— Phase DEV-19（Codex Low）
-- [ ] ToastUI 去重仅按原始消息文本 — 两个不同来源（BattlefieldSystem / GameManager）发同样文本会跨源折叠；null/空字符串消息也会互相匹配 — Phase DEV-19 patch（Codex Medium）
-- [ ] EventBanner 去重忽略 duration 和 large 参数 — 相同文本但不同时长/样式的第二次触发被静默丢弃，驻留时间以第一次为准 — Phase DEV-19 patch（Codex Medium）
-- [ ] GameUI.ShowCombatResult 无协程句柄 — 每次调用新建 HideCombatResult 协程无保存句柄，旧计时器可能提前隐藏新结果 — Phase DEV-19 patch（Codex Medium）
+- ✅ ToastUI 去重仅按原始消息文本 — 已确认：null/empty 守卫已在 DEV-26 修复（行80），跨源折叠属设计预期 — Phase DEV-19 patch → DEV-31 confirmed resolved
+- ✅ EventBanner 去重忽略 duration 和 large 参数 — 已确认：EventBanner 已重构为 batch 系统，无文本去重遗留问题 — Phase DEV-19 patch → DEV-31 confirmed resolved
+- ✅ GameUI.ShowCombatResult 无协程句柄 — 已确认：_crHideRoutine 字段已存在并正确使用 — Phase DEV-19 patch → DEV-31 confirmed resolved
 - [ ] RuneAutoConsume.Compute 与 OnRuneClicked 符文可回收规则不一致 — Compute 跳过已横置符文，但 OnRuneClicked recycle 路径现已同步禁止，DEV-20 H-2 已修复互斥；更深层需统一符文状态机 — Phase DEV-20（Codex Medium）
-- [ ] ReactiveWindowUI 无 OnDisable 回退 — OnDestroy 已 TrySetCanceled，但 panel.SetActive(false) 后 _tcs 仍可能悬空；低风险（当前只通过 HidePanel/SkipReaction 关闭）— Phase DEV-20（Codex Medium）
+- ✅ ReactiveWindowUI 无 OnDisable 回退 — DEV-31 已修复：OnDisable 加 `_tcs?.TrySetCanceled()`，组件禁用时取消悬挂 Task — Phase DEV-20→DEV-31
 - [ ] SpellVFX.BurstParticles/LegendFlame 协程被中断时粒子 GO 泄漏 — OnDestroy 已加子节点批量 Destroy 兜底，低风险（SpellVFX 生命周期与场景同步）— Phase DEV-21（Codex Medium，DEV-26 部分缓解）
 - ✅ Swift 关键词仅数据/UI层，法术对决实际判断仍只看 Reactive — DEV-27 已实现：TurnStateMachine CanPlaySpell Rule 718，AiTryReact + 玩家反应窗口两处筛选加 Swift — Phase DEV-25b→DEV-27
 - [ ] TryPlayUnitAsync 缺少 Haste prompt 的行为测试 — 仅有枚举计数测试，缺 Haste confirm/cancel/资源不足/状态变更后回退流程测试 — Phase DEV-25b（Codex Low）
-- [ ] CardDragHandler: PortalVFX.EnsureBuilt fallback 用 FindObjectOfType<Canvas>，应改 GetComponentInParent — Phase DEV-22（Codex Medium）
-- [ ] CardDragHandler: HandleDrop 未在 drop 时重验证游戏状态（GameManager 回调内部已验证，深度防御待补）— Phase DEV-22（Codex Medium）
+- ✅ CardDragHandler: PortalVFX.EnsureBuilt fallback — DEV-31 已修复：改用 GetComponentInParent<Canvas>() + rootCanvas 解析，移除 FindObjectOfType — Phase DEV-22→DEV-31
+- ✅ CardDragHandler: HandleDrop 重验证 — DEV-31 已修复：HandleDrop 开头加 `if (GameManager.Instance == null) return` 深度防御 — Phase DEV-22→DEV-31
 - [ ] DEV-22 测试套件以常量断言为主，缺 HandleDrop 路径、CanStartDrag false、ghost 清理等行为测试 — Phase DEV-22（Codex Low）
 - [ ] ReactiveWindowUI._gs 仅在 WaitForReaction 时更新，AutoPlayRandom guard 仅能防止失效卡；若需更严格防御应在 SkipReaction 前遍历 _pendingCards — Phase DEV-22 patch（Codex Low）
-- [ ] SceneryUI.DividerOrbLoop 基准位置只采样一次，分辨率变化时振荡中心偏移；游戏内无动态分辨率切换，实际风险极低 — Phase DEV-23（Codex Medium，已 DEV-26 缓解：仅缓存 baseY）
-- [ ] GlassPanelFX Shader.Find 运行时查找 — 构建时若 "FWTCG/GlassPanel" 未加入 Always Included Shaders 会在打包后失效；修复：Project Settings → Graphics → Always Included Shaders 添加该 shader — Phase DEV-25（Codex M-2）
+- ✅ SceneryUI.DividerOrbLoop 基准位置 — 已确认：DEV-26 已修复，仅缓存 baseY，X 轴读实时值 — Phase DEV-23 → DEV-31 confirmed resolved
+- [ ] GlassPanelFX Shader.Find 运行时查找 — 代码已有 LogWarning 兜底，属项目配置项；待打包前在 Project Settings → Graphics → Always Included Shaders 添加 FWTCG/GlassPanel — Phase DEV-25（配置待处理）
 - [ ] ShowStatusTooltip AutoDismissTooltip 只监听鼠标按下，键盘/游戏手柄操作无法关闭 tooltip — 低优先级，当前目标平台为 PC — Phase DEV-25（Low）
 - ✅ ShowTargetHighlights 遍历含 _playerHandContainer — 已移除，手牌容器不参与目标高亮 — Phase DEV-28→DEV-29
 - ✅ CardView.Setup 复用时 HeroAura 不清除 — 已修复：ClearHeroAura() + _enterAnimPlayed 重置 — Phase DEV-28→DEV-29
 - ✅ SpellTargetPopup / ActivateEquipmentAsync 无 try/finally 保护 — 已修复：GameManager 两处 await 均加 try/finally — Phase DEV-28→DEV-29
 - ✅ CombatFlyGhost 在 CombatAnimator 销毁时成为孤儿 — 已修复：_activeGhosts List + OnDestroy 遍历销毁 — Phase DEV-28→DEV-29
 - ✅ _enterAnimPlayed 不重置 — 已修复：Setup isNewUnit 时重置为 false — Phase DEV-28→DEV-29
-- [ ] CombatAnimator.OnDestroy Remove-then-Destroy 顺序缺注释 — 顺序正确但维护者难理解为何 Remove 先于 Destroy；建议补注释说明单线程协程安全原因 — Phase DEV-29（Codex Low）
+- ✅ CombatAnimator.OnDestroy Remove-then-Destroy 顺序缺注释 — DEV-31 已补注释：说明单线程协程安全原因（Remove 先于 Destroy 防止 OnDestroy 双重销毁）— Phase DEV-29→DEV-31
 - [ ] ClearHeroAura 双重销毁风险 — 若外部代码绕过 ClearHeroAura 直接销毁 _heroAura 子对象，下次调用仍会通过 Unity fake-null 检测并再次调用 Destroy；当前无此路径，但脆弱 — Phase DEV-29（Codex Low）
 - [ ] ClearTargetHighlights GetComponent 每帧每子节点调用 — 与 ShowTargetHighlights 显式 null 检查写法不一致；性能可接受，风格不统一 — Phase DEV-29（Codex Low）
-- [ ] CreateOverlayImage sizeDelta 参数被忽略 — StartHeroAura 传入 (8,8) 期望光晕扩展超出卡牌，但实现中未使用该值，光晕与卡牌等大 — Phase DEV-28（Codex Low）
-- [ ] SpellDuelUI.FindRootCanvas 每次 ShowDuelOverlay 调用 FindObjectsOfType<Canvas>()（O(n) 分配）— 应在 Start 时缓存；async FireDuelBanner 路径若上游加 ConfigureAwait(false) 会导致线程安全问题 — Phase DEV-30（Codex HIGH-3 → Medium）
-- [ ] SpellDuelUI 无重复实例保护 — GameManager.Awake 用 AddComponent 添加，若场景已有 SpellDuelUI 组件会双重实例双重订阅；建议添加 `if (Instance != null && Instance != this) Destroy(this)` 守卫 — Phase DEV-30（Codex HIGH-2 → Medium）
-- [ ] SpellDuelUI 订阅 OnClearBanners 触发 HideDuelOverlay，同一事件也触发 ReactiveWindowUI.AutoPlayRandom — 轮次切换时两者同步触发，设计预期如此，但 AutoPlayRandom 强制打出随机牌会绕过对决倒计时；待业务确认 — Phase DEV-30（Codex HIGH-1 → 设计待确认）
-- [ ] ReactiveWindowUI.WaitForReaction 不取消旧 TCS 直接替换 — 重入调用时旧 Task 的等待方永久挂起；修复：_tcs?.TrySetCanceled() 替换前调用 — Phase DEV-30（Codex MEDIUM-4）
+- ✅ CreateOverlayImage sizeDelta 参数被忽略 — DEV-31 已修复：offsetMin/offsetMax 加入 sizeDelta*0.5 扩展，HeroAura 现可正确超出卡牌 4px — Phase DEV-28→DEV-31
+- ✅ SpellDuelUI.FindRootCanvas 每次 FindObjectsOfType — DEV-31 已修复：_rootCanvas 在 Awake() 缓存，ShowDuelOverlay 优先使用缓存值，避免每帧 O(n) 分配 — Phase DEV-30→DEV-31
+- ✅ SpellDuelUI 无重复实例保护 — DEV-31 已修复：Awake 加 `if (Instance != null && Instance != this) { Destroy(this); return; }` 单例守卫 — Phase DEV-30→DEV-31
+- [ ] SpellDuelUI 订阅 OnClearBanners 触发 HideDuelOverlay，同一事件也触发 ReactiveWindowUI.AutoPlayRandom — 轮次切换时两者同步触发，设计预期如此，但 AutoPlayRandom 强制打出随机牌会绕过对决倒计时；待业务确认 — Phase DEV-30（设计待确认，DEV-31 保留）
+- ✅ ReactiveWindowUI.WaitForReaction 不取消旧 TCS — DEV-31 已修复：WaitForReaction 开头加 `_tcs?.TrySetCanceled()` 防止旧 Task 永久挂起 — Phase DEV-30→DEV-31
+- ✅ GameManager WaitForReaction await 无 OperationCanceledException 保护 — DEV-31 Codex HIGH 发现并修复：try/catch 包裹 await，防 OnDisable 取消后 _reactionWindowActive 卡死 — Phase DEV-31
 - [ ] CardView.EnterAnimRoutine 无重试路径 — Setup 时 GO 不活跃则跳过动画，_enterAnimPlayed 已 true 导致永远不会重播；实际路径（Mulligan）会重新 Setup，风险低 — Phase DEV-30（Codex Medium）
 - [ ] CardView.EnterAnimRoutine 一帧视觉闪烁 — yield return null 前未设 alpha=0/startScale，首帧以最终状态渲染；一帧几乎不可见 — Phase DEV-30（Codex Medium）
 - [ ] CardView.EnterAnimRoutine _enterAnimPlayed 竞态 — GO 在等待帧内被禁用时 yield break，动画永久丢失；同上实际路径不触发 — Phase DEV-30（Codex Medium）

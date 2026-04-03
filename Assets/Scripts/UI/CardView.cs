@@ -469,7 +469,7 @@ namespace FWTCG.UI
                 _cardGlow.SetPlayable(playable);
 
             // DEV-30 V7: playable spark — start/stop on state change
-            if (playable && !_lastPlayable)
+            if (playable && !_lastPlayable && gameObject.activeInHierarchy)
                 _playableSpark ??= StartCoroutine(PlayableSparkRoutine());
             else if (!playable && _lastPlayable)
             {
@@ -1353,8 +1353,9 @@ namespace FWTCG.UI
             rt.anchorMin = Vector2.zero;
             rt.anchorMax = Vector2.one;
             float expand = asOutline ? 4f : 0f;
-            rt.offsetMin = new Vector2(-expand, -expand);
-            rt.offsetMax = new Vector2(expand, expand);
+            // sizeDelta.x/2 and sizeDelta.y/2 expand the overlay beyond card bounds on each side
+            rt.offsetMin = new Vector2(-expand - sizeDelta.x * 0.5f, -expand - sizeDelta.y * 0.5f);
+            rt.offsetMax = new Vector2( expand + sizeDelta.x * 0.5f,  expand + sizeDelta.y * 0.5f);
             var img = go.AddComponent<Image>();
             img.color = color;
             img.raycastTarget = false;

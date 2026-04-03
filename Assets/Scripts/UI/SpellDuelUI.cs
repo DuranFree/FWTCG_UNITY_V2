@@ -26,8 +26,8 @@ namespace FWTCG.UI
         public bool IsShowing { get; private set; }
 
         private const float DUEL_TIMEOUT = 30f;
-        private bool _initialized;
 
+        private Canvas     _rootCanvas;       // cached in Awake, avoids FindObjectsOfType each call
         private GameObject _overlay;
         private Image[]    _borders;          // [0]=Top [1]=Bottom [2]=Left [3]=Right
         private Text       _countdownText;
@@ -40,9 +40,14 @@ namespace FWTCG.UI
 
         private void Awake()
         {
-            if (_initialized) return; // guard: prevents double-subscription if called twice
-            _initialized = true;
+            // Duplicate instance guard: if another SpellDuelUI already exists, destroy self
+            if (Instance != null && Instance != this)
+            {
+                Destroy(this);
+                return;
+            }
             Instance = this;
+            _rootCanvas = FindRootCanvas();
             GameEventBus.OnDuelBanner   += ShowDuelOverlay;
             GameEventBus.OnClearBanners += HideDuelOverlay;
         }
@@ -63,7 +68,7 @@ namespace FWTCG.UI
             if (IsShowing) return;
             IsShowing = true;
 
-            Canvas root = FindRootCanvas();
+            Canvas root = _rootCanvas != null ? _rootCanvas : FindRootCanvas();
             if (root == null) return;
 
             BuildOverlay(root);

@@ -117,7 +117,12 @@ namespace FWTCG.UI
 
             // Find root canvas
             if (_rootCanvas == null)
-                _rootCanvas = GetComponent<Canvas>() ?? FindObjectOfType<Canvas>();
+            {
+                _rootCanvas = GetComponentInParent<Canvas>();
+                // Ensure we have the root canvas, not an intermediate one
+                if (_rootCanvas != null && !_rootCanvas.isRootCanvas)
+                    _rootCanvas = _rootCanvas.rootCanvas;
+            }
 
             if (_rootCanvas == null) return;
 
