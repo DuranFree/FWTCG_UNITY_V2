@@ -138,8 +138,8 @@
 
 ## 十、掷硬币界面
 
-- [ ] 硬币正面图片（xianshou.png ✅ 已在 Assets/Resources/CardArt/，待接入 StartupFlowUI）
-- [ ] 硬币背面图片（houshou.png ✅ 已在 Assets/Resources/CardArt/，待接入 StartupFlowUI）
+- ✅ 硬币正面图片（xianshou.png，StartupFlowUI.CoinSpinRoutine Resources.Load 接入，落地时显示正面）— DEV-24
+- ✅ 硬币背面图片（houshou.png，StartupFlowUI.CoinSpinRoutine Resources.Load 接入，翻转时交替显示背面）— DEV-24
 - ✅ 翻转动画（1800ms，5次 scaleX 0→1 翻转 + 落地弹跳，StartupFlowUI.CoinSpinRoutine）— DEV-24
 - ✅ 结果文字淡入（0.4s FadeTextIn，coinResultText）— DEV-24
 
@@ -147,8 +147,8 @@
 
 ## 十一、梦想手牌界面
 
-- [ ] 换牌选中状态（选中卡牌视觉变化）
-- [ ] 确认按钮动画
+- ✅ 换牌选中状态（CardView.SetSelected → GameColors.CardSelected 金色背景，StartupFlowUI.UpdateMulliganUI 驱动）— DEV-22/DEV-24
+- [ ] 确认按钮动画（梦想手牌确认按钮无 ButtonCharge/Pulse，待评估是否需要）
 - ✅ 界面进场/退场过渡（CanvasGroup 0.4s 淡入 / 0.3s 淡出，MulliganFlowRoutine）— DEV-24
 
 ---
