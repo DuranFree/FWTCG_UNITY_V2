@@ -187,6 +187,19 @@
 
 ---
 
+## Unity 引擎常见坑
+
+- `Awake()` 早于 `Start()`，跨组件初始化顺序依赖时要注意
+- `OnDestroy()` 里必须取消事件订阅，否则内存泄漏
+- `Time.deltaTime` 在 `FixedUpdate()` 里用 `Time.fixedDeltaTime`
+- `Resources.Load()` 性能差，用 Addressables 或直接引用
+- 不要在运行时用 `GameObject.Find()`，提前缓存引用
+- `string` 拼接在热路径里用 `StringBuilder`
+- Physics 操作放在 `FixedUpdate()`，输入检测放在 `Update()`
+- UI 元素定位超出父容器边界时（pivot + offset 导致跑出 rect 范围），必须主动提示用户验证渲染层级是否遮挡
+
+---
+
 ## 破坏性 Git 操作规则
 
 执行任何破坏性 git 操作前（reset --hard、checkout .、restore .、clean -f、branch -D 等），必须：
