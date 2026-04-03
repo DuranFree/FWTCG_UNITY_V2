@@ -51,7 +51,7 @@ namespace FWTCG.UI
         public void Show(Vector2 canvasPos)
         {
             EnsureBuilt();
-            _vfxRT.anchoredPosition = canvasPos;
+            _vfxRT.localPosition = new Vector3(canvasPos.x, canvasPos.y, 0f);
             _vfxRoot.SetActive(true);
             _visible = true;
 
@@ -63,7 +63,7 @@ namespace FWTCG.UI
         public void MoveTo(Vector2 canvasPos)
         {
             if (_vfxRT != null)
-                _vfxRT.anchoredPosition = canvasPos;
+                _vfxRT.localPosition = new Vector3(canvasPos.x, canvasPos.y, 0f);
         }
 
         /// <summary>Fade out and hide the portal.</summary>

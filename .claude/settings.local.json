@@ -10,7 +10,17 @@
       "Bash(\"/c/Program Files/Unity/Hub/Editor/2022.3.62f3c1/Editor/Unity.exe\" -batchmode -nographics -projectPath . -runTests -testPlatform EditMode -logFile -)",
       "Bash(\"/c/Program Files/Unity/Hub/Editor/2022.3.62f3c1/Editor/Unity.exe\" -batchmode -nographics -projectPath . -runTests -testPlatform EditMode -testResults \"./test-results.xml\" -logFile \"./test-log.txt\")",
       "Bash(echo \"EXIT:$?\")",
-      "Bash(node \"C:/Users/dliao/.claude/plugins/cache/openai-codex/codex/1.0.1/scripts/codex-companion.mjs\" adversarial-review \"\")"
+      "Bash(node \"C:/Users/dliao/.claude/plugins/cache/openai-codex/codex/1.0.1/scripts/codex-companion.mjs\" adversarial-review \"\")",
+      "WebFetch(domain:github.com)",
+      "Bash(del \"C:\\\\Users\\\\dliao\\\\.claude\\\\projects\\\\E--claudeCode-unity-FWTCG-UNITY-V3\\\\memory\\\\project_missing_ui_zones.md\")",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(python \"E:\\\\claudeCode\\\\DOC\\\\skills\\\\scripts\\\\office\\\\unpack.py\" \"E:\\\\claudeCode\\\\FWTCG_V3d_V9\\\\docs\\\\rules\\\\《符文战场》核心规则_250617.docx\" \"E:\\\\claudeCode\\\\FWTCG_V3d_V9\\\\docs\\\\rules\\\\unpacked_rules\")",
+      "Bash(find E:BaiduNetdiskDownloadclaude-code-source-mainclaude-code-source-main/src -type f -name *feature* -o -name *beta* -o -name *flag*)",
+      "Bash(find E:BaiduNetdiskDownloadclaude-code-source-mainclaude-code-source-main/src -type f \\\\\\(-name *headless* -o -name *remote* -o -name *daemon* \\\\\\))",
+      "WebFetch(domain:www.youtube.com)",
+      "mcp__mcp-unity__get_console_logs"
     ]
   }
 }

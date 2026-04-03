@@ -18,7 +18,7 @@ MonoBehaviour:
   _runeType: 3
   _runeCost: 0
   _atk: 0
-  _keywords: 4097
+  _keywords: 36864
   _effectId: slam
   _isEquipment: 0
   _equipAtkBonus: 0
@@ -27,5 +27,5 @@ MonoBehaviour:
   _isHero: 0
   _isSpell: 1
   _spellTargetType: 1
-  _description: "\u6025\u901F+\u56DE\u54CD\u3002\u4F7F\u76EE\u6807\u654C\u65B9\u5355\u4F4D\u7729\u6655\uFF08\u6CD5\u76FE\u53EF\u62B5\u6D88\uFF09"
+  _description: "\u8FC5\u6377+\u56DE\u54CD\u3002\u4F7F\u76EE\u6807\u654C\u65B9\u5355\u4F4D\u7729\u6655\uFF08\u6CD5\u76FE\u53EF\u62B5\u6D88\uFF09"
   _artSprite: {fileID: 21300000, guid: 55200c0809d4f4942bf9ebbedb378483, type: 3}

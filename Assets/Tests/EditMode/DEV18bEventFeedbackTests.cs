@@ -155,7 +155,7 @@ namespace FWTCG.Tests
             GameEventBus.FireHoldScoreBanner();
             GameEventBus.OnEventBanner -= Handler;
 
-            Assert.AreEqual(1.5f, duration, 0.001f);
+            Assert.AreEqual(1.0f, duration, 0.001f);
         }
 
         [Test]
@@ -168,7 +168,7 @@ namespace FWTCG.Tests
             GameEventBus.FireConquerScoreBanner();
             GameEventBus.OnEventBanner -= Handler;
 
-            Assert.AreEqual(2f, duration, 0.001f);
+            Assert.AreEqual(1.0f, duration, 0.001f);
         }
 
         [Test]

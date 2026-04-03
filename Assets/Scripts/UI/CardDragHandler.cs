@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using FWTCG;
 using FWTCG.Core;
+using FWTCG.Data;
 
 namespace FWTCG.UI
 {
@@ -68,7 +69,6 @@ namespace FWTCG.UI
         private Vector2   _dragScreenPos; // updated in OnDrag
 
         private CanvasGroup _selfCanvasGroup;
-        private PortalVFX   _portalVFX;
         private GameObject  _dragOriginOverlay;  // green tint at origin during drag
 
         private float _pointerDownTime = -1f;
@@ -84,7 +84,6 @@ namespace FWTCG.UI
         {
             _cardView        = GetComponent<CardView>();
             _rt              = GetComponent<RectTransform>();
-            _portalVFX       = GetComponent<PortalVFX>();
             _selfCanvasGroup = GetComponent<CanvasGroup>();
             if (_selfCanvasGroup == null)
                 _selfCanvasGroup = gameObject.AddComponent<CanvasGroup>();
@@ -116,7 +115,6 @@ namespace FWTCG.UI
             if (_cancelReturnCoroutine != null) StopCoroutine(_cancelReturnCoroutine);
             RestoreCluster();
             if (_ghost != null) { Destroy(_ghost); _ghost = null; }
-            if (_portalVFX != null) _portalVFX.Hide();
         }
 
         // ── IPointerDownHandler ──────────────────────────────────────────────
@@ -175,12 +173,6 @@ namespace FWTCG.UI
 
             if (_ghost != null)
                 _ghost.transform.SetAsLastSibling();
-
-            if (_portalVFX != null)
-            {
-                Vector2 canvasPos = ScreenToCanvas(currentScreenPos);
-                _portalVFX.Show(canvasPos);
-            }
         }
 
         // ── IDragHandler ─────────────────────────────────────────────────────
@@ -198,8 +190,6 @@ namespace FWTCG.UI
                 ghostRT.localPosition = new Vector3(canvasPos.x, canvasPos.y, 0f);
             }
 
-            if (_portalVFX != null)
-                _portalVFX.MoveTo(canvasPos);
         }
 
         // ── IEndDragHandler ──────────────────────────────────────────────────
@@ -218,7 +208,6 @@ namespace FWTCG.UI
 
             _isDragging = false;
             _isCancelling = true;
-            if (_portalVFX != null) _portalVFX.Hide();
 
             // Stop cluster follow — ghosts freeze in current positions
             if (_clusterMoveCoroutine != null)
@@ -251,13 +240,15 @@ namespace FWTCG.UI
         {
             var gm = GameManager.Instance;
 
-            // ── Step 1: Haste prompt (ghosts stay frozen while dialog is open) ──
+            // ── Step 1: Haste prompt — hide ghosts while dialog is open ──────────
             bool needsHaste = draggedUnit != null && gm != null && gm.DragNeedsHasteChoice(draggedUnit);
             if (needsHaste && AskPromptUI.Instance != null)
             {
+                SetGhostsVisible(false); // hide mid-air ghosts while popup is open
+
                 var task = AskPromptUI.Instance.WaitForConfirm(
                     "急速",
-                    $"额外支付 [1] 法力 + [1{draggedUnit.CardData.RuneType}] 符能，让 {draggedUnit.UnitName} 以活跃状态进场？",
+                    $"额外支付 [1] 法力 + [1{draggedUnit.CardData.RuneType.ToColoredText()}] 符能，让 {draggedUnit.UnitName} 以活跃状态进场？",
                     "使用急速",
                     "取消打出");
 
@@ -266,8 +257,9 @@ namespace FWTCG.UI
                 bool confirmed = task.IsCompleted && !task.IsFaulted && task.Result;
                 if (!confirmed)
                 {
-                    // User cancelled — animate ghosts back to origin
-                    _isCancelling = false; // let CancelReturnRoutine manage the flag
+                    // Restore ghost so it's visible during the return animation
+                    SetGhostsVisible(true);
+                    _isCancelling = false;
                     _isDragging   = false;
                     _isCancelling = true;
                     yield return CancelReturnRoutine();
@@ -276,9 +268,11 @@ namespace FWTCG.UI
                 }
 
                 gm.SetDragHasteDecision(true);
+                // Ghost stays hidden — it will be destroyed in Step 2 below
             }
 
-            // ── Step 2: Record ghost positions, cleanup, commit game logic ───────
+            // ── Step 2: Record ghost positions, cleanup ──────────────────────────
+            // Ghost may be hidden (alpha=0) but is still at the drop position — record it now.
             Vector2 mainGhostPos = _ghost != null
                 ? (Vector2)_ghost.GetComponent<RectTransform>().localPosition
                 : ScreenToCanvas(dropScreenPos);
@@ -294,12 +288,38 @@ namespace FWTCG.UI
             // Capture drag source before HandleDrop (which may destroy 'this' via RefreshUI)
             DragSource capturedSource = _dragSource;
 
+            // ── Step 3: Trigger game logic ────────────────────────────────────────
+            // HandleDrop fires async callbacks (e.g. PlayHandCardWithRuneConfirmAsync) that
+            // may open additional confirm dialogs. AskPromptUI.IsShowing is set synchronously
+            // inside WaitForConfirm/Show(), so it is already true by the time HandleDrop returns.
             HandleDrop(dropScreenPos);
 
-            // ── Step 3: Animate on a temporary host so RefreshUI destroying 'this' can't cancel it ──
+            // ── Step 4: Wait for ALL prompts to be resolved ───────────────────────
+            // One extra frame as safety margin, then drain any open dialog.
+            yield return null;
+            while (AskPromptUI.IsShowing || SpellTargetPopup.IsShowing)
+                yield return null;
+
+            // ── Step 5: Animate on a temporary host ───────────────────────────────
             SpawnDropAnimation(capturedSource, draggedUnit, clusterUnits, fromPositions);
             _isCancelling      = false;
             BlockPointerEvents = false;
+        }
+
+        /// <summary>Show or hide all drag ghosts (main + cluster) without moving them.</summary>
+        private void SetGhostsVisible(bool visible)
+        {
+            if (_ghost != null)
+            {
+                var cg = _ghost.GetComponent<CanvasGroup>();
+                if (cg != null) cg.alpha = visible ? 0.72f : 0f;
+            }
+            foreach (var g in _clusterGhosts)
+            {
+                if (g == null) continue;
+                var cg = g.GetComponent<CanvasGroup>();
+                if (cg != null) cg.alpha = visible ? 1f : 0f;
+            }
         }
 
         // ── Cancel drag ──────────────────────────────────────────────────────
@@ -345,8 +365,6 @@ namespace FWTCG.UI
             if (_isCancelling) return;
             _isCancelling = true;
             _isDragging   = false; // stops ClusterFollowRoutine
-
-            if (_portalVFX != null) _portalVFX.Hide();
 
             _cancelReturnCoroutine = StartCoroutine(CancelReturnRoutine());
         }
@@ -413,17 +431,15 @@ namespace FWTCG.UI
             _cancelReturnCoroutine = null;
             _isCancelling          = false;
 
-            // Restore original card visibility WITHOUT touching selection state
             RemoveDragOriginOverlay();
 
-            // Destroy main ghost
             if (_ghost != null) { Destroy(_ghost); _ghost = null; }
 
-            // Restore cluster originals (alpha only, no deselect)
             RestoreCluster();
 
-            // Delay unblocking pointer events by 2 frames so the card fully settles
-            // visually before hover/right-click events can fire again.
+            // Clear all hand/base selections on cancel so cards return to neutral state
+            GameManager.Instance?.ClearAllSelections();
+
             StartCoroutine(UnblockEventsAfterCancel());
         }
 
@@ -569,8 +585,6 @@ namespace FWTCG.UI
 
             var dh   = _ghost.GetComponent<CardDragHandler>(); if (dh   != null) Destroy(dh);
             var btn  = _ghost.GetComponent<Button>();           if (btn  != null) Destroy(btn);
-            var pvfx = _ghost.GetComponent<PortalVFX>();        if (pvfx != null) Destroy(pvfx);
-
             // Remove any CardHoverScale so the ghost never reacts to its own hover
             var chs = _ghost.GetComponent<CardHoverScale>(); if (chs != null) Destroy(chs);
 
@@ -646,7 +660,6 @@ namespace FWTCG.UI
 
                 var dh2  = ghost.GetComponent<CardDragHandler>(); if (dh2  != null) Destroy(dh2);
                 var btn2 = ghost.GetComponent<Button>();           if (btn2 != null) Destroy(btn2);
-                var pvfx = ghost.GetComponent<PortalVFX>();        if (pvfx != null) Destroy(pvfx);
 
                 var gcg = ghost.GetComponent<CanvasGroup>() ?? ghost.AddComponent<CanvasGroup>();
                 gcg.alpha          = 1f;   // cluster ghosts are fully opaque — they represent the actual card
@@ -830,7 +843,6 @@ namespace FWTCG.UI
                     overlay.name = "LandGhost";
                     var dh2  = overlay.GetComponent<CardDragHandler>(); if (dh2  != null) Destroy(dh2);
                     var btn2 = overlay.GetComponent<Button>();           if (btn2  != null) Destroy(btn2);
-                    var pvfx = overlay.GetComponent<PortalVFX>();        if (pvfx  != null) Destroy(pvfx);
 
                     var ocg = overlay.GetComponent<CanvasGroup>() ?? overlay.AddComponent<CanvasGroup>();
                     ocg.alpha = 1f; ocg.blocksRaycasts = false; ocg.interactable = false;

@@ -18,7 +18,7 @@ MonoBehaviour:
   _runeType: 0
   _runeCost: 1
   _atk: 0
-  _keywords: 1
+  _keywords: 32768
   _effectId: hex_ray
   _isEquipment: 0
   _equipAtkBonus: 0
@@ -27,5 +27,5 @@ MonoBehaviour:
   _isHero: 0
   _isSpell: 1
   _spellTargetType: 1
-  _description: "\u6025\u901F\u3002\u5BF9\u76EE\u6807\u654C\u65B9\u5355\u4F4D\u9020\u62103\u70B9\u4F24\u5BB3"
+  _description: "\u8FC5\u6377\u3002\u5BF9\u76EE\u6807\u654C\u65B9\u5355\u4F4D\u9020\u62103\u70B9\u4F24\u5BB3"
   _artSprite: {fileID: 21300000, guid: ffae56b18dd206d44a146fe9e3a666fd, type: 3}

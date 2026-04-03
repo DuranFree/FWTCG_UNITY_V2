@@ -41,6 +41,7 @@ namespace FWTCG.UI
                 if (_cg == null) _cg = _toastPanel.AddComponent<CanvasGroup>();
                 _toastPanel.SetActive(false);
             }
+            if (_toastText != null) _toastText.supportRichText = true;
         }
 
         private void OnEnable()

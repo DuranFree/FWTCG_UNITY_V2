@@ -309,7 +309,7 @@ namespace FWTCG.Systems
                 RuneInstance r = runeDeck[0];
                 runeDeck.RemoveAt(0);
                 runes.Add(r);
-                Log($"[平衡意志] 召出符文 {r.RuneType}（符文区共 {runes.Count} 张）");
+                Log($"[平衡意志] 召出符文 {r.RuneType.ToChinese()}（符文区共 {runes.Count} 张）");
             }
             else
             {

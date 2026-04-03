@@ -58,15 +58,23 @@ namespace FWTCG.AI
             gs.AddMana(GameRules.OWNER_ENEMY, manaGained);
             Log($"[AI] 横置 {manaGained} 张符文，法力 → {gs.EMana}");
             await Delay(GameRules.AI_ACTION_DELAY_MS);
+            await GameManager.WaitIfReactionActive();
             if (gs.GameOver) return;
 
             // ── 1b. Recycle runes for schematic energy if needed ─────────────
             AiRecycleRunes(gs);
             await Delay(GameRules.AI_ACTION_DELAY_MS);
+            await GameManager.WaitIfReactionActive();
             if (gs.GameOver) return;
 
             // ── 2. Compute reactive mana reserve ──────────────────────────────
             int reactiveReserve = AiMinReactiveCost(gs);
+
+            // ── 2.5. Use legend active ability before spells/summons ──────────
+            // Kaisa: gain Blazing sch early so it's available for spell casting this turn
+            // Masteryi: passive only, handled automatically by CombatSystem
+            if (legendSys != null && gs.ELegend != null)
+                AiUseLegendAbility(gs, legendSys);
 
             // ── 3. Play rally_call before summoning ────────────────────────────
             if (spellSys != null && !gs.GameOver)
@@ -76,6 +84,7 @@ namespace FWTCG.AI
                     await CastAISpell(rally, null, gs, spellSys, turnMgr);
                 if (gs.GameOver) { turnMgr.EndTurn(); return; }
                 await Delay(GameRules.AI_ACTION_DELAY_MS);
+                await GameManager.WaitIfReactionActive();
             }
 
             // ── 4. Play balance_resolve early ──────────────────────────────────
@@ -86,6 +95,41 @@ namespace FWTCG.AI
                     await CastAISpell(balance, null, gs, spellSys, turnMgr);
                 if (gs.GameOver) { turnMgr.EndTurn(); return; }
                 await Delay(GameRules.AI_ACTION_DELAY_MS);
+                await GameManager.WaitIfReactionActive();
+            }
+
+            // ── 4.5. Play hero card if affordable ─────────────────────────────
+            if (gs.EHero != null && !gs.GameOver && CanAfford(gs.EHero.CardData, gs))
+            {
+                UnitInstance hero = gs.EHero;
+                gs.EHero = null;
+                SpendCost(hero.CardData, gs);
+                gs.EBase.Add(hero);
+
+                // Haste: use if affordable (hero entering active is high value for AI)
+                bool useHaste = false;
+                if (hero.CardData.HasKeyword(CardKeyword.Haste))
+                {
+                    bool hasExtraMana = gs.EMana >= 1;
+                    bool hasExtraSch  = gs.GetSch(GameRules.OWNER_ENEMY, hero.CardData.RuneType) >= 1;
+                    if (hasExtraMana && hasExtraSch)
+                    {
+                        gs.EMana -= 1;
+                        gs.SpendSch(GameRules.OWNER_ENEMY, hero.CardData.RuneType, 1);
+                        useHaste = true;
+                        Log($"[AI] 急速！{hero.UnitName} 以活跃状态进场");
+                        UI.GameEventBus.FireUnitFloatText(hero, "急速！", UI.GameColors.BuffColor);
+                    }
+                }
+                hero.Exhausted = !useHaste;
+                gs.CardsPlayedThisTurn++;
+                Log($"[AI] 英雄出场：{hero.UnitName}（费用{hero.CardData.Cost}），剩余法力 {gs.EMana}");
+                entryEffects?.OnUnitEntered(hero, GameRules.OWNER_ENEMY, gs);
+                legendSys?.CheckKaisaEvolution(GameRules.OWNER_ENEMY, gs);
+
+                await Delay(GameRules.AI_ACTION_DELAY_MS);
+                await GameManager.WaitIfReactionActive();
+                if (gs.GameOver) { turnMgr.EndTurn(); return; }
             }
 
             // ── 5. Summon units (sorted by value) ─────────────────────────────
@@ -121,15 +165,18 @@ namespace FWTCG.AI
                         gs.EMana -= 1;
                         gs.SpendSch(GameRules.OWNER_ENEMY, toPlay.CardData.RuneType, 1);
                         useHaste = true;
-                        Log($"[AI] 急速！支付额外1法力+1{toPlay.CardData.RuneType}符能，{toPlay.UnitName}以活跃状态进场");
+                        Log($"[AI] 急速！支付额外1法力+1{toPlay.CardData.RuneType.ToChinese()}符能，{toPlay.UnitName}以活跃状态进场");
+                        UI.GameEventBus.FireUnitFloatText(toPlay, "急速！", UI.GameColors.BuffColor);
                     }
                 }
                 toPlay.Exhausted = !useHaste;
                 gs.CardsPlayedThisTurn++;
                 Log($"[AI] 出 {toPlay.UnitName}（费用{toPlay.CardData.Cost}，战力{toPlay.CurrentAtk}），剩余法力 {gs.EMana}");
                 entryEffects?.OnUnitEntered(toPlay, GameRules.OWNER_ENEMY, gs);
+                legendSys?.CheckKaisaEvolution(GameRules.OWNER_ENEMY, gs);
 
                 await Delay(GameRules.AI_ACTION_DELAY_MS);
+                await GameManager.WaitIfReactionActive();
                 if (gs.GameOver) return;
             }
 
@@ -163,21 +210,23 @@ namespace FWTCG.AI
                     castAny = true;
 
                     await Delay(GameRules.AI_ACTION_DELAY_MS);
+                    await GameManager.WaitIfReactionActive();
                     if (gs.GameOver) { turnMgr.EndTurn(); return; }
                 }
             }
 
             if (gs.GameOver) { turnMgr.EndTurn(); return; }
+            await GameManager.WaitIfReactionActive();
+            if (gs.GameOver) { turnMgr.EndTurn(); return; }
 
-            // ── 7. Legend active ability ───────────────────────────────────────
-            if (legendSys != null && gs.ELegend != null)
-                AiUseLegendAbility(gs, legendSys);
-
-            // ── 8. Movement loop ──────────────────────────────────────────────
+            // ── 7. Movement loop ──────────────────────────────────────────────
             // Called repeatedly so split-field strategy works naturally:
             // first call sends 1 unit to BF0, second call sends another to BF1.
             while (!gs.GameOver)
             {
+                await GameManager.WaitIfReactionActive();
+                if (gs.GameOver) { turnMgr.EndTurn(); return; }
+
                 var active = gs.GetBase(GameRules.OWNER_ENEMY)
                     .Where(u => !u.Exhausted && !u.Stunned)
                     .ToList();
@@ -193,16 +242,28 @@ namespace FWTCG.AI
                     combat.MoveUnit(u, "base", targetBF, GameRules.OWNER_ENEMY, gs);
                 }
 
-                await Delay(GameRules.AI_ACTION_DELAY_MS);
-                if (gs.GameOver) { turnMgr.EndTurn(); return; }
-
-                combat.CheckAndResolveCombat(targetBF, GameRules.OWNER_ENEMY, gs, score);
-
-                await Delay(GameRules.AI_ACTION_DELAY_MS);
+                if (gs.BF[targetBF].PlayerUnits.Count > 0)
+                {
+                    await Delay(500); // unit lands → 0.5s pause
+                    UI.GameEventBus.FireDuelBanner(); // AI entered battlefield with enemies
+                    await Delay(2000); // banner 1.5s + 0.5s gap
+                    if (gs.GameOver) { turnMgr.EndTurn(); return; }
+                    UI.GameEventBus.FireSetBannerDelay(0.5f); // combat EventBanners wait 0.5s
+                    combat.CheckAndResolveCombat(targetBF, GameRules.OWNER_ENEMY, gs, score);
+                    await Delay(500); // 0.5s after combat before continuing
+                }
+                else
+                {
+                    await Delay(GameRules.AI_ACTION_DELAY_MS);
+                    if (gs.GameOver) { turnMgr.EndTurn(); return; }
+                    combat.CheckAndResolveCombat(targetBF, GameRules.OWNER_ENEMY, gs, score);
+                    await Delay(GameRules.AI_ACTION_DELAY_MS);
+                }
                 if (gs.GameOver) { turnMgr.EndTurn(); return; }
             }
 
             await Delay(GameRules.AI_ACTION_DELAY_MS);
+            await GameManager.WaitIfReactionActive();
 
             // ── 9. End turn ────────────────────────────────────────────────────
             Log("[AI] 结束回合");
@@ -532,14 +593,23 @@ namespace FWTCG.AI
 
             if (gs.ELegend.Id == LegendSystem.KAISA_LEGEND_ID)
             {
-                // Use 虚空感知 if hand contains a Blazing spell we can't afford yet
+                // Use 虚空感知 proactively:
+                // (a) hand has a Blazing spell we can't currently afford
+                // (b) OR Blazing sch is 0 and hand has any Blazing spell (pre-stock for next cast)
+                // (c) OR Blazing sch is 0 and hero/unit in hand has Blazing rune cost
+                int blazing = gs.GetSch(GameRules.OWNER_ENEMY, RuneType.Blazing);
                 bool needsBlazing = gs.GetHand(GameRules.OWNER_ENEMY)
-                    .Any(c => c.CardData.IsSpell
-                           && c.CardData.RuneType == RuneType.Blazing
+                    .Any(c => c.CardData.RuneType == RuneType.Blazing
                            && c.CardData.RuneCost > 0
-                           && gs.GetSch(GameRules.OWNER_ENEMY, RuneType.Blazing)
-                              < c.CardData.RuneCost);
-                if (needsBlazing)
+                           && blazing < c.CardData.RuneCost);
+                bool lowBlazing = blazing == 0 && gs.GetHand(GameRules.OWNER_ENEMY)
+                    .Any(c => c.CardData.RuneType == RuneType.Blazing && c.CardData.RuneCost > 0);
+                // Also use if hero needs Blazing and it's in base/hero zone
+                bool heroBlazing = gs.EHero != null
+                    && gs.EHero.CardData.RuneType == RuneType.Blazing
+                    && gs.EHero.CardData.RuneCost > 0
+                    && blazing < gs.EHero.CardData.RuneCost;
+                if (needsBlazing || lowBlazing || heroBlazing)
                     legendSys.UseKaisaActive(GameRules.OWNER_ENEMY, gs);
             }
             // Masteryi (Yi legend): passive only, handled automatically by CombatSystem
@@ -669,6 +739,9 @@ namespace FWTCG.AI
             foreach (var card in hand)
             {
                 if (card.CardData.RuneCost <= 0) continue;
+                // Skip reactive spells — AI never plays them proactively, so pre-recycling
+                // their sch requirement just destroys runes for no benefit.
+                if (card.CardData.HasKeyword(CardKeyword.Reactive)) continue;
                 // Don't pre-recycle for cards we can't afford mana-wise this turn.
                 // Schematic energy resets every Awaken phase, so pre-recycling is wasteful
                 // and starves the AI of mana needed to play units.
@@ -704,7 +777,7 @@ namespace FWTCG.AI
                         gs.GetRuneDeck(GameRules.OWNER_ENEMY).Add(r); // Rule: recycle goes to deck bottom
                         gs.AddSch(GameRules.OWNER_ENEMY, r.RuneType, 1);
                         remaining--;
-                        Log($"[AI回收] 回收已横置符文 {r.RuneType}，+1{r.RuneType}符能");
+                        Log($"[AI回收] 回收已横置符文 {r.RuneType.ToChinese()}，+1{r.RuneType.ToChinese()}符能");
                     }
                 }
 
@@ -718,7 +791,7 @@ namespace FWTCG.AI
                         gs.GetRuneDeck(GameRules.OWNER_ENEMY).Add(r); // Rule: recycle goes to deck bottom
                         gs.AddSch(GameRules.OWNER_ENEMY, r.RuneType, 1);
                         remaining--;
-                        Log($"[AI回收] 回收未横置符文 {r.RuneType}（牺牲法力），+1{r.RuneType}符能");
+                        Log($"[AI回收] 回收未横置符文 {r.RuneType.ToChinese()}（牺牲法力），+1{r.RuneType.ToChinese()}符能");
                     }
                 }
             }

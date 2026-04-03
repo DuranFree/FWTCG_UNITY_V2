@@ -33,6 +33,8 @@ namespace FWTCG.Systems
             public int AttackerPower;
             public int DefenderPower;
             public string Outcome; // "attacker_win", "defender_win", "both_survive", "both_dead"
+            public List<string> DeadAttackers;  // unit names killed on attacker side
+            public List<string> DeadDefenders;  // unit names killed on defender side
         }
 
         [SerializeField] private DeathwishSystem _deathwish;
@@ -274,12 +276,14 @@ namespace FWTCG.Systems
                 : "both_dead";
             OnCombatResult?.Invoke(new CombatResult
             {
-                BFName = bfDisplayName,
-                AttackerName = DisplayName(attacker),
-                DefenderName = DisplayName(defender),
-                AttackerPower = attackerPower,
-                DefenderPower = defenderPower,
-                Outcome = outcome
+                BFName         = bfDisplayName,
+                AttackerName   = DisplayName(attacker),
+                DefenderName   = DisplayName(defender),
+                AttackerPower  = attackerPower,
+                DefenderPower  = defenderPower,
+                Outcome        = outcome,
+                DeadAttackers  = deadAttackers.Select(u => u.UnitName).ToList(),
+                DeadDefenders  = deadDefenders.Select(u => u.UnitName).ToList(),
             });
 
             // #10: Reset ALL units in ALL locations (Rule 627.5)

@@ -43,8 +43,9 @@ namespace FWTCG.UI
         private void OnCardPlayed(UnitInstance card, string owner)
         {
             if (!isActiveAndEnabled || _vfxLayer == null) return;
-            // Burst at canvas centre where SpellShowcaseUI displays the card
-            StartCoroutine(BurstParticles(Vector2.zero, GetCardBurstColor(card), 16));
+            // Burst from player's area (bottom) or enemy's area (top)
+            float y = (owner == GameRules.OWNER_PLAYER) ? -180f : 180f;
+            StartCoroutine(BurstParticles(new Vector2(0f, y), GetCardBurstColor(card), 12));
         }
 
         private void OnUnitDiedAtPos(UnitInstance unit, Vector2 canvasPos)

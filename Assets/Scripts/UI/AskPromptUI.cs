@@ -60,9 +60,13 @@ namespace FWTCG.UI
             Instance = this;
             Hide();
 
+            if (_messageText != null) _messageText.supportRichText = true;
             if (_confirmBtn != null) _confirmBtn.onClick.AddListener(OnConfirmClicked);
             if (_cancelBtn  != null) _cancelBtn.onClick.AddListener(OnCancelClicked);
         }
+
+        private void OnEnable()  { GameEventBus.OnClearBanners += OnCancelClicked; }
+        private void OnDisable() { GameEventBus.OnClearBanners -= OnCancelClicked; }
 
         private void OnDestroy()
         {

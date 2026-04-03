@@ -15,6 +15,7 @@ namespace FWTCG.UI
     public class SpellTargetPopup : MonoBehaviour
     {
         public static SpellTargetPopup Instance { get; private set; }
+        public static bool IsShowing { get; private set; }
 
         [SerializeField] private CanvasGroup   _canvasGroup;
         [SerializeField] private Transform     _enemyContainer;   // parent for enemy unit buttons
@@ -31,8 +32,12 @@ namespace FWTCG.UI
             HidePanel();
         }
 
+        private void OnEnable()  { GameEventBus.OnClearBanners += CancelSelection; }
+        private void OnDisable() { GameEventBus.OnClearBanners -= CancelSelection; }
+
         private void HidePanel()
         {
+            IsShowing = false;
             if (_canvasGroup != null)
             {
                 _canvasGroup.alpha          = 0f;
@@ -52,7 +57,8 @@ namespace FWTCG.UI
         /// Show the target selection popup.
         /// Returns the chosen unit, or null if cancelled / no valid targets.
         /// </summary>
-        public Task<UnitInstance> ShowAsync(SpellTargetType targetType, GameState gs)
+        public Task<UnitInstance> ShowAsync(SpellTargetType targetType, GameState gs,
+                                            System.Func<UnitInstance, bool> filter = null)
         {
             _tcs = new TaskCompletionSource<UnitInstance>();
 
@@ -71,6 +77,12 @@ namespace FWTCG.UI
                 foreach (var bf in gs.BF) playerUnits.AddRange(bf.PlayerUnits);
             }
 
+            if (filter != null)
+            {
+                enemyUnits.RemoveAll(u => !filter(u));
+                playerUnits.RemoveAll(u => !filter(u));
+            }
+
             if (enemyUnits.Count == 0 && playerUnits.Count == 0)
             {
                 _tcs.TrySetResult(null);
@@ -79,6 +91,7 @@ namespace FWTCG.UI
 
             // Show overlay BEFORE building sections — if BuildSection throws,
             // the panel is still visible and the user can Cancel.
+            IsShowing = true;
             if (_canvasGroup != null)
             {
                 _canvasGroup.alpha          = 1f;

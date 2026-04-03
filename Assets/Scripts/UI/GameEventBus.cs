@@ -53,6 +53,14 @@ namespace FWTCG.UI
         /// </summary>
         public static event Action OnClearBanners;
 
+        // ── Delay next EventBanner drain ──────────────────────────────────────
+        /// <summary>
+        /// Tells EventBanner to wait <paramref name="seconds"/> before draining
+        /// the next queued batch (used after DuelBanner so combat EventBanners
+        /// don't appear until the big banner has fully cleared the screen).
+        /// </summary>
+        public static event Action<float> OnSetBannerDelay;
+
         // ── Fire helpers ──────────────────────────────────────────────────────
 
         public static void FireUnitFloatText(UnitInstance unit, string text, Color color)
@@ -61,7 +69,7 @@ namespace FWTCG.UI
         public static void FireZoneFloatText(string zone, string text, Color color)
             => OnZoneFloatText?.Invoke(zone, text, color);
 
-        public static void FireEventBanner(string text, float duration = 1.5f, bool large = false)
+        public static void FireEventBanner(string text, float duration = 1.0f, bool large = false)
             => OnEventBanner?.Invoke(text, duration, large);
 
         /// <summary>Fires the spell duel banner. Called when player's spell enters the duel window. DEV-19.</summary>
@@ -69,6 +77,14 @@ namespace FWTCG.UI
 
         /// <summary>Clears all queued banners and toasts immediately. Call at turn start.</summary>
         public static void FireClearBanners() => OnClearBanners?.Invoke();
+
+        /// <summary>
+        /// Sets a one-shot drain delay on EventBanner: the next batch of queued
+        /// banners will wait <paramref name="seconds"/> before starting to show.
+        /// Call just before CheckAndResolveCombat so combat EventBanners appear
+        /// only after the DuelBanner has fully left the screen.
+        /// </summary>
+        public static void FireSetBannerDelay(float seconds) => OnSetBannerDelay?.Invoke(seconds);
 
         // ── Unit death position event (DEV-21) ────────────────────────────────
         /// <summary>
@@ -116,30 +132,30 @@ namespace FWTCG.UI
         // ── Convenience: known banner events ─────────────────────────────────
 
         public static void FireDeathwishBanner(string unitName, string effectDesc)
-            => FireEventBanner($"绝念：{unitName} — {effectDesc}", 1.5f);
+            => FireEventBanner($"绝念：{unitName} — {effectDesc}", 1.0f);
 
         public static void FireEntryEffectBanner(string unitName, string effectDesc)
-            => FireEventBanner($"{unitName}：{effectDesc}", 1.5f);
+            => FireEventBanner($"{unitName}：{effectDesc}", 1.0f);
 
         public static void FireHoldScoreBanner()
-            => FireEventBanner("据守 +1分", 1.5f);
+            => FireEventBanner("据守 +1分", 1.0f);
 
         public static void FireConquerScoreBanner()
-            => FireEventBanner("征服！+1分", 2f);
+            => FireEventBanner("征服！+1分", 1.0f);
 
         public static void FireBurnoutBanner(string burnedOwner)
         {
             string who = burnedOwner == GameRules.OWNER_PLAYER ? "玩家" : "AI";
-            FireEventBanner($"燃尽！{who} 牌库耗尽，对手 +1分", 3f, large: true);
+            FireEventBanner($"燃尽！{who} 牌库耗尽，对手 +1分", 1.5f, large: true);
         }
 
         public static void FireLegendSkillBanner(string skillName, string effectDesc)
-            => FireEventBanner($"{skillName}：{effectDesc}", 2f);
+            => FireEventBanner($"{skillName}：{effectDesc}", 1.0f);
 
         public static void FireLegendEvolvedBanner()
-            => FireEventBanner("进化！+3/+3", 2.5f, large: true);
+            => FireEventBanner("进化！+3/+3", 1.0f, large: true);
 
         public static void FireTimeWarpBanner()
-            => FireEventBanner("时间扭曲！获得额外回合", 2.5f, large: true);
+            => FireEventBanner("时间扭曲！获得额外回合", 1.5f, large: true);
     }
 }

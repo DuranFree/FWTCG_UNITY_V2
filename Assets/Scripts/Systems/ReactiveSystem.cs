@@ -77,7 +77,7 @@ namespace FWTCG.Systems
                             runes.RemoveAt(0);
                             gs.GetRuneDeck(owner).Insert(0, rune);
                             gs.AddSch(owner, rune.RuneType, 1);
-                            Log($"[撤退符文] 回收符文 {rune.RuneType}，+1{rune.RuneType}符能");
+                            Log($"[撤退符文] 回收符文 {rune.RuneType.ToChinese()}，+1{rune.RuneType.ToChinese()}符能");
                         }
                         else
                         {

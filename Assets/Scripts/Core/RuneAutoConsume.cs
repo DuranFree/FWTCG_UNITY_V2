@@ -36,11 +36,11 @@ namespace FWTCG.Core
             {
                 string cd = card.CardData.CardName;
                 var parts = new List<string>();
-                parts.Add($"打出：{cd}（费用 {card.CardData.Cost}，符能 {card.CardData.RuneCost} {card.CardData.RuneType}）");
+                parts.Add($"打出：{cd}（费用 {card.CardData.Cost}，符能 {card.CardData.RuneCost} {card.CardData.RuneType.ToChinese()}）");
                 if (TapCount > 0)
                     parts.Add($"横置 {TapCount} 个符文获得 {TapCount} 点法力");
                 if (RecycleCount > 0)
-                    parts.Add($"回收 {RecycleCount} 个 {card.CardData.RuneType} 符文获得 {RecycleCount} 点符能");
+                    parts.Add($"回收 {RecycleCount} 个 {card.CardData.RuneType.ToChinese()} 符文获得 {RecycleCount} 点符能");
                 return string.Join("\n", parts);
             }
         }
