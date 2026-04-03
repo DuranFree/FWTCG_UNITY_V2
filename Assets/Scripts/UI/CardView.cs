@@ -529,32 +529,32 @@ namespace FWTCG.UI
             bool inPlay = !_unit.CardData.IsSpell && !_unit.CardData.IsEquipment;
             if (!inPlay && _unit.AttachedTo == null) { HideBadges(); return; }
 
-            // ▲ Buff (green) — left
+            // ▲ Buff (green) — left  [x=-28: above card, left slot]
             if (_unit.HasBuff)
             {
                 if (_buffBadge == null)
                     _buffBadge = CreateStatusBadge("▲", GameColors.PlayerGreen,
-                        new Vector2(-22f, -2f), () => ShowStatusTooltip(BadgeTip.Buff));
+                        new Vector2(-28f, 0f), () => ShowStatusTooltip(BadgeTip.Buff));
                 _buffBadge.SetActive(true);
             }
             else if (_buffBadge != null) _buffBadge.SetActive(false);
 
-            // ▲ Equipment (gold) — center
+            // ▲ Equipment (gold) — center  [x=0: above card, center slot]
             if (_unit.AttachedEquipment != null)
             {
                 if (_equipBadge == null)
                     _equipBadge = CreateStatusBadge("▲", GameColors.GoldLight,
-                        new Vector2(0f, -2f), () => ShowStatusTooltip(BadgeTip.Equip));
+                        new Vector2(0f, 0f), () => ShowStatusTooltip(BadgeTip.Equip));
                 _equipBadge.SetActive(true);
             }
             else if (_equipBadge != null) _equipBadge.SetActive(false);
 
-            // ▼ Debuff (red) — right
+            // ▼ Debuff (red) — right  [x=+28: above card, right slot]
             if (_unit.HasDebuff)
             {
                 if (_debuffBadge == null)
                     _debuffBadge = CreateStatusBadge("▼", GameColors.EnemyRed,
-                        new Vector2(22f, -2f), () => ShowStatusTooltip(BadgeTip.Debuff));
+                        new Vector2(28f, 0f), () => ShowStatusTooltip(BadgeTip.Debuff));
                 _debuffBadge.SetActive(true);
             }
             else if (_debuffBadge != null) _debuffBadge.SetActive(false);
@@ -578,17 +578,17 @@ namespace FWTCG.UI
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf")
                     ?? Resources.GetBuiltinResource<Font>("Arial.ttf");
 
-            // ── Container — positioned at card bottom edge (inside card bounds) ─
-            // Note: badges use pivot-bottom + positive y so they stay within the card's
-            // RectTransform rect and aren't occluded by sibling panels (e.g. PlayerHandZone).
+            // ── Container — narrow strip above the card top edge ─────────────
+            // Anchored to card TOP-CENTER (1.0 Y), pivot BOTTOM (0.0 Y) so the badge
+            // hangs upward from the card's top edge — renders above sibling panels.
             var container = new GameObject("BadgeContainer_" + symbol);
             container.transform.SetParent(transform, false);
             var cRT             = container.AddComponent<RectTransform>();
-            cRT.sizeDelta       = new Vector2(22f, 20f);
-            cRT.anchorMin       = new Vector2(0.5f, 0f);
-            cRT.anchorMax       = new Vector2(0.5f, 0f);
-            cRT.pivot           = new Vector2(0.5f, 0f);   // bottom pivot → sits at card bottom
-            cRT.anchoredPosition = new Vector2(pos.x, 2f); // 2px above card bottom, inside bounds
+            cRT.sizeDelta       = new Vector2(20f, 16f);   // narrow pill badge
+            cRT.anchorMin       = new Vector2(0.5f, 1f);
+            cRT.anchorMax       = new Vector2(0.5f, 1f);
+            cRT.pivot           = new Vector2(0.5f, 0f);   // bottom pivot → badge sits above card
+            cRT.anchoredPosition = new Vector2(pos.x, 2f); // 2px gap above card top
 
             // ── Glow layer (soft halo, renders before body) ────────────────────
             var glow    = new GameObject("Glow");
@@ -596,7 +596,7 @@ namespace FWTCG.UI
             var glowRT  = glow.AddComponent<RectTransform>();
             glowRT.anchorMin = glowRT.anchorMax = new Vector2(0.5f, 0.5f);
             glowRT.pivot     = new Vector2(0.5f, 0.5f);
-            glowRT.sizeDelta = new Vector2(32f, 30f);      // slightly bigger than body
+            glowRT.sizeDelta = new Vector2(22f, 18f);      // just slightly bigger than body (no cross-badge bleed)
             var glowImg       = glow.AddComponent<Image>();
             Color gc          = badgeColor; gc.a = 0.20f;
             glowImg.color     = gc;

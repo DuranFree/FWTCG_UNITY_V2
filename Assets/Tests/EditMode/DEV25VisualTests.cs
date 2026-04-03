@@ -161,22 +161,25 @@ public class DEV25VisualTests
     [Test]
     public void BadgePositions_AreSymmetricAroundCenter()
     {
-        // buff at -22, equip at 0, debuff at +22 — left/right must mirror
-        float buffX   = -22f;
+        // buff at -28, equip at 0, debuff at +28 — left/right must mirror
+        float buffX   = -28f;
         float equipX  =   0f;
-        float debuffX =  22f;
+        float debuffX =  28f;
         Assert.AreEqual(0f, buffX + debuffX,
             "Buff and debuff badge X positions must sum to 0 (symmetric)");
         Assert.AreEqual(0f, equipX,
             "Equip badge must be centered");
+        // Verify separation: adjacent badges must be at least 20px apart (badge width=20)
+        Assert.GreaterOrEqual(Mathf.Abs(debuffX - equipX), 20f,
+            "Adjacent badges must not overlap");
     }
 
     [Test]
-    public void BadgePositions_InsideCardBottomEdge()
+    public void BadgePositions_AboveCardTopEdge()
     {
-        // pivot is bottom (0), anchoredPosition.y = +2 keeps badge INSIDE card bounds
-        // (avoids occlusion by sibling panels like PlayerHandZone that render on top)
+        // anchor (0.5,1) + pivot (0.5,0) + anchoredPosition.y=2 → badge above card top
+        // Avoids occlusion by PlayerHandZone which renders over the card bottom area
         float posY = 2f;
-        Assert.Greater(posY, 0f, "Badge Y must be positive (inside card, above bottom edge)");
+        Assert.Greater(posY, 0f, "Badge Y must be positive gap above card top edge");
     }
 }
