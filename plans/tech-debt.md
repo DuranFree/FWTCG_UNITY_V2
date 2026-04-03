@@ -58,3 +58,5 @@
 - [ ] SceneryUI.DividerOrbLoop 基准位置只采样一次，分辨率变化时振荡中心偏移；游戏内无动态分辨率切换，实际风险极低 — Phase DEV-23（Codex Medium）
 - [ ] StartupFlowUI.ScanLightLoop 协程无 OnDisable 停止路径（OnDestroy 已覆盖，低风险）— Phase DEV-24（Codex Medium）
 - [ ] StartupFlowUI.FadeIn/FadeOut 协程无 mid-frame CanvasGroup null guard（销毁场景时低概率抛出）— Phase DEV-24（Codex Medium）
+- [ ] GlassPanelFX Shader.Find 运行时查找 — 构建时若 "FWTCG/GlassPanel" 未加入 Always Included Shaders 会在打包后失效；修复：Project Settings → Graphics → Always Included Shaders 添加该 shader — Phase DEV-25（Codex M-2）
+- [ ] ShowStatusTooltip AutoDismissTooltip 只监听鼠标按下，键盘/游戏手柄操作无法关闭 tooltip — 低优先级，当前目标平台为 PC — Phase DEV-25（Low）

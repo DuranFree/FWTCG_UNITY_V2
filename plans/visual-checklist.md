@@ -187,8 +187,8 @@
 
 ## 深度扫描发现的视觉细节
 
-- [ ] 玻璃态 UI（backdrop-filter blur 20px + saturate 1.2 → URP Full Screen Blur Pass）
-- [ ] 装备标签样式（18px高，青/红边框，滑入动画 equipTabSlideIn 0.22s）
+- ✅ 玻璃态 UI（程序化噪点模拟磨砂玻璃，GlassPanelFX + GlassPanel.shader，应用于 CardDetailPopup / SpellShowcasePanel / AskPromptPanel）— DEV-25
+- ✅ 装备标签样式（三徽章横排：▲绿色buff / ▲金色装备 / ▼红色debuff，卡牌底部悬浮，阴影+glow+悬停放大1.22×，右键弹出 tooltip）— DEV-25
 - ✅ 传奇槽位光晕（LegendGlow 蓝色叠加层，5s 呼吸动画）— DEV-23（同三节）
 - ✅ 中央分隔线能量球（DividerOrb 18px，3.5s 正弦振荡）— DEV-23（同三节）
 - ✅ 角落宝石脉冲（CornerGem 4s alpha 脉冲）— DEV-23（同三节）

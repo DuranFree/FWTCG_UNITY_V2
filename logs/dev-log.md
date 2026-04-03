@@ -2,6 +2,52 @@
 
 ---
 
+## DEV-25：玻璃态 UI + 三徽章布局 + 装备标签 — 2026-04-03
+
+**Status**: ✅ Completed（音频部分跳过，无音频文件）
+**Tests**: 466/466 🟢（MCP EditMode 全绿，新增 15 个测试）
+
+### 实现内容
+
+**Assets/Shaders/GlassPanel.shader（新建）**：
+- 程序化磨砂玻璃效果（ScreenSpaceOverlay 无法使用 `_CameraOpaqueTexture`，改用双频 value noise 模拟）
+- 两倍频叠加 noise frost + 顶部 highlight stripe + 底部 vignette + 边框正弦脉冲（1.2Hz）
+- CGPROGRAM，Blend SrcAlpha OneMinusSrcAlpha，ZTest Always
+
+**GlassPanelFX.cs（新建）**：
+- `[RequireComponent(typeof(Image))]`，Awake → `Shader.Find("FWTCG/GlassPanel")` → `new Material(shader)` with `HideFlags.DontSave`
+- `OnDestroy` 清理 Material 防泄漏
+- `SetBorderColor(Color)` / `SetTintAlpha(float)` 运行时 setter
+- M-2 修复：shader 找不到时输出 `Debug.LogWarning`，提示加入 Always Included Shaders
+
+**UnitInstance.cs（修改）**：
+- `HasBuff`：移除 `AttachedEquipment != null` 条件，装备不再触发 buff 徽章
+- `BuildBuffSummary()`：去掉装备段，保留 `equipBonus` 减法防止 double-count
+- 新增 `BuildEquipSummary()`：返回装备名 + 战力加成 + 描述，无装备返回"无"
+
+**CardView.cs（修改）**：
+- 三徽章横排：▲绿 buff（-22, -2）/ ▲金 equip（0, -2）/ ▼红 debuff（+22, -2），anchor bottom-center，pivot top
+- `CreateStatusBadge()`：Container → Glow（32×30，20% alpha + shadow）+ Body（暗色 + drop shadow + outline）+ Symbol（文字 + shadow）+ EventTrigger（右键 tooltip / Enter 放大 / Exit 复位）
+- `ScaleBadge()`：`Dictionary<GameObject, Coroutine>` 管理协程句柄，避免 ref-in-lambda
+- `ShowStatusTooltip(BadgeTip)`：新增 `_currentStatusTip` 字段；同徽章右键 toggle-off，不同徽章右键关旧开新（M-1 修复）
+
+**SceneBuilder.cs（修改）**：
+- SchCostBg 位置：从 `(0.05-0.55, 0.02-0.12)` 移到 `(0-0.25, 0.70-0.84)`（符纹费用移到法力费用下方）
+- CardDetailPopup DetailPanel / SpellShowcasePanel CardPanel / AskPromptPanel DialogBox 各加 `GlassPanelFX` 组件
+
+**DEV25VisualTests.cs（新建，15 个测试）**：
+- GlassPanelFX 组件挂载 / SetBorderColor / SetTintAlpha / Destroy
+- HasBuff 无 buff / 有 buff / 装备不触发 buff
+- BuildBuffSummary 不含装备、BuildEquipSummary 空 / 含装备名
+- Shader 常量范围（borderWidth / noiseScale / noiseStr）
+- 徽章位置对称性 / Y 值在卡牌下方
+
+### 技术决策
+- ScreenSpaceOverlay Canvas 无法采样屏幕背景纹理，使用程序化 noise 模拟磨砂玻璃视觉
+- 跨徽章 tooltip 切换使用 `BadgeTip?` null 字段记录当前打开的徽章类型
+
+---
+
 ## DEV-24：开始流程 + 过渡动画 — 2026-04-03
 
 **Status**: ✅ Completed

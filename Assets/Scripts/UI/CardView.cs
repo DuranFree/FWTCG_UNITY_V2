@@ -52,10 +52,18 @@ namespace FWTCG.UI
         private Coroutine _death;
         private CardGlow _cardGlow;
 
-        // ── Status badges (buff ▲ / debuff ▼) ───────────────────────────────
+        // ── Status badges (▲ buff / ▲ equip / ▼ debuff) — DEV-25 ────────────
         private GameObject _buffBadge;
+        private GameObject _equipBadge;
         private GameObject _debuffBadge;
-        private GameObject _statusTooltip;   // shared one-at-a-time tooltip panel
+        private GameObject _statusTooltip;   // one-at-a-time tooltip panel
+        private BadgeTip? _currentStatusTip; // tracks which badge opened the tooltip
+
+        // Scale coroutines per badge (Dictionary avoids ref-in-lambda issues)
+        private readonly System.Collections.Generic.Dictionary<GameObject, Coroutine>
+            _badgeScaleCos = new System.Collections.Generic.Dictionary<GameObject, Coroutine>();
+
+        private enum BadgeTip { Buff, Equip, Debuff }
 
         // ── Selection lift + float animation ────────────────────────────────
         private bool      _isLifted;
@@ -133,8 +141,12 @@ namespace FWTCG.UI
             if (_stunPulse    != null) StopCoroutine(_stunPulse);
             if (_liftFloat    != null) StopCoroutine(_liftFloat);
             if (_returnToRest != null) StopCoroutine(_returnToRest);
+            // Stop all badge scale coroutines
+            foreach (var co in _badgeScaleCos.Values)
+                if (co != null) StopCoroutine(co);
+            _badgeScaleCos.Clear();
             // H-3: destroy floating tooltip to prevent canvas leak when card is removed
-            if (_statusTooltip != null) { Destroy(_statusTooltip); _statusTooltip = null; }
+            if (_statusTooltip != null) { Destroy(_statusTooltip); _statusTooltip = null; _currentStatusTip = null; }
         }
 
         public void Setup(UnitInstance unit, bool isPlayerCard, Action<UnitInstance> onClick,
@@ -507,7 +519,7 @@ namespace FWTCG.UI
             _death = StartCoroutine(DeathRoutine());
         }
 
-        // ── Status badge logic ────────────────────────────────────────────────
+        // ── Status badge logic (DEV-25) ───────────────────────────────────────
 
         private void RefreshStatusBadges()
         {
@@ -517,19 +529,32 @@ namespace FWTCG.UI
             bool inPlay = !_unit.CardData.IsSpell && !_unit.CardData.IsEquipment;
             if (!inPlay && _unit.AttachedTo == null) { HideBadges(); return; }
 
-            bool showBuff   = _unit.HasBuff;
-            bool showDebuff = _unit.HasDebuff;
-
-            if (showBuff)
+            // ▲ Buff (green) — left
+            if (_unit.HasBuff)
             {
-                if (_buffBadge == null) _buffBadge = CreateBadge("▲", GameColors.PlayerGreen, new Vector2(-14f, 14f));
+                if (_buffBadge == null)
+                    _buffBadge = CreateStatusBadge("▲", GameColors.PlayerGreen,
+                        new Vector2(-22f, -2f), () => ShowStatusTooltip(BadgeTip.Buff));
                 _buffBadge.SetActive(true);
             }
             else if (_buffBadge != null) _buffBadge.SetActive(false);
 
-            if (showDebuff)
+            // ▲ Equipment (gold) — center
+            if (_unit.AttachedEquipment != null)
             {
-                if (_debuffBadge == null) _debuffBadge = CreateBadge("▼", GameColors.EnemyRed, new Vector2(14f, 14f));
+                if (_equipBadge == null)
+                    _equipBadge = CreateStatusBadge("▲", GameColors.GoldLight,
+                        new Vector2(0f, -2f), () => ShowStatusTooltip(BadgeTip.Equip));
+                _equipBadge.SetActive(true);
+            }
+            else if (_equipBadge != null) _equipBadge.SetActive(false);
+
+            // ▼ Debuff (red) — right
+            if (_unit.HasDebuff)
+            {
+                if (_debuffBadge == null)
+                    _debuffBadge = CreateStatusBadge("▼", GameColors.EnemyRed,
+                        new Vector2(22f, -2f), () => ShowStatusTooltip(BadgeTip.Debuff));
                 _debuffBadge.SetActive(true);
             }
             else if (_debuffBadge != null) _debuffBadge.SetActive(false);
@@ -538,75 +563,174 @@ namespace FWTCG.UI
         private void HideBadges()
         {
             if (_buffBadge   != null) _buffBadge.SetActive(false);
+            if (_equipBadge  != null) _equipBadge.SetActive(false);
             if (_debuffBadge != null) _debuffBadge.SetActive(false);
         }
 
-        private GameObject CreateBadge(string symbol, Color color, Vector2 anchorOffset)
+        /// <summary>
+        /// Creates a floating status badge that hangs below the card.
+        /// Layout: Glow (behind) + Body (dark glass bg + outline) + Symbol text.
+        /// Hover: scale 1→1.22, right-click: show tooltip.
+        /// </summary>
+        private GameObject CreateStatusBadge(string symbol, Color badgeColor,
+                                             Vector2 pos, System.Action onRightClick)
         {
-            var go = new GameObject("StatusBadge_" + symbol);
-            go.transform.SetParent(transform, false);
+            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf")
+                    ?? Resources.GetBuiltinResource<Font>("Arial.ttf");
 
-            var rt = go.AddComponent<RectTransform>();
-            rt.sizeDelta        = new Vector2(18f, 18f);
-            rt.anchorMin        = new Vector2(0.5f, 0f);
-            rt.anchorMax        = new Vector2(0.5f, 0f);
-            rt.pivot            = new Vector2(0.5f, 0f);
-            rt.anchoredPosition = anchorOffset;
+            // ── Container — positioned below card bottom edge ──────────────────
+            var container = new GameObject("BadgeContainer_" + symbol);
+            container.transform.SetParent(transform, false);
+            var cRT             = container.AddComponent<RectTransform>();
+            cRT.sizeDelta       = new Vector2(22f, 20f);
+            cRT.anchorMin       = new Vector2(0.5f, 0f);
+            cRT.anchorMax       = new Vector2(0.5f, 0f);
+            cRT.pivot           = new Vector2(0.5f, 1f);   // top pivot → hangs below card
+            cRT.anchoredPosition = pos;                    // pos.y = -2: 2px gap below card
 
-            var bg = go.AddComponent<Image>();
-            bg.color = new Color(0f, 0f, 0f, 0.65f);
+            // ── Glow layer (soft halo, renders before body) ────────────────────
+            var glow    = new GameObject("Glow");
+            glow.transform.SetParent(container.transform, false);
+            var glowRT  = glow.AddComponent<RectTransform>();
+            glowRT.anchorMin = glowRT.anchorMax = new Vector2(0.5f, 0.5f);
+            glowRT.pivot     = new Vector2(0.5f, 0.5f);
+            glowRT.sizeDelta = new Vector2(32f, 30f);      // slightly bigger than body
+            var glowImg       = glow.AddComponent<Image>();
+            Color gc          = badgeColor; gc.a = 0.20f;
+            glowImg.color     = gc;
+            glowImg.raycastTarget = false;
+            var glowShadow    = glow.AddComponent<Shadow>();
+            glowShadow.effectColor    = new Color(0f, 0f, 0f, 0.45f);
+            glowShadow.effectDistance = new Vector2(0f, -4f);
 
-            var txt = new GameObject("Sym").AddComponent<Text>();
-            txt.transform.SetParent(go.transform, false);
-            var txtRT = txt.GetComponent<RectTransform>();
-            txtRT.anchorMin = Vector2.zero;
-            txtRT.anchorMax = Vector2.one;
-            txtRT.offsetMin = txtRT.offsetMax = Vector2.zero;
-            txt.text      = symbol;
-            txt.fontSize  = 10;
-            txt.color     = color;
-            txt.alignment = TextAnchor.MiddleCenter;
-            txt.font      = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf")
-                         ?? Resources.GetBuiltinResource<Font>("Arial.ttf");
-            txt.raycastTarget = false;
+            // ── Body — dark glass base ─────────────────────────────────────────
+            var body    = new GameObject("Body");
+            body.transform.SetParent(container.transform, false);
+            var bodyRT  = body.AddComponent<RectTransform>();
+            bodyRT.anchorMin = Vector2.zero;
+            bodyRT.anchorMax = Vector2.one;
+            bodyRT.offsetMin = bodyRT.offsetMax = Vector2.zero;
+            var bodyImg = body.AddComponent<Image>();
+            bodyImg.color = new Color(0.04f, 0.06f, 0.14f, 0.90f);
+            bodyImg.raycastTarget = false;
+            // Drop shadow for floating depth
+            var bodyShadow    = body.AddComponent<Shadow>();
+            bodyShadow.effectColor    = new Color(0f, 0f, 0f, 0.85f);
+            bodyShadow.effectDistance = new Vector2(2f, -3f);
+            // Colored outline (badge color at 70%)
+            var bodyOutline   = body.AddComponent<Outline>();
+            bodyOutline.effectColor    = new Color(badgeColor.r, badgeColor.g, badgeColor.b, 0.70f);
+            bodyOutline.effectDistance = new Vector2(1f, -1f);
 
-            // Right-click handler on badge
-            var trigger = go.AddComponent<UnityEngine.EventSystems.EventTrigger>();
-            var entry   = new UnityEngine.EventSystems.EventTrigger.Entry();
-            entry.eventID = UnityEngine.EventSystems.EventTriggerType.PointerClick;
-            entry.callback.AddListener(data =>
+            // ── Symbol text ────────────────────────────────────────────────────
+            var symGO  = new GameObject("Symbol");
+            symGO.transform.SetParent(body.transform, false);
+            var symRT  = symGO.AddComponent<RectTransform>();
+            symRT.anchorMin = Vector2.zero;
+            symRT.anchorMax = Vector2.one;
+            symRT.offsetMin = symRT.offsetMax = Vector2.zero;
+            var symTxt = symGO.AddComponent<Text>();
+            symTxt.text           = symbol;
+            symTxt.fontSize       = 11;
+            symTxt.color          = badgeColor;
+            symTxt.alignment      = TextAnchor.MiddleCenter;
+            symTxt.font           = font;
+            symTxt.raycastTarget  = false;
+            var symShadow         = symGO.AddComponent<Shadow>();
+            symShadow.effectColor    = new Color(0f, 0f, 0f, 0.90f);
+            symShadow.effectDistance = new Vector2(1f, -1f);
+
+            // ── Event trigger: right-click + hover scale ───────────────────────
+            var trig = container.AddComponent<UnityEngine.EventSystems.EventTrigger>();
+
+            var clickE = new UnityEngine.EventSystems.EventTrigger.Entry();
+            clickE.eventID = UnityEngine.EventSystems.EventTriggerType.PointerClick;
+            clickE.callback.AddListener(data =>
             {
                 var ped = (UnityEngine.EventSystems.PointerEventData)data;
                 if (ped.button == UnityEngine.EventSystems.PointerEventData.InputButton.Right)
-                    ShowStatusTooltip();
+                    onRightClick?.Invoke();
             });
-            trigger.triggers.Add(entry);
+            trig.triggers.Add(clickE);
 
-            return go;
+            var enterE = new UnityEngine.EventSystems.EventTrigger.Entry();
+            enterE.eventID = UnityEngine.EventSystems.EventTriggerType.PointerEnter;
+            enterE.callback.AddListener(_ =>
+            {
+                if (container == null) return;
+                container.transform.SetAsLastSibling();
+                ScaleBadge(container, 1.22f, 0.12f);
+            });
+            trig.triggers.Add(enterE);
+
+            var exitE = new UnityEngine.EventSystems.EventTrigger.Entry();
+            exitE.eventID = UnityEngine.EventSystems.EventTriggerType.PointerExit;
+            exitE.callback.AddListener(_ =>
+            {
+                if (container == null) return;
+                ScaleBadge(container, 1.0f, 0.10f);
+            });
+            trig.triggers.Add(exitE);
+
+            return container;
         }
 
-        private void ShowStatusTooltip()
+        private void ScaleBadge(GameObject badge, float target, float duration)
+        {
+            if (badge == null) return;
+            if (_badgeScaleCos.TryGetValue(badge, out var old) && old != null)
+                StopCoroutine(old);
+            _badgeScaleCos[badge] = StartCoroutine(BadgeScaleRoutine(badge.transform, target, duration));
+        }
+
+        private IEnumerator BadgeScaleRoutine(Transform t, float target, float duration)
+        {
+            if (t == null) yield break;
+            float start   = t.localScale.x;
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float s = Mathf.Lerp(start, target, elapsed / duration);
+                if (t != null) t.localScale = Vector3.one * s;
+                yield return null;
+            }
+            if (t != null) t.localScale = Vector3.one * target;
+        }
+
+        private void ShowStatusTooltip(BadgeTip tip)
         {
             if (_unit == null) return;
 
-            // Dismiss existing tooltip if same card
-            if (_statusTooltip != null) { Destroy(_statusTooltip); _statusTooltip = null; return; }
+            // Toggle off if same badge clicked again; switch content if different badge
+            if (_statusTooltip != null)
+            {
+                Destroy(_statusTooltip);
+                _statusTooltip = null;
+                var prev = _currentStatusTip;
+                _currentStatusTip = null;
+                if (prev == tip) return;   // same badge → close only
+                // different badge → fall through to open new tooltip
+            }
 
-            // Find root canvas
             Canvas rootCanvas = GetComponentInParent<Canvas>();
             if (rootCanvas == null) return;
 
             var go = new GameObject("StatusTooltip");
             go.transform.SetParent(rootCanvas.transform, false);
             _statusTooltip = go;
+            _currentStatusTip = tip;
 
-            var rt = go.AddComponent<RectTransform>();
-            rt.sizeDelta = new Vector2(200f, 0f); // height auto via VLG
+            var rt       = go.AddComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(210f, 0f);  // height auto via ContentSizeFitter
 
-            var bg = go.AddComponent<Image>();
+            var bg   = go.AddComponent<Image>();
             bg.color = new Color(0.04f, 0.08f, 0.18f, 0.96f);
+            var bgOut = go.AddComponent<Outline>();
+            bgOut.effectColor    = new Color(0.04f, 0.78f, 0.73f, 0.5f);
+            bgOut.effectDistance = new Vector2(1f, -1f);
 
-            // Position: above the card
+            // Position above the card (badges hang below, tooltip pops above)
             var cardRT = (RectTransform)transform;
             Vector2 cardPos;
             UnityEngine.RectTransformUtility.ScreenPointToLocalPointInRectangle(
@@ -616,25 +740,29 @@ namespace FWTCG.UI
                 out cardPos);
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
             rt.pivot     = new Vector2(0.5f, 0f);
-            rt.anchoredPosition = cardPos + new Vector2(0f, cardRT.rect.height * 0.5f + 8f);
+            rt.anchoredPosition = cardPos + new Vector2(0f, cardRT.rect.height * 0.5f + 10f);
 
             var vlg = go.AddComponent<UnityEngine.UI.VerticalLayoutGroup>();
-            vlg.padding  = new UnityEngine.RectOffset(8, 8, 6, 6);
-            vlg.spacing  = 4f;
+            vlg.padding               = new UnityEngine.RectOffset(8, 8, 6, 6);
+            vlg.spacing               = 4f;
             vlg.childForceExpandWidth  = true;
             vlg.childForceExpandHeight = false;
             go.AddComponent<UnityEngine.UI.ContentSizeFitter>().verticalFit =
                 UnityEngine.UI.ContentSizeFitter.FitMode.PreferredSize;
 
-            // Buff section
-            if (_unit.HasBuff)
-                AddTooltipRow(go.transform, "▲ 强化", _unit.BuildBuffSummary(), GameColors.PlayerGreen);
+            switch (tip)
+            {
+                case BadgeTip.Buff:
+                    AddTooltipRow(go.transform, "▲ 强化", _unit.BuildBuffSummary(), GameColors.PlayerGreen);
+                    break;
+                case BadgeTip.Equip:
+                    AddTooltipRow(go.transform, "▲ 装备", _unit.BuildEquipSummary(), GameColors.GoldLight);
+                    break;
+                case BadgeTip.Debuff:
+                    AddTooltipRow(go.transform, "▼ 削弱", _unit.BuildDebuffSummary(), GameColors.EnemyRed);
+                    break;
+            }
 
-            // Debuff section
-            if (_unit.HasDebuff)
-                AddTooltipRow(go.transform, "▼ 削弱", _unit.BuildDebuffSummary(), GameColors.EnemyRed);
-
-            // Auto-destroy on next click anywhere
             StartCoroutine(AutoDismissTooltip());
         }
 
@@ -679,7 +807,7 @@ namespace FWTCG.UI
                 if (UnityEngine.Input.GetMouseButtonDown(0) ||
                     UnityEngine.Input.GetMouseButtonDown(1))
                 {
-                    if (_statusTooltip != null) { Destroy(_statusTooltip); _statusTooltip = null; }
+                    if (_statusTooltip != null) { Destroy(_statusTooltip); _statusTooltip = null; _currentStatusTip = null; }
                     yield break;
                 }
                 yield return null;

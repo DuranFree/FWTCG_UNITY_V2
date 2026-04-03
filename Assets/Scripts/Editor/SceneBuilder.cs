@@ -1713,6 +1713,7 @@ namespace FWTCG.Editor
 
             var cpImg = cardPanelGO.AddComponent<Image>();
             cpImg.color = new Color(0.02f, 0.06f, 0.14f, 0.95f);
+            cardPanelGO.AddComponent<FWTCG.UI.GlassPanelFX>();  // DEV-25 glass effect
             var cpOutline = cardPanelGO.AddComponent<Outline>();
             cpOutline.effectColor = new Color(200f/255f, 170f/255f, 110f/255f, 0.8f);
             cpOutline.effectDistance = new Vector2(2f, -2f);
@@ -1994,6 +1995,7 @@ namespace FWTCG.Editor
             boxGO.transform.SetParent(panel.transform, false);
             var boxImg = boxGO.AddComponent<Image>();
             boxImg.color = new Color(0.04f, 0.08f, 0.14f, 0.97f);
+            boxGO.AddComponent<FWTCG.UI.GlassPanelFX>();  // DEV-25 glass effect
             var boxRT = boxGO.GetComponent<RectTransform>();
             boxRT.anchorMin = new Vector2(0.5f, 0.5f);
             boxRT.anchorMax = new Vector2(0.5f, 0.5f);
@@ -2114,7 +2116,8 @@ namespace FWTCG.Editor
             coinRT.offsetMin = Vector2.zero;
             coinRT.offsetMax = Vector2.zero;
             coinCircleImage = coinGO.AddComponent<Image>();
-            coinCircleImage.color = new Color(0.78f, 0.67f, 0.43f, 1f); // gold
+            coinCircleImage.color          = Color.white; // sprite tint — CoinSpinRoutine loads xianshou/houshou sprites at runtime
+            coinCircleImage.preserveAspect = true;
 
             // Face label on coin (先 / 后 / ?)
             coinFlipText = CreateTMPText(coinContainer.transform, "CoinFaceText", "?",
@@ -2639,6 +2642,7 @@ namespace FWTCG.Editor
             var panelImg = panel.AddComponent<Image>();
             panelImg.color = new Color(0.06f, 0.08f, 0.14f, 0.95f);
             panelImg.raycastTarget = true;
+            panel.AddComponent<FWTCG.UI.GlassPanelFX>();  // DEV-25 glass effect
 
             var panelRT = panel.GetComponent<RectTransform>();
             panelRT.anchorMin = new Vector2(0.5f, 0.5f);
@@ -2832,17 +2836,18 @@ namespace FWTCG.Editor
             atkRT.offsetMin = Vector2.zero;
             atkRT.offsetMax = Vector2.zero;
 
-            // ── Schematic cost display (below desc, colored bg) ──
+            // ── Schematic (rune) cost display — stacked below CostBadge (top-left) ──
+            // DEV-25: moved from bottom-left overlay to group both costs at top-left.
             var schBgGO = new GameObject("SchCostBg");
             schBgGO.transform.SetParent(root.transform, false);
             var schBgImg = schBgGO.AddComponent<Image>();
             schBgImg.color = new Color(1f, 0.55f, 0.1f, 0.8f); // default blazing, runtime changes
             schBgImg.raycastTarget = false;
             var schBgRT = schBgGO.GetComponent<RectTransform>();
-            schBgRT.anchorMin = new Vector2(0.05f, 0.02f);
-            schBgRT.anchorMax = new Vector2(0.55f, 0.12f);
-            schBgRT.offsetMin = Vector2.zero;
-            schBgRT.offsetMax = Vector2.zero;
+            schBgRT.anchorMin = new Vector2(0f, 0.70f);  // directly below CostBadge (0,0.85-1.0)
+            schBgRT.anchorMax = new Vector2(0.25f, 0.84f);
+            schBgRT.offsetMin = new Vector2(1f, 1f);
+            schBgRT.offsetMax = new Vector2(-1f, -1f);
             schBgGO.SetActive(false);
 
             var schText = CreateTMPText(schBgGO.transform, "SchCostText", "炽×1", Color.white, 8, TextAnchor.MiddleCenter);

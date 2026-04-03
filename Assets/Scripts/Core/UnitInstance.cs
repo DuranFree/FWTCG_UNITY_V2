@@ -124,6 +124,65 @@ namespace FWTCG.Core
             TempAtkBonus = 0;
         }
 
+        // ── Status badge helpers ──────────────────────────────────────────────
+
+        /// <summary>True if this unit has any positive status (buff token, temp bonus, external stat raise).
+        /// Equipment is intentionally excluded — it has its own dedicated badge (DEV-25).</summary>
+        public bool HasBuff =>
+            BuffTokens > 0 ||
+            TempAtkBonus > 0 ||
+            (CurrentAtk > Atk + BuffTokens + (AttachedEquipment?.CardData.EquipAtkBonus ?? 0)); // external buff raised base
+
+        /// <summary>True if this unit has any negative status (damaged, stunned, weakened).</summary>
+        public bool HasDebuff =>
+            Stunned ||
+            CurrentHp < CurrentAtk ||       // took damage this turn
+            CurrentAtk < Atk + BuffTokens;  // stat was reduced below buffed base
+
+        /// <summary>Build a human-readable list of all active buffs (excludes equipment — shown by equip badge).</summary>
+        public string BuildBuffSummary()
+        {
+            var parts = new System.Collections.Generic.List<string>();
+            if (BuffTokens > 0)
+                parts.Add($"+{BuffTokens}/+{BuffTokens} 强化标记");
+            if (TempAtkBonus > 0)
+                parts.Add($"+{TempAtkBonus} 临时战力加成");
+            // Exclude equipment bonus from external-buff calculation so it doesn't double-appear
+            int equipBonus   = AttachedEquipment?.CardData.EquipAtkBonus ?? 0;
+            int externalBuff = CurrentAtk - Atk - BuffTokens - equipBonus;
+            if (externalBuff > 0)
+                parts.Add($"+{externalBuff} 战力加成");
+            return parts.Count > 0 ? string.Join("\n", parts) : "无";
+        }
+
+        /// <summary>Build a human-readable summary of attached equipment for the equip badge tooltip.</summary>
+        public string BuildEquipSummary()
+        {
+            if (AttachedEquipment == null) return "无";
+            var eq    = AttachedEquipment;
+            var lines = new System.Collections.Generic.List<string>();
+            lines.Add(eq.UnitName);
+            if (eq.CardData.EquipAtkBonus > 0)
+                lines.Add($"+{eq.CardData.EquipAtkBonus} 战力");
+            if (!string.IsNullOrEmpty(eq.CardData.Description))
+                lines.Add(eq.CardData.Description);
+            return string.Join("\n", lines);
+        }
+
+        /// <summary>Build a human-readable list of all active debuffs.</summary>
+        public string BuildDebuffSummary()
+        {
+            var parts = new System.Collections.Generic.List<string>();
+            if (Stunned)
+                parts.Add("眩晕（本回合战力归零）");
+            if (CurrentHp < CurrentAtk)
+                parts.Add($"已受伤 HP {CurrentHp}/{CurrentAtk}");
+            int loss = (Atk + BuffTokens) - CurrentAtk;
+            if (loss > 0)
+                parts.Add($"-{loss} 战力削弱");
+            return parts.Count > 0 ? string.Join("\n", parts) : "无";
+        }
+
         public override string ToString()
         {
             return $"{UnitName}({Owner}) ATK:{CurrentAtk} HP:{CurrentHp} EX:{Exhausted}";
