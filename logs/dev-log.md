@@ -56,8 +56,18 @@
 - Claude 自身审查：已确认无立即需修复的 High 问题
 - 🔍 Codex adversarial-review：High×3（HIGH-1 为设计预期；HIGH-2/HIGH-3 为潜在风险，已记入 tech-debt）+ Medium×5 + Low×2（均记入 tech-debt）
 
+**追加修复（收尾阶段）**：
+- CardView.Setup：入场动画添加 `gameObject.activeInHierarchy` 守卫，防止隐藏面板中启动协程
+- CardView.EnterAnimRoutine：开头 `yield return null` + `Canvas.ForceUpdateCanvases()`，等 LayoutGroup 计算完位置再读 anchoredPosition
+- CardView.PlayableSparkRoutine：spark dot 添加 `LayoutElement.ignoreLayout = true`，防止 HorizontalLayoutGroup 重排手牌
+
+### 代码审查（收尾阶段）
+- Claude 自身审查：三处修复正确，无 High 问题
+- 🔍 Codex adversarial-review：Medium×3（EnterAnimRoutine 无重试路径/一帧闪烁/竞态），均已记入 tech-debt
+
 ### 场景验证
 - ✅ 场景已重建（FWTCG/Build Game Scene），SpellDuelUI 由 GameManager.Awake 程序化添加
+- ✅ MCP 验证：GameManager 27 组件连线正确，SpellShowcasePanel/ReactButton 存在且有 ButtonCharge
 - ⚠️ [引擎场景验证] 标题动效 / Foil Sweep / 粒子特效为 Play Mode 视觉效果，需用户手动 Play Mode 确认
 
 ---

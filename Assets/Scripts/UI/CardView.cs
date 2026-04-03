@@ -237,7 +237,8 @@ namespace FWTCG.UI
                 StartHeroAura();
 
             // DEV-28: Hand enter animation — play once per new card assignment
-            if (isNewUnit && !_enterAnimPlayed)
+            // Guard: coroutine can't start on an inactive GO (e.g. card inside hidden panel)
+            if (isNewUnit && !_enterAnimPlayed && gameObject.activeInHierarchy)
             {
                 _enterAnimPlayed = true;
                 StartCoroutine(EnterAnimRoutine());
@@ -1203,6 +1204,14 @@ namespace FWTCG.UI
             var rt  = (RectTransform)transform;
             var cg  = GetComponent<CanvasGroup>() ?? gameObject.AddComponent<CanvasGroup>();
 
+            // DEV-30 fix: wait one frame for LayoutGroup to calculate correct position
+            // before reading anchoredPosition; otherwise the prefab default (0,0) is
+            // captured and the animation fights the layout system, making cards appear
+            // in wrong positions.
+            yield return null;
+            if (this == null || !gameObject.activeInHierarchy) yield break;
+            Canvas.ForceUpdateCanvases();
+
             Vector2 startPos = rt.anchoredPosition + new Vector2(0f, -30f);
             Vector2 endPos   = rt.anchoredPosition;
             Vector3 startScale = Vector3.one * 0.82f;
@@ -1290,6 +1299,8 @@ namespace FWTCG.UI
                 dot.transform.SetParent(transform.parent ?? transform, false);
                 var drt = dot.AddComponent<RectTransform>();
                 drt.sizeDelta = new Vector2(5f, 5f);
+                // Must ignore layout so HorizontalLayoutGroup doesn't reflow sibling cards
+                dot.AddComponent<UnityEngine.UI.LayoutElement>().ignoreLayout = true;
                 // Random X within card, Y just above top edge
                 float halfW = rt.rect.width * 0.4f;
                 drt.anchoredPosition = rt.anchoredPosition

@@ -62,3 +62,6 @@
 - [ ] SpellDuelUI 无重复实例保护 — GameManager.Awake 用 AddComponent 添加，若场景已有 SpellDuelUI 组件会双重实例双重订阅；建议添加 `if (Instance != null && Instance != this) Destroy(this)` 守卫 — Phase DEV-30（Codex HIGH-2 → Medium）
 - [ ] SpellDuelUI 订阅 OnClearBanners 触发 HideDuelOverlay，同一事件也触发 ReactiveWindowUI.AutoPlayRandom — 轮次切换时两者同步触发，设计预期如此，但 AutoPlayRandom 强制打出随机牌会绕过对决倒计时；待业务确认 — Phase DEV-30（Codex HIGH-1 → 设计待确认）
 - [ ] ReactiveWindowUI.WaitForReaction 不取消旧 TCS 直接替换 — 重入调用时旧 Task 的等待方永久挂起；修复：_tcs?.TrySetCanceled() 替换前调用 — Phase DEV-30（Codex MEDIUM-4）
+- [ ] CardView.EnterAnimRoutine 无重试路径 — Setup 时 GO 不活跃则跳过动画，_enterAnimPlayed 已 true 导致永远不会重播；实际路径（Mulligan）会重新 Setup，风险低 — Phase DEV-30（Codex Medium）
+- [ ] CardView.EnterAnimRoutine 一帧视觉闪烁 — yield return null 前未设 alpha=0/startScale，首帧以最终状态渲染；一帧几乎不可见 — Phase DEV-30（Codex Medium）
+- [ ] CardView.EnterAnimRoutine _enterAnimPlayed 竞态 — GO 在等待帧内被禁用时 yield break，动画永久丢失；同上实际路径不触发 — Phase DEV-30（Codex Medium）
