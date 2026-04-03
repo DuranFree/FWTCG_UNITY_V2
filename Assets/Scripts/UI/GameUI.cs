@@ -419,6 +419,48 @@ namespace FWTCG.UI
             return null;
         }
 
+        // ── DEV-28: Target highlights ────────────────────────────────────────
+
+        /// <summary>
+        /// Highlight all CardViews whose unit passes the filter as valid targets (green pulse).
+        /// Call ClearTargetHighlights() after selection completes.
+        /// </summary>
+        public void ShowTargetHighlights(System.Func<FWTCG.Core.UnitInstance, bool> filter)
+        {
+            var containers = new Transform[]
+            {
+                _playerHandContainer, _playerBaseContainer, _enemyBaseContainer,
+                _bf1PlayerContainer, _bf1EnemyContainer,
+                _bf2PlayerContainer, _bf2EnemyContainer,
+            };
+            foreach (var c in containers)
+            {
+                if (c == null) continue;
+                foreach (Transform child in c)
+                {
+                    var cv = child.GetComponent<CardView>();
+                    if (cv == null || cv.Unit == null) continue;
+                    cv.SetTargeted(filter(cv.Unit));
+                }
+            }
+        }
+
+        public void ClearTargetHighlights()
+        {
+            var containers = new Transform[]
+            {
+                _playerHandContainer, _playerBaseContainer, _enemyBaseContainer,
+                _bf1PlayerContainer, _bf1EnemyContainer,
+                _bf2PlayerContainer, _bf2EnemyContainer,
+            };
+            foreach (var c in containers)
+            {
+                if (c == null) continue;
+                foreach (Transform child in c)
+                    child.GetComponent<CardView>()?.SetTargeted(false);
+            }
+        }
+
         // ── DEV-18b: FloatText handlers ──────────────────────────────────────
 
         /// <summary>Show float text on a specific unit's CardView position.</summary>

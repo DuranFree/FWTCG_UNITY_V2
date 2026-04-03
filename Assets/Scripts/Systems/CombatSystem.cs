@@ -25,6 +25,9 @@ namespace FWTCG.Systems
         /// <summary>Fired after combat resolves with structured result data.</summary>
         public static event Action<CombatResult> OnCombatResult;
 
+        /// <summary>DEV-28: Fired just before damage is calculated. Used by CombatAnimator for flight VFX.</summary>
+        public static event Action<int, List<UnitInstance>, List<UnitInstance>> OnCombatWillStart;
+
         public struct CombatResult
         {
             public string BFName;
@@ -201,6 +204,9 @@ namespace FWTCG.Systems
 
             // reckoner_arena: grant StrongAtk/Guard to units with power >= 5
             _bfSys?.OnCombatStart(bfId, attacker, gs);
+
+            // DEV-28: notify CombatAnimator for flight VFX (non-blocking)
+            OnCombatWillStart?.Invoke(bfId, attackerUnits, defenderUnits);
 
             // Calculate total power per side (#5: stunned units contribute 0)
             // StrongAtk/Guard bonuses are included via ComputeCombatPower

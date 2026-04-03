@@ -83,6 +83,21 @@ namespace FWTCG.UI
         private const float FloatPeriod      = 1.5f;  // seconds per full cycle
         private const float ReturnDuration   = 0.30f; // seconds for animated return
 
+        // ── DEV-28: Target highlight ─────────────────────────────────────────
+        private Image     _targetBorder;
+        private Coroutine _targetPulse;
+
+        // ── DEV-28: Selected orbit light ─────────────────────────────────────
+        private GameObject _orbitDot;
+        private Coroutine  _orbitRoutine;
+
+        // ── DEV-28: Hero aura ────────────────────────────────────────────────
+        private Image     _heroAura;
+        private Coroutine _heroAuraPulse;
+
+        // ── DEV-28: Hand enter animation ─────────────────────────────────────
+        private bool _enterAnimPlayed;
+
         private void Awake()
         {
             // Auto-wire SerializeField refs by child name if Inspector connections were lost
@@ -153,8 +168,12 @@ namespace FWTCG.UI
             if (_atkBreath   != null) StopCoroutine(_atkBreath);
             if (_costBreath  != null) StopCoroutine(_costBreath);
             if (_schBreath   != null) StopCoroutine(_schBreath);
-            if (_liftFloat   != null) StopCoroutine(_liftFloat);
+            if (_liftFloat    != null) StopCoroutine(_liftFloat);
             if (_returnToRest != null) StopCoroutine(_returnToRest);
+            if (_targetPulse  != null) StopCoroutine(_targetPulse);
+            if (_orbitRoutine != null) StopCoroutine(_orbitRoutine);
+            if (_heroAuraPulse != null) StopCoroutine(_heroAuraPulse);
+            if (_orbitDot != null) Destroy(_orbitDot);
             // Stop all badge scale coroutines
             foreach (var co in _badgeScaleCos.Values)
                 if (co != null) StopCoroutine(co);
@@ -168,6 +187,7 @@ namespace FWTCG.UI
                           Action<UnitInstance> onHoverEnter  = null,
                           Action<UnitInstance> onHoverExit   = null)
         {
+            bool isNewUnit = _unit != unit;
             _unit = unit;
             _isPlayerCard = isPlayerCard;
             _onClick = onClick;
@@ -180,6 +200,17 @@ namespace FWTCG.UI
 
             if (_clickButton != null)
                 _clickButton.interactable = onClick != null;
+
+            // DEV-28: Hero aura — start pulse for hero cards
+            if (isNewUnit && unit != null && unit.CardData != null && unit.CardData.IsHero)
+                StartHeroAura();
+
+            // DEV-28: Hand enter animation — play once per new card assignment
+            if (isNewUnit && !_enterAnimPlayed)
+            {
+                _enterAnimPlayed = true;
+                StartCoroutine(EnterAnimRoutine());
+            }
         }
 
         public void OnPointerEnter(PointerEventData eventData)
@@ -405,6 +436,8 @@ namespace FWTCG.UI
                     _restAnchoredY = rt.anchoredPosition.y;  // only save rest Y when truly at rest
                 if (_liftFloat != null) StopCoroutine(_liftFloat);
                 _liftFloat = StartCoroutine(LiftFloatRoutine());
+                // DEV-28: start orbit light
+                StartOrbit();
             }
             else
             {
@@ -413,6 +446,8 @@ namespace FWTCG.UI
                 // Animate back to rest position instead of snapping
                 if (_returnToRest != null) StopCoroutine(_returnToRest);
                 _returnToRest = StartCoroutine(ReturnToRestRoutine(rt.anchoredPosition.y));
+                // DEV-28: stop orbit light
+                StopOrbit();
             }
         }
 
@@ -919,6 +954,164 @@ namespace FWTCG.UI
                 }
                 yield return null;
             }
+        }
+
+        // ── DEV-28: Target highlight ─────────────────────────────────────────
+
+        /// <summary>Highlight this card as a valid spell target (green pulsing border).</summary>
+        public void SetTargeted(bool targeted)
+        {
+            if (targeted)
+            {
+                if (_targetBorder == null)
+                    _targetBorder = CreateOverlayImage("TargetBorder",
+                        new Color(0.29f, 0.87f, 0.50f, 0f), sizeDelta: Vector2.zero, asOutline: true);
+                if (_targetPulse != null) StopCoroutine(_targetPulse);
+                _targetPulse = StartCoroutine(TargetPulseRoutine());
+            }
+            else
+            {
+                if (_targetPulse != null) { StopCoroutine(_targetPulse); _targetPulse = null; }
+                if (_targetBorder != null) _targetBorder.color = new Color(0.29f, 0.87f, 0.50f, 0f);
+            }
+        }
+
+        private IEnumerator TargetPulseRoutine()
+        {
+            const float period = 1.2f;
+            float t = 0f;
+            var baseCol = new Color(0.29f, 0.87f, 0.50f, 1f);
+            while (_targetBorder != null)
+            {
+                float alpha = (Mathf.Sin(t * Mathf.PI * 2f / period) + 1f) * 0.5f; // 0..1
+                alpha = Mathf.Lerp(0.3f, 0.85f, alpha);
+                _targetBorder.color = new Color(baseCol.r, baseCol.g, baseCol.b, alpha);
+                t += Time.deltaTime;
+                yield return null;
+            }
+        }
+
+        // ── DEV-28: Selected orbit light ─────────────────────────────────────
+
+        private void StartOrbit()
+        {
+            if (_orbitDot == null)
+            {
+                _orbitDot = new GameObject("OrbitDot");
+                _orbitDot.transform.SetParent(transform, false);
+                var rt = _orbitDot.AddComponent<RectTransform>();
+                rt.sizeDelta = new Vector2(10f, 10f);
+                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+                rt.pivot = new Vector2(0.5f, 0.5f);
+                var img = _orbitDot.AddComponent<Image>();
+                img.color = new Color(1f, 0.92f, 0.6f, 0.9f);
+                img.raycastTarget = false;
+                _orbitDot.transform.SetAsLastSibling();
+            }
+            _orbitDot.SetActive(true);
+            if (_orbitRoutine != null) StopCoroutine(_orbitRoutine);
+            _orbitRoutine = StartCoroutine(OrbitRoutine());
+        }
+
+        private void StopOrbit()
+        {
+            if (_orbitRoutine != null) { StopCoroutine(_orbitRoutine); _orbitRoutine = null; }
+            if (_orbitDot != null) _orbitDot.SetActive(false);
+        }
+
+        private IEnumerator OrbitRoutine()
+        {
+            const float radius   = 60f;
+            const float period   = 6f;   // seconds per full revolution
+            float angle = 0f;
+            var dotRT = _orbitDot != null ? _orbitDot.GetComponent<RectTransform>() : null;
+            while (_orbitDot != null && _orbitDot.activeSelf)
+            {
+                if (dotRT != null)
+                {
+                    float rad = angle * Mathf.Deg2Rad;
+                    dotRT.anchoredPosition = new Vector2(Mathf.Cos(rad) * radius, Mathf.Sin(rad) * radius);
+                }
+                angle = (angle + 360f / period * Time.deltaTime) % 360f;
+                yield return null;
+            }
+        }
+
+        // ── DEV-28: Hero aura ────────────────────────────────────────────────
+
+        private void StartHeroAura()
+        {
+            if (_heroAura == null)
+                _heroAura = CreateOverlayImage("HeroAura",
+                    new Color(1f, 0.85f, 0.2f, 0f), sizeDelta: new Vector2(8f, 8f), asOutline: false);
+            if (_heroAuraPulse != null) StopCoroutine(_heroAuraPulse);
+            _heroAuraPulse = StartCoroutine(HeroAuraPulseRoutine());
+        }
+
+        private IEnumerator HeroAuraPulseRoutine()
+        {
+            const float period = 4f;
+            float t = 0f;
+            while (_heroAura != null)
+            {
+                float alpha = (Mathf.Sin(t * Mathf.PI * 2f / period) + 1f) * 0.5f;
+                alpha = Mathf.Lerp(0.25f, 0.60f, alpha);
+                _heroAura.color = new Color(1f, 0.85f, 0.2f, alpha);
+                t += Time.deltaTime;
+                yield return null;
+            }
+        }
+
+        // ── DEV-28: Hand enter animation ─────────────────────────────────────
+
+        private IEnumerator EnterAnimRoutine()
+        {
+            const float duration = 0.42f;
+            var rt  = (RectTransform)transform;
+            var cg  = GetComponent<CanvasGroup>() ?? gameObject.AddComponent<CanvasGroup>();
+
+            Vector2 startPos = rt.anchoredPosition + new Vector2(0f, -30f);
+            Vector2 endPos   = rt.anchoredPosition;
+            Vector3 startScale = Vector3.one * 0.82f;
+            Vector3 endScale   = Vector3.one;
+
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                float ease = t * (2f - t); // EaseOutQuad
+                rt.anchoredPosition = Vector2.Lerp(startPos, endPos, ease);
+                transform.localScale = Vector3.Lerp(startScale, endScale, ease);
+                cg.alpha = ease;
+                yield return null;
+            }
+            rt.anchoredPosition = endPos;
+            transform.localScale = endScale;
+            cg.alpha = 1f;
+        }
+
+        // ── DEV-28: Overlay image helper ─────────────────────────────────────
+
+        /// <summary>
+        /// Creates a full-size semi-transparent overlay Image child (used for target glow / hero aura).
+        /// sizeDelta offsets expand the image beyond card bounds when positive.
+        /// </summary>
+        private Image CreateOverlayImage(string goName, Color color, Vector2 sizeDelta, bool asOutline)
+        {
+            var go = new GameObject(goName);
+            go.transform.SetParent(transform, false);
+            var rt = go.AddComponent<RectTransform>();
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            float expand = asOutline ? 4f : 0f;
+            rt.offsetMin = new Vector2(-expand, -expand);
+            rt.offsetMax = new Vector2(expand, expand);
+            var img = go.AddComponent<Image>();
+            img.color = color;
+            img.raycastTarget = false;
+            go.transform.SetAsLastSibling();
+            return img;
         }
 
         private IEnumerator DeathRoutine()

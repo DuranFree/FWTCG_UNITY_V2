@@ -2,6 +2,53 @@
 
 ---
 
+## DEV-28：卡牌交互视觉补全 — 2026-04-03
+
+**Status**: ✅ Completed
+**Tests**: 489/489 🟢（MCP EditMode 全绿，新增 5 个测试）
+
+### 实现内容
+
+**TurnManager.cs（修改）**：
+- `DestroyEphemeralUnits()` 两处（base + battlefield 循环）各加 `gs.GetDiscard(owner).Add(u)`，修复 Tech-Debt DEV-18：瞬息单位销毁后进入弃牌堆
+
+**CombatSystem.cs（修改）**：
+- 新增静态事件 `OnCombatWillStart: Action<int, List<UnitInstance>, List<UnitInstance>>`
+- `TriggerCombat()` 在伤害计算前触发事件，供 CombatAnimator 飞行 VFX 使用
+
+**CardView.cs（修改）**：
+- `SetTargeted(bool)` + `TargetPulseRoutine()`：绿色 #4ade80 脉冲边框，alpha 0.3↔0.85，1.2s 周期
+- `StartOrbit()` / `StopOrbit()` / `OrbitRoutine()`：10px 金色光点半径 60px 旋转，6s 周期；选中时启动，取消选中时停止
+- `StartHeroAura()` / `HeroAuraPulseRoutine()`：金色叠加层 alpha 0.25↔0.60 呼吸，4s 周期；英雄卡首次 Setup 时启动
+- `EnterAnimRoutine()`：Y -30px 飞入 + scale 0.82→1 + alpha 0→1，0.42s EaseOutQuad；每个新卡牌实例首次绑定时播放一次
+- `CreateOverlayImage()` 辅助方法：全尺寸 Image 子节点，支持可选 expand 偏移
+
+**GameUI.cs（修改）**：
+- `ShowTargetHighlights(Func<UnitInstance, bool> filter)`：遍历所有单位容器调用 `cv.SetTargeted(filter(cv.Unit))`
+- `ClearTargetHighlights()`：全部调 `cv.SetTargeted(false)`
+
+**GameManager.cs（修改）**：
+- 法术出牌前后：`_ui?.ShowTargetHighlights(...)` / `_ui?.ClearTargetHighlights()`，按 SpellTargetType 过滤敌/己/任意单位
+- 装备出牌前后：同上，过滤无附件的友方非法术单位
+
+**CombatAnimator.cs（修改）**：
+- 订阅 `CombatSystem.OnCombatWillStart`
+- `AnimateFlyGroup()` 每侧最多 2 个单位，找到对应 CardView 后启动协程
+- `FlyAndReturnRoutine()`：创建 ghost overlay，复制卡图，EaseOutQuad 向敌侧飞出 28px 0.20s，EaseInQuad 弹回 0.15s，销毁 ghost
+
+**Assets/Tests/EditMode/DEV28VisualTests.cs（新建）**：
+- 3 个 Ephemeral 弃牌堆测试（base 销毁、同回合存活、战场销毁）
+- 2 个 OnCombatWillStart 测试（事件顺序、攻守列表内容正确）
+
+### 代码审查
+- Claude 自身审查：无 High，2 Low 记入 tech-debt
+- Codex adversarial-review：无 High，4 Medium + 2 Low 记入 tech-debt
+
+### 场景验证
+- ✅ CombatAnimator 组件已验证：_bf1Panel → BF1Panel，_bf2Panel → BF2Panel，事件订阅已在 Awake/OnDestroy 中对称注册
+
+---
+
 ## DEV-27：Architecture Improvement — 2026-04-03
 
 **Status**: ✅ Completed

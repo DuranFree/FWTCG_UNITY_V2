@@ -1,6 +1,8 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using FWTCG.Core;
 using FWTCG.Systems;
 
 namespace FWTCG.UI
@@ -35,14 +37,21 @@ namespace FWTCG.UI
         private Coroutine _sw1Routine;
         private Coroutine _sw2Routine;
 
+        // DEV-28: flight animation constants
+        private const float FLY_DURATION  = 0.20f;  // fly toward enemy
+        private const float BACK_DURATION = 0.15f;  // snap back
+        private const float FLY_OFFSET    = 28f;    // px toward enemy side
+
         private void Awake()
         {
-            CombatSystem.OnCombatResult += OnCombatResult;
+            CombatSystem.OnCombatResult    += OnCombatResult;
+            CombatSystem.OnCombatWillStart += OnCombatWillStart;
         }
 
         private void OnDestroy()
         {
-            CombatSystem.OnCombatResult -= OnCombatResult;
+            CombatSystem.OnCombatResult    -= OnCombatResult;
+            CombatSystem.OnCombatWillStart -= OnCombatWillStart;
         }
 
         private void Start()
@@ -59,6 +68,94 @@ namespace FWTCG.UI
         }
 
         // ── Private ───────────────────────────────────────────────────────────
+
+        // DEV-28: flight VFX — ghost overlays lunge toward enemy then snap back
+        private void OnCombatWillStart(int bfIdx, List<UnitInstance> attackers, List<UnitInstance> defenders)
+        {
+            if (GameUI.Instance == null) return;
+            var canvas = GameUI.Instance.GetComponentInParent<Canvas>()
+                      ?? GameUI.Instance.GetComponent<Canvas>();
+            if (canvas == null) return;
+
+            // Animate up to 2 units per side (avoid flooding the screen)
+            AnimateFlyGroup(attackers, defenders, canvas, flyRight: true);
+            AnimateFlyGroup(defenders, attackers, canvas, flyRight: false);
+        }
+
+        private void AnimateFlyGroup(List<UnitInstance> units, List<UnitInstance> enemies,
+                                     Canvas canvas, bool flyRight)
+        {
+            int count = Mathf.Min(units.Count, 2);
+            for (int i = 0; i < count; i++)
+            {
+                var cv = GameUI.Instance?.FindCardView(units[i]);
+                if (cv == null) continue;
+                StartCoroutine(FlyAndReturnRoutine(cv.GetComponent<RectTransform>(), canvas, flyRight));
+            }
+        }
+
+        private IEnumerator FlyAndReturnRoutine(RectTransform rt, Canvas canvas, bool flyRight)
+        {
+            if (rt == null) yield break;
+
+            // Create ghost overlay so we don't disturb the real card's layout
+            var host = new GameObject("CombatFlyGhost");
+            host.transform.SetParent(canvas.transform, false);
+            var ghostRT = host.AddComponent<RectTransform>();
+            ghostRT.sizeDelta  = rt.rect.size;
+            ghostRT.anchorMin  = ghostRT.anchorMax = new Vector2(0.5f, 0.5f);
+            ghostRT.pivot      = new Vector2(0.5f, 0.5f);
+
+            // Copy world position to canvas-local
+            var corners = new Vector3[4];
+            rt.GetWorldCorners(corners);
+            Vector2 screenCenter = new Vector2(
+                (corners[0].x + corners[2].x) * 0.5f,
+                (corners[0].y + corners[2].y) * 0.5f);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                canvas.GetComponent<RectTransform>(), screenCenter,
+                canvas.worldCamera, out Vector2 origin);
+            ghostRT.anchoredPosition = origin;
+            host.transform.SetAsLastSibling();
+
+            // Copy visuals from real card
+            var srcImg = rt.GetComponent<Image>();
+            if (srcImg != null)
+            {
+                var img = host.AddComponent<Image>();
+                img.sprite = srcImg.sprite;
+                img.color  = srcImg.color;
+                img.raycastTarget = false;
+            }
+            var cg = host.AddComponent<CanvasGroup>();
+            cg.blocksRaycasts = false;
+            cg.interactable   = false;
+
+            // Phase 1: lunge toward enemy
+            float dir = flyRight ? 1f : -1f;
+            Vector2 target = origin + new Vector2(dir * FLY_OFFSET, 0f);
+            float elapsed = 0f;
+            while (elapsed < FLY_DURATION)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / FLY_DURATION;
+                float ease = t * (2f - t); // EaseOutQuad
+                ghostRT.anchoredPosition = Vector2.Lerp(origin, target, ease);
+                yield return null;
+            }
+
+            // Phase 2: snap back
+            elapsed = 0f;
+            while (elapsed < BACK_DURATION)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / BACK_DURATION;
+                ghostRT.anchoredPosition = Vector2.Lerp(target, origin, t * t); // EaseInQuad
+                yield return null;
+            }
+
+            Destroy(host);
+        }
 
         private void OnCombatResult(CombatSystem.CombatResult result)
         {

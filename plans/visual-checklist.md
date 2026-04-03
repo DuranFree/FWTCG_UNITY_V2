@@ -18,9 +18,9 @@
 
 ## 二、字体系统
 
-- [ ] Cinzel 字体导入（标题/UI标签，weight 400/600/700/900）
-- [ ] Noto Sans SC 字体导入（卡牌文字/正文，weight 400/500/700）
-- [ ] 字体大小层级定义（标题3rem / 按钮1rem / 卡牌名0.76rem / 卡牌文字0.36rem 等）
+- ❌ Cinzel 字体导入 — OUT OF SCOPE：不需要，使用现有字体
+- ❌ Noto Sans SC 字体导入 — OUT OF SCOPE：不需要，使用现有字体
+- ❌ 字体大小层级定义 — OUT OF SCOPE：不需要
 
 ---
 
@@ -44,14 +44,14 @@
 
 - [ ] 卡牌 Prefab 基础外观（边框/背景/图片层/文字层）
 - [ ] 悬停放大 + 发光效果（DOTween scale + 发光边框 — DEV-9 scale 动画）
-- [ ] 悬停上浮效果（margin-top -20px + z-index 提升，手牌卡片浮起）
+- ❌ 悬停上浮效果 — OUT OF SCOPE：选中时上浮已足够，无需独立悬停上浮
 - ✅ 3D 倾斜效果（鼠标跟随，18° 最大，CardTilt.cs）— DEV-8
 - ✅ 全息光泽 Shine（鼠标位置驱动的径向渐变，CardShine.shader）— DEV-8
 - ✅ 可出牌粒子边框（conic rotation 彗星效果，CardGlow.shader）— DEV-8
 - [ ] 入场 Foil Sweep（0.8s 对角光扫，DOTween + Shader）
-- [ ] 手牌卡片入场动画（hand-card-enter 0.42s，translateY+scale 淡入）
+- ✅ 手牌卡片入场动画（hand-card-enter 0.42s，Y -30px 飞入 + scale 0.82→1 + alpha 0→1，EaseOutQuad）— DEV-28
 - [ ] 可出牌卡粒子特效（playable-particle 3s，上方闪烁光点）
-- [ ] 卡牌选中轨道光环（selected-arcane-orbit 6s，小光环绕卡片旋转）
+- ✅ 卡牌选中轨道光环（selected-arcane-orbit 6s，10px 金色光点半径 60px 旋转）— DEV-28
 - [ ] 死亡飞行动画（playDeathFly，阵亡卡飞向弃牌堆消散）
 - ✅ 费用不足变暗（整体压暗 ×0.6，CardView.SetCostInsufficient）— DEV-8
 - ✅ 休眠状态（灰化 + CardExhausted 颜色）— DEV-8
@@ -60,7 +60,7 @@
 - ✅ Buff 状态徽章（▲绿色，卡面底部，右键查看详情）— DEV-22
 - ✅ Debuff 状态徽章（▼红色，卡面底部，右键查看详情）— DEV-22
 - [ ] 卡牌背面样式
-- [ ] 英雄光环（hero-card-aura 4s 缓慢脉冲，英雄卡专属）
+- ✅ 英雄光环（hero-card-aura 4s 缓慢脉冲，金色 alpha 0.25↔0.60，英雄卡专属）— DEV-28
 
 ---
 
@@ -70,12 +70,12 @@
 - ✅ 漩涡/传送门特效（3 层同心圆，CW/CCW 旋转，蓝色半透明圆盘）— DEV-22
 - ✅ 漩涡螺旋粒子（8 个轨道粒子，蓝色发光）— DEV-22
 - ✅ 漩涡淡入（0.28s）/ 淡出（0.22s）— DEV-22
-- [ ] 法术牌放置动画（飞向漩涡 0.4s → 停留发光 0.5s → 爆裂消散 0.4s）
-- [ ] 爆裂粒子（16 个放射状粒子）
-- [ ] 单位牌放置动画（飞行 0.35s → 悬浮弹跳 0.4s → 落地 0.18s）
-- [ ] 落地涟漪（land ripple expand 0.55s）
-- [ ] 落地震动（±2px，0.25s）
-- [ ] 拖拽失败弹回（0.45s elastic overshoot 回到手牌）
+- ✅ 法术牌放置动画（EaseOutQuad 飞行 + EaseInQuad 落地，DropAnimHost）— DEV-22
+- ❌ 爆裂粒子（16 个放射状粒子）— OUT OF SCOPE：用户确认不需要
+- ✅ 单位牌放置动画（飞行 → 悬浮弹跳点 → 落地，DropAnimHost.AnimateDropCard）— DEV-22
+- ❌ 落地涟漪（land ripple expand 0.55s）— OUT OF SCOPE：用户确认不需要
+- ❌ 落地震动（±2px，0.25s）— OUT OF SCOPE：用户确认不需要
+- ✅ 拖拽失败弹回（右键取消，CancelReturnRoutine ease-in/ease-out）— DEV-22
 
 ---
 
@@ -85,7 +85,7 @@
 - ✅ 玩家控制战场绿色光晕（bf-ctrl-player-glow 3s 交替脉冲）— DEV-18（BattlefieldGlow.CtrlGlowLoop 绿色）
 - ✅ 敌方控制战场红色光晕（bf-ctrl-enemy-glow 3s 交替脉冲）— DEV-18（BattlefieldGlow.CtrlGlowLoop 红色）
 - ✅ 战场卡牌展示（战场特殊卡的图片显示）— DEV-18（GameUI.UpdateBFCardArt Resources.Load）
-- [ ] 战斗触发特效（单位冲向对方 + 碰撞闪光）
+- ✅ 战斗触发特效（单位冲向对方 ghost overlay 0.20s 飞出 + 0.15s 弹回，CombatAnimator.FlyAndReturnRoutine）— DEV-28
 - ✅ 战斗冲击波（playCombatShockwave，中央扩散金色光环）— DEV-18（CombatAnimator.PlayShockwave 0.45s scale 0→1.5）
 - ✅ 征服/对决横幅动画（Duel Banner，FireDuelBanner → ShowBanner slide 动画）— DEV-19
 - ✅ 出牌时环境光闪烁（board-event-fade 0.85s）— DEV-18（GameUI.BoardFlashRoutine OnCardPlayed 事件驱动）
@@ -138,8 +138,8 @@
 
 ## 十、掷硬币界面
 
-- [ ] 硬币正面图片（xianshou.png → Sprite，用金色圆代替）
-- [ ] 硬币背面图片（houshou.png → Sprite，用铜色圆代替）
+- [ ] 硬币正面图片（xianshou.png ✅ 已在 Assets/Resources/CardArt/，待接入 StartupFlowUI）
+- [ ] 硬币背面图片（houshou.png ✅ 已在 Assets/Resources/CardArt/，待接入 StartupFlowUI）
 - ✅ 翻转动画（1800ms，5次 scaleX 0→1 翻转 + 落地弹跳，StartupFlowUI.CoinSpinRoutine）— DEV-24
 - ✅ 结果文字淡入（0.4s FadeTextIn，coinResultText）— DEV-24
 
@@ -173,7 +173,7 @@
 
 - ✅ 区域边框画线（所有游戏区域可见边框，Outline 组件 + 金色半透明）— DEV-10
 - ✅ 区域名字标签（BASE/LEGEND/HERO/TRASH/EXILE/RUNES，9px 金色半透明）— DEV-10
-- [ ] 符文回收按钮样式（♻ 按钮入场动画 rune-recycle-appear 0.22s）
+- ❌ 符文回收按钮样式（♻ 按钮入场动画）— OUT OF SCOPE：已改为右键回收，无需独立按钮
 
 ---
 

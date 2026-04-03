@@ -1439,9 +1439,12 @@ namespace FWTCG
             UnitInstance target = null;
             if (_spellTargetPopup != null)
             {
+                // DEV-28: highlight valid targets on board
+                _ui?.ShowTargetHighlights(u => !u.CardData.IsEquipment && !u.CardData.IsSpell && u.AttachedEquipment == null);
                 target = await _spellTargetPopup.ShowAsync(
                     SpellTargetType.FriendlyUnit, _gs,
                     u => !u.CardData.IsEquipment && !u.CardData.IsSpell && u.AttachedEquipment == null);
+                _ui?.ClearTargetHighlights();
             }
 
             // Get mouse canvas position for fly-from point
@@ -1583,7 +1586,15 @@ namespace FWTCG
             if (_spellTargetPopup != null)
             {
                 RefreshUI();
+                // DEV-28: highlight valid targets on board
+                var targetType = spell.CardData.SpellTargetType;
+                _ui?.ShowTargetHighlights(u =>
+                    !u.CardData.IsEquipment && !u.CardData.IsSpell &&
+                    (targetType == SpellTargetType.AnyUnit ||
+                    (targetType == SpellTargetType.EnemyUnit   && u.Owner == GameRules.OWNER_ENEMY) ||
+                    (targetType == SpellTargetType.FriendlyUnit && u.Owner == GameRules.OWNER_PLAYER)));
                 target = await _spellTargetPopup.ShowAsync(spell.CardData.SpellTargetType, _gs);
+                _ui?.ClearTargetHighlights();
             }
             else
             {

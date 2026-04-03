@@ -442,6 +442,7 @@ namespace FWTCG.Systems
                     if (u.IsEphemeral && u.SummonedOnRound < gs.Round)
                     {
                         GameManager.FireUnitDied(u);
+                        gs.GetDiscard(owner).Add(u);
                         baseList.RemoveAt(i);
                         Broadcast($"[瞬息] {u.UnitName}({DisplayName(owner)}) 回合开始前销毁");
                     }
@@ -459,6 +460,7 @@ namespace FWTCG.Systems
                         if (u.IsEphemeral && u.SummonedOnRound < gs.Round)
                         {
                             GameManager.FireUnitDied(u);
+                            gs.GetDiscard(owner).Add(u);
                             bfUnits.RemoveAt(i);
                             Broadcast($"[瞬息] {u.UnitName}({DisplayName(owner)}) 回合开始前销毁");
                         }

@@ -28,7 +28,7 @@
 - [ ] DamagePopup 每次 new GameObject（GC churn）— 高频伤害时压力大，应改为对象池 — Phase DEV-17（Codex Medium/Low）
 - ✅ Ephemeral 单位打出时未设置 IsEphemeral/SummonedOnRound — 已修复：UnitInstance 构造函数从 CardData.HasKeyword(Ephemeral) 初始化 IsEphemeral；TryPlayUnit 打出瞬息单位时设置 SummonedOnRound=gs.Round — Phase DEV-18（Claude 审查 High → 已解决）
 - [ ] AI 出牌不触发 OnCardPlayed/BoardFlash — FireCardPlayed 只在玩家三条出牌路径调用，AI 出牌无棋盘闪烁；如需视觉对称须补充 AI 路径调用 — Phase DEV-18（Claude 审查 Medium，设计待确认）
-- [ ] Ephemeral 销毁未加入弃牌堆 — DestroyEphemeralUnits 只从列表移除，未调用 gs.GetDiscard(owner).Add(u)；需确认是否设计意图 — Phase DEV-18（Claude 审查 Low）
+- ✅ Ephemeral 销毁未加入弃牌堆 — 已修复：DestroyEphemeralUnits 两处（base + battlefield）均加 gs.GetDiscard(owner).Add(u) — Phase DEV-18→DEV-28
 - [ ] EventBanner.DrainQueue 协程在 OnDisable 时不会停止 — 组件禁用后仍可能继续运行（本项目 EventBanner 不会被禁用，风险低）— Phase DEV-18b（Claude 审查 Low）
 - [ ] AskPromptUI._cardViewPrefab 为 null 时 card-pick 模式静默跳过卡片渲染 — 功能降级但不崩溃，SceneBuilder 已连线 cardPrefab — Phase DEV-19（Codex Medium）
 - [ ] ScoreRingRoutine 使用 AddComponent 动态生成 ring Image — 大量快速得分时可积累多个同时运行，实际游戏节奏不触发 — Phase DEV-19（Codex Low）
@@ -49,3 +49,9 @@
 - [ ] SceneryUI.DividerOrbLoop 基准位置只采样一次，分辨率变化时振荡中心偏移；游戏内无动态分辨率切换，实际风险极低 — Phase DEV-23（Codex Medium，已 DEV-26 缓解：仅缓存 baseY）
 - [ ] GlassPanelFX Shader.Find 运行时查找 — 构建时若 "FWTCG/GlassPanel" 未加入 Always Included Shaders 会在打包后失效；修复：Project Settings → Graphics → Always Included Shaders 添加该 shader — Phase DEV-25（Codex M-2）
 - [ ] ShowStatusTooltip AutoDismissTooltip 只监听鼠标按下，键盘/游戏手柄操作无法关闭 tooltip — 低优先级，当前目标平台为 PC — Phase DEV-25（Low）
+- [ ] ShowTargetHighlights 遍历含 _playerHandContainer，但 SpellTargetPopup 不接受手牌单位；手牌单位可能被错误标绿但无法被选中 — Phase DEV-28（Codex Medium）
+- [ ] CardView.Setup 复用时 HeroAura 不清除 — 若 _heroAuraPulse 正在运行且视图被重新绑定到非英雄单位，光环将残留；Refresh() 销毁重建缓解，但池化场景下会复现 — Phase DEV-28（Codex Medium）
+- [ ] SpellTargetPopup / ActivateEquipmentAsync 无 try/finally 保护 — await ShowAsync() 期间若 Popup 被销毁，目标高亮永久残留（ClearTargetHighlights 不会被调用）— Phase DEV-28（Codex Medium）
+- [ ] CombatFlyGhost 在 CombatAnimator 销毁时成为孤儿 — FlyAndReturnRoutine 局部创建 ghost，OnDestroy 未追踪飞行中 ghost；场景切换期间销毁可能遗留 UI 残影 — Phase DEV-28（Codex Medium）
+- [ ] _enterAnimPlayed 不重置 — CardView 池化复用时，绑定到新单位后入场动画跳过；当前 Refresh() 销毁重建无影响，池化架构下需重置 — Phase DEV-28（Codex Low）
+- [ ] CreateOverlayImage sizeDelta 参数被忽略 — StartHeroAura 传入 (8,8) 期望光晕扩展超出卡牌，但实现中未使用该值，光晕与卡牌等大 — Phase DEV-28（Codex Low）
