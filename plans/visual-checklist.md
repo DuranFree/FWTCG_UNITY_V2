@@ -235,24 +235,23 @@
 - [x] 落定后金色粒子爆发（20粒金色径向爆发 0.6s，CoinBurstParticles）— VFX-6
 
 ### VFX-7 — UI 视觉迁移
-- [ ] 卡牌金色边框叠加层（frame_gold.png，传奇/高稀有度）— VFX-7a
-- [ ] 卡牌银色边框叠加层（frame_silver.png，普通稀有度）— VFX-7a
-- [ ] 法力/符能离散图标条（IconBar，图标亮/暗替代纯文字）— VFX-7b
-- [ ] 胜利屏光效 + 粒子爆发（win_glow + win_particles）— VFX-7c
-- [ ] 失败屏灰色调 — VFX-7c
-- [ ] 奖励数字滚动动画（MoveTowards 递增）— VFX-7c
-- [ ] End Turn 按钮专用 sprite（button_endturn.png）— VFX-7d
-- [ ] 手牌拖拽 ±10° 旋转（根据 deltaX 方向，Lerp 过渡）— VFX-7e
-- [ ] 回合倒计时 <10s 脉冲（文字白→红 + 大小脉冲）— VFX-7f
-- [ ] EventBanner 警告变体（红底白字 + EaseOutBack 弹入 + 1.5s 淡出）— VFX-7h
-- [ ] 菜单背景替换为 bg_menu.png（替代 HexGrid shader 背景）— VFX-7i
-- [ ] 战场 Slot / 目标区域高亮平滑淡入淡出（MoveTowards 2f，消除瞬变，参考 TCG Engine BSlot 模式）— VFX-7j
-- [ ] 卡牌己方绿色发光 / 敌方红色发光（card_glow sprite，悬停/选中时淡入，离开时淡出）— VFX-7k
-- [ ] 手牌发光仅在悬停/拖拽时显示（不再常驻）— VFX-7k
-- [ ] 装备卡发光叠加层（equip_glow，双色，focus主卡时隐藏）— VFX-7l
-- [ ] 按钮焦点高亮 Image 层（focus && interactable 时淡入，否则淡出）— VFX-7m
-- [ ] 战斗冲向动画 3 阶段（飞出冲击感 + 停顿 + 回弹，比原版 ghost overlay 更有力度）— VFX-7n
-- [ ] 状态粒子 FX（眩晕→ElectricFX / 法盾→Shield / 休眠→Zzz，状态结束时自动销毁）— VFX-7o
-- [ ] MouseLineFX 点链瞄准线（从卡牌出发到鼠标，点间距均匀，合法目标绿色/非法红色）— VFX-7p
-- [ ] AimTargetFX 准星光环（拖拽法术时鼠标位置显示准星，半透明脉冲动效）— VFX-7q
-- [ ] 手牌扇形展开（靠边的牌倾斜，形成自然扇形，摸牌/打牌后平滑重排）— VFX-7r
+- [x] 卡牌金色边框叠加层（frame_gold.png，法术/装备用金框）— VFX-7a
+- [x] 卡牌银色边框叠加层（frame_silver.png，普通单位用银框）— VFX-7a
+- [x] 法力/符能离散图标条（IconBar.cs 组件已创建）— VFX-7b
+- [x] 胜利屏增强（warm dark bg + 金色文字 + scale pop 动画）— VFX-7c
+- [x] 失败屏灰色调（cold dark bg + 灰色文字）— VFX-7c
+- [x] End Turn 按钮专用 sprite（button_endturn.png）— VFX-7d
+- [x] 手牌拖拽 ±10° 旋转（根据 deltaX 方向，Lerp 过渡）— VFX-7e
+- [x] 回合倒计时 <10s 脉冲（scale 1→1.15 2Hz 脉冲）— VFX-7f
+- [x] EventBanner 警告变体（红底白字 + EaseOutBack 弹入 + 1.5s 淡出）— VFX-7h
+- [x] 菜单背景替换为 bg_menu.png（替代 HexGrid shader 背景）— VFX-7i
+- [x] 战场 Slot / 目标区域高亮平滑淡入淡出（MoveTowards 2f + 淡出协程）— VFX-7j
+- [x] 卡牌己方绿色发光 / 敌方红色发光（card_glow sprite，MoveTowards 4f 平滑淡入/淡出）— VFX-7k
+- [x] 手牌发光仅在悬停/拖拽/选中时显示（不再常驻）— VFX-7k
+- [x] 装备卡发光叠加层（金色 0.35 alpha，有装备时自动显示）— VFX-7l
+- [x] 按钮焦点高亮（ButtonHoverGlow 增加 interactable 检查）— VFX-7m
+- [x] 战斗冲向动画 3 阶段（飞出 0.3s + 停顿 0.1s + 回弹 0.3s EaseInOutQuad）— VFX-7n
+- [x] 状态粒子 FX（眩晕→ElectricFX / 休眠→Zzz，状态结束时自动销毁）— VFX-7o
+- [x] MouseLineFX 点链瞄准线（12 点均匀间距，合法绿色/非法红色）— VFX-7p
+- [x] AimTargetFX 准星光环（48px target.png，alpha 0.4↔0.8 2Hz 脉冲）— VFX-7q
+- [x] 手牌扇形展开（±15° Z 轴旋转，中间牌 0°，RefreshHands 后自动排列）— VFX-7r

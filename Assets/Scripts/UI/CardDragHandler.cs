@@ -147,6 +147,8 @@ namespace FWTCG.UI
             _isCancelling      = false;
             BlockPointerEvents = true;
             _dragSource        = DetectDragSource();
+            _dragRotation      = 0f; // VFX-7e
+            _prevDragPos       = ScreenToCanvas(Input.mousePosition); // VFX-7e
 
             // Store canvas-space origin of the dragged card (for cancel return animation).
             if (RootCanvas != null)
@@ -177,6 +179,12 @@ namespace FWTCG.UI
 
         // ── IDragHandler ─────────────────────────────────────────────────────
 
+        // VFX-7e: drag rotation
+        public const float DRAG_ROTATE_MAX = 10f;  // max ±degrees
+        public const float DRAG_ROTATE_SPEED = 4f;
+        private float _dragRotation;
+        private Vector2 _prevDragPos;
+
         public void OnDrag(PointerEventData eventData)
         {
             if (!_isDragging || _isCancelling) return;
@@ -188,7 +196,14 @@ namespace FWTCG.UI
             {
                 var ghostRT = _ghost.GetComponent<RectTransform>();
                 ghostRT.localPosition = new Vector3(canvasPos.x, canvasPos.y, 0f);
+
+                // VFX-7e: tilt ghost based on horizontal movement direction
+                float deltaX = canvasPos.x - _prevDragPos.x;
+                float targetAngle = -Mathf.Clamp(deltaX * 2f, -DRAG_ROTATE_MAX, DRAG_ROTATE_MAX);
+                _dragRotation = Mathf.Lerp(_dragRotation, targetAngle, Time.deltaTime * DRAG_ROTATE_SPEED);
+                ghostRT.localRotation = Quaternion.Euler(0f, 0f, _dragRotation);
             }
+            _prevDragPos = canvasPos;
 
         }
 
@@ -208,6 +223,7 @@ namespace FWTCG.UI
 
             _isDragging = false;
             _isCancelling = true;
+            _dragRotation = 0f; // VFX-7e: reset rotation
 
             // Stop cluster follow — ghosts freeze in current positions
             if (_clusterMoveCoroutine != null)

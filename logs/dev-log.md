@@ -2,6 +2,70 @@
 
 ---
 
+## VFX-7：UI & 高亮视觉迁移（18 子项）— 2026-04-04
+
+**Status**: ✅ Completed
+**Tests**: 732/732 EditMode 全绿 🟢（新增 26 个测试）
+
+### 实现内容
+
+**资产迁移（批次 A）**：
+- 14 个 UI/FX sprite 从 TCG Engine 迁移：frame_gold/silver、mana_full/empty、button_endturn、card_glow、equip_glow、win_glow/particles/text、bg_menu、target
+- card_back_01.png 迁移到 Resources/CardArt/
+- frame sprites 放入 Resources/UI/ 供 Resources.Load 使用
+
+**CardBackManager.cs（新建，7g）**：
+- 静态类，CardBackVariant 枚举 + PlayerPrefs 持久化
+- GetCardBackSprite() 返回当前卡背 sprite（Default 返回 null 用几何叠加）
+- CardView.EnsureCardBackOverlay 优先使用 sprite 卡背
+
+**CardView.cs（编辑，7a/7j/7k/7l/7o）**：
+- 7a：_frameOverlay Image 层，Refresh 按卡类型选 frame_gold/frame_silver
+- 7k：_glowOverlay + Update MoveTowards 平滑淡入淡出，OnPointerEnter/Exit + SetSelected 接入
+- 7l：装备卡自动金色发光（alpha 0.35）
+- 7j：SetTargeted 改为 MoveTowards 平滑过渡（替代瞬间切换）
+- 7o：眩晕→ElectricFX / 休眠→Zzz 动态 DoSnapFX 挂载/销毁
+
+**SceneBuilder.cs（编辑）**：
+- CardPrefab 新增 FrameOverlay + GlowOverlay 子节点 + SerializedObject 连线
+- EndTurn 按钮加载 button_endturn.png sprite
+- Background 改为 bg_menu.png（fallback HexGrid shader）
+- GameManager 新增 MouseLineFX + AimTargetFX 组件
+
+**IconBar.cs（新建，7b）**：
+- N 个 Image 子节点，SetValue(current, max) 亮暗切换
+- 16px 图标 + 2px 间距，mana_full/mana_empty sprite
+
+**GameUI.cs（编辑，7f/7r/7c）**：
+- 7f：TimerPulseRoutine <10s 时 scale 1→1.15 2Hz 脉冲
+- 7r：ArrangeHandFan ±15° Z 轴扇形排列
+- 7c：GameOverEnhancedRoutine 胜利金色+scale pop / 失败灰色
+
+**EventBanner.cs（编辑，7h）**：
+- ShowWarning(text) 红底白字 + EaseOutBack scale pop + AudioManager 触发点
+
+**CardDragHandler.cs（编辑，7e）**：
+- OnDrag 中根据 deltaX 施加 ±10° Z 轴旋转，Lerp speed=4
+
+**CombatAnimator.cs（编辑，7n）**：
+- FlyAndReturnRoutine 改为 3 阶段：飞出 0.3s + 停顿 0.1s + 回弹 0.3s（总 0.7s）
+
+**ButtonHoverGlow.cs（编辑，7m）**：
+- OnPointerEnter 加 Button.interactable 检查
+
+**MouseLineFX.cs（新建，7p）**：
+- 12 点链瞄准线，合法绿色/非法红色，拖拽时激活
+
+**AimTargetFX.cs（新建，7q）**：
+- 48px target.png 准星，alpha 0.4↔0.8 2Hz 脉冲
+
+**测试（26 个新测试）**：
+- VFX7Tests：覆盖所有 18 子项常量验证、IconBar SetValue 边界、CardBackManager CRUD
+
+**Technical debt**: 无新增
+
+---
+
 ## VFX-6：掷硬币金色粒子爆发 + 音效触发点 — 2026-04-04
 
 **Status**: ✅ Completed

@@ -24,6 +24,9 @@ namespace FWTCG.UI
 
         public void OnPointerEnter(PointerEventData eventData)
         {
+            // VFX-7m: only glow when button is interactable
+            var btn = GetComponent<Button>();
+            if (btn != null && !btn.interactable) return;
             if (_pulseCoroutine != null) StopCoroutine(_pulseCoroutine);
             _pulseCoroutine = StartCoroutine(PulseRoutine());
         }

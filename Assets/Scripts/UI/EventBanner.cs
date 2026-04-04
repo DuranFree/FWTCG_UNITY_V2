@@ -238,5 +238,72 @@ namespace FWTCG.UI
             }
             _cg.alpha = 0f;
         }
+
+        // ── VFX-7h: Warning banner (red bg, white text, EaseOutBack scale pop) ──
+
+        public const float WARN_DURATION = 1.5f;
+        public const float WARN_SCALE_IN = 0.25f;
+        public static readonly Color WarnBgColor = new Color(0.75f, 0.12f, 0.12f, 0.92f);
+
+        /// <summary>Show a warning banner with red bg + scale-pop animation.</summary>
+        public void ShowWarning(string text, float duration = WARN_DURATION)
+        {
+            if (string.IsNullOrEmpty(text)) return;
+            if (_showRoutine != null) { StopCoroutine(_showRoutine); _showRoutine = null; }
+            _queue.Clear();
+            _showRoutine = StartCoroutine(WarningRoutine(text, duration));
+        }
+
+        private IEnumerator WarningRoutine(string text, float duration)
+        {
+            if (_bannerText != null)
+            {
+                _bannerText.text = text;
+                _bannerText.fontSize = 20;
+                _bannerText.color = Color.white;
+            }
+            if (_bannerBg != null)
+                _bannerBg.color = WarnBgColor;
+
+            yield return null; // layout refresh
+
+            if (_bannerRT != null && _bannerText != null)
+            {
+                float w = Mathf.Min(_bannerText.preferredWidth + 28f, 480f);
+                float h = _bannerText.preferredHeight + 18f;
+                _bannerRT.sizeDelta = new Vector2(w, h);
+            }
+
+            // Scale pop: 0 → 1 with EaseOutBack
+            _cg.alpha = 1f;
+            float elapsed = 0f;
+            while (elapsed < WARN_SCALE_IN)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / WARN_SCALE_IN);
+                float s = EaseOutBack(t);
+                transform.localScale = new Vector3(s, s, 1f);
+                yield return null;
+            }
+            transform.localScale = Vector3.one;
+
+            // Audio trigger point
+            if (FWTCG.Audio.AudioManager.Instance != null)
+                FWTCG.Audio.AudioManager.Instance.PlayUIClick();
+
+            // Stay
+            yield return new WaitForSeconds(duration);
+
+            // Fade out
+            yield return StartCoroutine(AnimateOut());
+            _showRoutine = null;
+        }
+
+        private static float EaseOutBack(float t)
+        {
+            const float c1 = 1.70158f;
+            const float c3 = c1 + 1f;
+            return 1f + c3 * Mathf.Pow(t - 1f, 3f) + c1 * Mathf.Pow(t - 1f, 2f);
+        }
     }
 }

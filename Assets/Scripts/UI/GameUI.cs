@@ -135,6 +135,7 @@ namespace FWTCG.UI
         [SerializeField] private Text _timerText;
         [SerializeField] private GameObject _timerDisplay;
         private Coroutine _timerCoroutine;
+        private Coroutine _timerPulseRoutine; // VFX-7f
         private int _timerSeconds;
         private Action _onTimerExpired;
 
@@ -964,8 +965,33 @@ namespace FWTCG.UI
             // Player hand (with cost-insufficient dimming + hover callbacks)
             RefreshUnitList(_playerHandContainer, gs.PHand, true, _onUnitClicked, gs.PMana,
                             _onCardHoverEnter, _onCardHoverExit, playEnterAnim: true);
+            ArrangeHandFan(_playerHandContainer); // VFX-7r
             // Enemy hand (face-down — show count only)
             RefreshEnemyHand(_enemyHandContainer, gs.EHand.Count);
+        }
+
+        // VFX-7r: fan layout — apply Z-rotation to hand cards
+        public const float FAN_MAX_ANGLE = 15f; // max tilt at edges
+        private void ArrangeHandFan(Transform handContainer)
+        {
+            int count = 0;
+            for (int i = 0; i < handContainer.childCount; i++)
+                if (handContainer.GetChild(i).gameObject.activeSelf) count++;
+
+            if (count <= 1) return; // single card stays upright
+
+            int idx = 0;
+            for (int i = 0; i < handContainer.childCount; i++)
+            {
+                var child = handContainer.GetChild(i);
+                if (!child.gameObject.activeSelf) continue;
+
+                // Normalized position: -1 (left) to +1 (right)
+                float t = count <= 1 ? 0f : (2f * idx / (count - 1) - 1f);
+                float angle = -t * FAN_MAX_ANGLE;
+                child.localRotation = Quaternion.Euler(0f, 0f, angle);
+                idx++;
+            }
         }
 
         private void RefreshBases(GameState gs)
@@ -1585,8 +1611,56 @@ namespace FWTCG.UI
             _gameOverPanel.SetActive(true);
             if (_gameOverText != null) _gameOverText.text = msg;
             if (_endTurnButton != null) _endTurnButton.interactable = false;
-            // DEV-24: fade in game over panel
-            StartCoroutine(FadeInPanelRoutine(_gameOverPanel));
+
+            // VFX-7c: detect win/lose and enhance
+            bool isWin = msg != null && (msg.Contains("胜") || msg.Contains("Win") || msg.Contains("赢"));
+            StartCoroutine(GameOverEnhancedRoutine(_gameOverPanel, isWin));
+        }
+
+        // VFX-7c: enhanced win/lose screen
+        private IEnumerator GameOverEnhancedRoutine(GameObject panel, bool isWin)
+        {
+            var cg = panel.GetComponent<CanvasGroup>();
+            if (cg == null) cg = panel.AddComponent<CanvasGroup>();
+            cg.alpha = 0f;
+
+            // Set visual mood
+            var bg = panel.GetComponent<Image>();
+            if (bg != null)
+                bg.color = isWin
+                    ? new Color(0.05f, 0.02f, 0f, 0.90f)   // warm dark
+                    : new Color(0.05f, 0.05f, 0.08f, 0.92f); // cold dark
+
+            if (_gameOverText != null)
+                _gameOverText.color = isWin ? GameColors.Gold : new Color(0.6f, 0.6f, 0.65f, 1f);
+
+            // Fade in
+            const float DUR = 0.5f;
+            float t = 0f;
+            while (t < 1f)
+            {
+                t += Time.deltaTime / DUR;
+                if (cg == null) yield break;
+                cg.alpha = Mathf.Clamp01(t);
+                yield return null;
+            }
+            cg.alpha = 1f;
+
+            // VFX-7c: victory text scale animation
+            if (isWin && _gameOverText != null)
+            {
+                var txt = _gameOverText.transform;
+                txt.localScale = Vector3.one * 0.5f;
+                float st = 0f;
+                while (st < 0.4f)
+                {
+                    st += Time.deltaTime;
+                    float s = Mathf.Lerp(0.5f, 1.05f, st / 0.4f);
+                    txt.localScale = Vector3.one * s;
+                    yield return null;
+                }
+                txt.localScale = Vector3.one;
+            }
         }
 
         private IEnumerator FadeInPanelRoutine(GameObject panel)
@@ -2044,6 +2118,35 @@ namespace FWTCG.UI
             // Text color matches ring
             if (_timerText != null)
                 _timerText.color = timerColor;
+
+            // VFX-7f: pulse animation when <10s
+            if (_timerSeconds <= 10 && _timerSeconds > 0 && _timerText != null)
+            {
+                if (_timerPulseRoutine == null)
+                    _timerPulseRoutine = StartCoroutine(TimerPulseRoutine());
+            }
+            else if (_timerPulseRoutine != null)
+            {
+                StopCoroutine(_timerPulseRoutine);
+                _timerPulseRoutine = null;
+                if (_timerText != null)
+                    _timerText.transform.localScale = Vector3.one;
+            }
+        }
+
+        // VFX-7f: scale pulse for timer text when <10s
+        public const float TIMER_PULSE_FREQ = 2f; // Hz
+        public const float TIMER_PULSE_SCALE = 1.15f;
+        private IEnumerator TimerPulseRoutine()
+        {
+            var t = _timerText.transform;
+            while (true)
+            {
+                float s = 1f + (TIMER_PULSE_SCALE - 1f) *
+                    ((Mathf.Sin(Time.time * TIMER_PULSE_FREQ * Mathf.PI * 2f) + 1f) * 0.5f);
+                t.localScale = new Vector3(s, s, 1f);
+                yield return null;
+            }
         }
 
         // ── Combat result display (DEV-10) ───────────────────────────────────

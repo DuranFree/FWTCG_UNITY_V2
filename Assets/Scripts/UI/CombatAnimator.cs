@@ -40,10 +40,11 @@ namespace FWTCG.UI
         // DEV-29: track active fly ghosts so they can be cleaned up in OnDestroy
         private readonly List<GameObject> _activeGhosts = new List<GameObject>();
 
-        // DEV-28: flight animation constants
-        private const float FLY_DURATION  = 0.20f;  // fly toward enemy
-        private const float BACK_DURATION = 0.15f;  // snap back
-        private const float FLY_OFFSET    = 28f;    // px toward enemy side
+        // VFX-7n: 3-phase flight animation constants (replaces DEV-28 2-phase)
+        public const float FLY_DURATION   = 0.30f;  // phase 1: lunge toward enemy
+        public const float PAUSE_DURATION = 0.10f;  // phase 2: impact hold
+        public const float BACK_DURATION  = 0.30f;  // phase 3: rebound
+        public const float FLY_OFFSET     = 40f;    // px toward enemy side (was 28)
 
         private void Awake()
         {
@@ -144,26 +145,33 @@ namespace FWTCG.UI
             cg.blocksRaycasts = false;
             cg.interactable   = false;
 
-            // Phase 1: lunge toward enemy
+            // VFX-7n: 3-phase flight animation
             float dir = flyRight ? 1f : -1f;
             Vector2 target = origin + new Vector2(dir * FLY_OFFSET, 0f);
+
+            // Phase 1: lunge toward enemy (EaseOutQuad)
             float elapsed = 0f;
             while (elapsed < FLY_DURATION)
             {
                 elapsed += Time.deltaTime;
-                float t = elapsed / FLY_DURATION;
-                float ease = t * (2f - t); // EaseOutQuad
+                float t = Mathf.Clamp01(elapsed / FLY_DURATION);
+                float ease = t * (2f - t);
                 ghostRT.anchoredPosition = Vector2.Lerp(origin, target, ease);
                 yield return null;
             }
+            ghostRT.anchoredPosition = target;
 
-            // Phase 2: snap back
+            // Phase 2: impact hold
+            yield return new WaitForSeconds(PAUSE_DURATION);
+
+            // Phase 3: rebound (EaseInOutQuad)
             elapsed = 0f;
             while (elapsed < BACK_DURATION)
             {
                 elapsed += Time.deltaTime;
-                float t = elapsed / BACK_DURATION;
-                ghostRT.anchoredPosition = Vector2.Lerp(target, origin, t * t); // EaseInQuad
+                float t = Mathf.Clamp01(elapsed / BACK_DURATION);
+                float ease = t < 0.5f ? 2f * t * t : 1f - Mathf.Pow(-2f * t + 2f, 2f) / 2f;
+                ghostRT.anchoredPosition = Vector2.Lerp(target, origin, ease);
                 yield return null;
             }
 

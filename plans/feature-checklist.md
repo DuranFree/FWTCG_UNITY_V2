@@ -397,26 +397,26 @@
 - [x] 音效触发点预留（start_audio / end_audio）— VFX-6
 
 ### VFX-7 — UI 视觉迁移
-- [ ] 卡牌金/银边框 sprite（frame_gold.png / frame_silver.png）+ CardView frameOverlay 层 — VFX-7a
-- [ ] IconBar.cs（法力/符能离散图标条，N icon 亮起/暗淡）— VFX-7b
-- [ ] GameUI 符能显示改为 IconBar 图标行 — VFX-7b
-- [ ] 胜利/失败屏增强（光效 + 粒子爆发 + 奖励数字滚动）— VFX-7c
-- [ ] End Turn 按钮替换 sprite（button_endturn.png）— VFX-7d
-- [ ] CardDragHandler 拖拽 ±10° Z 轴旋转（Lerp rotate_speed=4f）— VFX-7e
-- [ ] 回合倒计时 <10s 脉冲动画（文字白→红 + 大小脉冲）— VFX-7f
-- [ ] CardBackManager.cs（卡背切换框架，PlayerPrefs 持久化）— VFX-7g
-- [ ] EventBanner.ShowWarning()（红底白字 + scale 0→1 弹入 EaseOutBack + 1.5s 淡出）— VFX-7h
-- [ ] 菜单背景替换（bg_menu.png 替换 HexGrid shader 背景）— VFX-7i
-- [ ] 战场 Slot 高亮平滑过渡（MoveTowards 2f，target_alpha 0↔1，消除瞬变）— VFX-7j
-- [ ] 卡牌双色发光叠加层（card_glow.png，glow_ally绿/glow_enemy红，MoveTowards 4f，悬停/选中时亮起）— VFX-7k
-- [ ] 手牌发光改为条件显示（IsFocus() || IsDrag() 时才 enabled，不再常驻）— VFX-7k
-- [ ] 装备卡 equipGlowImage 发光（同双色逻辑，focus主卡时关闭）— VFX-7l
-- [ ] 按钮 focusHighlight Image 子层（focus && interactable 时启用，CanvasGroup MoveTowards 5f）— VFX-7m
-- [ ] 战斗冲向动画替换为 3 阶段（飞出 0.3s + 停顿 0.1s + 回弹 0.3s）— VFX-7n
-- [ ] 状态效果粒子动态挂载（按 StatusType 生成/销毁 prefab，替换 StunPulseRoutine 等协程）— VFX-7o
-- [ ] MouseLineFX 瞄准连线（从卡牌出发的点链到鼠标，拖拽法术/选中单位时激活，颜色区分合法/非法目标）— VFX-7p
-- [ ] AimTargetFX 目标准星（拖拽 IsRequireTarget 卡时鼠标位置显示准星 prefab，松手时销毁）— VFX-7q
-- [ ] 手牌扇形排列（每张牌根据位置计算倾斜角度，最大 ±15°，摸牌/打牌时平滑重排）— VFX-7r
+- [x] 卡牌金/银边框 sprite（frame_gold.png / frame_silver.png）+ CardView frameOverlay 层 — VFX-7a
+- [x] IconBar.cs（法力/符能离散图标条，N icon 亮起/暗淡）— VFX-7b
+- [ ] GameUI 符能显示改为 IconBar 图标行 — VFX-7b（IconBar 已创建，GameUI 接入待后续）
+- [x] 胜利/失败屏增强（光效 + 粒子爆发 + 奖励数字滚动）— VFX-7c
+- [x] End Turn 按钮替换 sprite（button_endturn.png）— VFX-7d
+- [x] CardDragHandler 拖拽 ±10° Z 轴旋转（Lerp rotate_speed=4f）— VFX-7e
+- [x] 回合倒计时 <10s 脉冲动画（文字白→红 + 大小脉冲）— VFX-7f
+- [x] CardBackManager.cs（卡背切换框架，PlayerPrefs 持久化）— VFX-7g
+- [x] EventBanner.ShowWarning()（红底白字 + scale 0→1 弹入 EaseOutBack + 1.5s 淡出）— VFX-7h
+- [x] 菜单背景替换（bg_menu.png 替换 HexGrid shader 背景）— VFX-7i
+- [x] 战场 Slot 高亮平滑过渡（MoveTowards 2f，target_alpha 0↔1，消除瞬变）— VFX-7j
+- [x] 卡牌双色发光叠加层（card_glow.png，glow_ally绿/glow_enemy红，MoveTowards 4f，悬停/选中时亮起）— VFX-7k
+- [x] 手牌发光改为条件显示（IsFocus() || IsDrag() 时才 enabled，不再常驻）— VFX-7k
+- [x] 装备卡 equipGlowImage 发光（同双色逻辑，focus主卡时关闭）— VFX-7l
+- [x] 按钮 focusHighlight Image 子层（focus && interactable 时启用，CanvasGroup MoveTowards 5f）— VFX-7m
+- [x] 战斗冲向动画替换为 3 阶段（飞出 0.3s + 停顿 0.1s + 回弹 0.3s）— VFX-7n
+- [x] 状态效果粒子动态挂载（按 StatusType 生成/销毁 prefab，替换 StunPulseRoutine 等协程）— VFX-7o
+- [x] MouseLineFX 瞄准连线（从卡牌出发的点链到鼠标，拖拽法术/选中单位时激活，颜色区分合法/非法目标）— VFX-7p
+- [x] AimTargetFX 目标准星（拖拽 IsRequireTarget 卡时鼠标位置显示准星 prefab，松手时销毁）— VFX-7q
+- [x] 手牌扇形排列（每张牌根据位置计算倾斜角度，最大 ±15°，摸牌/打牌时平滑重排）— VFX-7r
 
 ### VFX-8 — 投射物系统（可选）
 - [ ] Projectile.cs 移植（速度/轨迹/到达回调）— VFX-8

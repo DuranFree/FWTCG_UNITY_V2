@@ -37,6 +37,11 @@ namespace FWTCG.UI
         // DEV-10: exhausted overlay (gray dimming)
         [SerializeField] private Image _exhaustedOverlay;
 
+        // VFX-7a: frame overlay (gold/silver border)
+        [SerializeField] private Image _frameOverlay;
+        // VFX-7k: card glow overlay (ally green / enemy red, sprite-based)
+        [SerializeField] private Image _glowOverlay;
+
         // VFX-3: dissolve death material (KillDissolveFX.mat, wired by SceneBuilder)
         [SerializeField] private Material _killDissolveMat;
         private Material _clonedDissolveMat; // per-instance clone, destroyed in OnDestroy
@@ -109,6 +114,7 @@ namespace FWTCG.UI
 
         // ── DEV-29: Card back overlay (geometric pattern) ────────────────────
         private GameObject _cardBackOverlay;
+        private Image      _cardBackSpriteImg; // VFX-7g: sprite-based card back
 
         // ── DEV-30: Foil Sweep (V6) ──────────────────────────────────────────
         private Image     _shineOverlay;  // lazy-created full-size overlay with CardShine shader
@@ -120,6 +126,16 @@ namespace FWTCG.UI
         private bool      _lastPlayable;
         private readonly System.Collections.Generic.List<GameObject> _sparkDots =
             new System.Collections.Generic.List<GameObject>();
+
+        // ── VFX-7k: Glow overlay smooth fade state ──────────────────────────
+        private float _glowCurrentAlpha;
+        private float _glowTargetAlpha;
+        private Color _glowTargetColor = Color.clear;
+        public const float GLOW_FADE_SPEED = 4f;
+
+        // ── VFX-7o: Status particle FX (dynamic mount/unmount) ────────────────
+        private GameObject _stunFX;           // ElectricFX for stunned
+        private GameObject _sleepFX;          // Zzz for exhausted/sleeping
 
         // ── VFX-4: Battlefield visual details ────────────────────────────────
         private GameObject _idleFX;          // persistent rune-type particle (snapped)
@@ -228,10 +244,48 @@ namespace FWTCG.UI
             if (_playableSpark != null) StopCoroutine(_playableSpark);
             foreach (var d in _sparkDots) if (d) SafeDestroy(d);
             _sparkDots.Clear();
+            // VFX-7o: cleanup status FX
+            if (_stunFX  != null) { SafeDestroy(_stunFX);  _stunFX = null; }
+            if (_sleepFX != null) { SafeDestroy(_sleepFX); _sleepFX = null; }
             // VFX-4: cleanup idle FX, shield FX, and shadow
             if (_idleFX != null) { SafeDestroy(_idleFX); _idleFX = null; }
             if (_shieldFX != null) { SafeDestroy(_shieldFX); _shieldFX = null; }
             if (_shadowImage != null) { SafeDestroy(_shadowImage); _shadowImage = null; }
+        }
+
+        // ── VFX-7k: Smooth glow overlay fade ──────────────────────────────
+        private void Update()
+        {
+            if (_glowOverlay == null) return;
+            if (Mathf.Approximately(_glowCurrentAlpha, _glowTargetAlpha)) return;
+
+            _glowCurrentAlpha = Mathf.MoveTowards(_glowCurrentAlpha, _glowTargetAlpha,
+                GLOW_FADE_SPEED * Time.deltaTime);
+            var c = _glowTargetColor;
+            c.a = _glowCurrentAlpha;
+            _glowOverlay.color = c;
+            _glowOverlay.enabled = _glowCurrentAlpha > 0.01f;
+        }
+
+        /// <summary>VFX-7k: Set glow overlay target. Color: green for ally, red for enemy.</summary>
+        public void SetGlowTarget(float alpha, Color color)
+        {
+            _glowTargetAlpha = alpha;
+            _glowTargetColor = color;
+        }
+
+        /// <summary>VFX-7k: Show glow for hover/select (ally green or enemy red).</summary>
+        public void ShowGlow()
+        {
+            if (_glowOverlay == null) return;
+            var color = _isPlayerCard ? GameColors.PlayerGreen : GameColors.EnemyRed;
+            SetGlowTarget(0.65f, color);
+        }
+
+        /// <summary>VFX-7k: Hide glow with smooth fade-out.</summary>
+        public void HideGlow()
+        {
+            SetGlowTarget(0f, _glowTargetColor);
         }
 
         public void Setup(UnitInstance unit, bool isPlayerCard, Action<UnitInstance> onClick,
@@ -278,15 +332,21 @@ namespace FWTCG.UI
         public void OnPointerEnter(PointerEventData eventData)
         {
             if (CardDragHandler.BlockPointerEvents) return;
-            if (_unit != null && _onHoverEnter != null && !_faceDown)
-                _onHoverEnter(_unit);
+            if (_unit != null && !_faceDown)
+            {
+                ShowGlow(); // VFX-7k
+                _onHoverEnter?.Invoke(_unit);
+            }
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
             if (CardDragHandler.BlockPointerEvents) return;
-            if (_unit != null && _onHoverExit != null && !_faceDown)
-                _onHoverExit(_unit);
+            if (_unit != null && !_faceDown)
+            {
+                if (!_selected) HideGlow(); // VFX-7k: keep glow if selected
+                _onHoverExit?.Invoke(_unit);
+            }
         }
 
         public void OnPointerClick(PointerEventData eventData)
@@ -322,16 +382,46 @@ namespace FWTCG.UI
             if (_stunnedOverlay != null) _stunnedOverlay.gameObject.SetActive(false);
             if (_buffTokenIcon != null) _buffTokenIcon.SetActive(false);
 
-            // DEV-29: show/hide geometric card-back overlay
+            // DEV-29 + VFX-7g: show/hide card-back overlay (sprite or geometric)
             if (hide)
                 EnsureCardBackOverlay();
-            else if (_cardBackOverlay != null)
-                _cardBackOverlay.SetActive(false);
+            else
+            {
+                if (_cardBackOverlay != null) _cardBackOverlay.SetActive(false);
+                if (_cardBackSpriteImg != null) _cardBackSpriteImg.gameObject.SetActive(false);
+            }
         }
 
-        // DEV-29: lazy-create card back geometric overlay (4-strip border + center diamond)
+        // DEV-29 + VFX-7g: lazy-create card back overlay (sprite if available, else geometric)
         private void EnsureCardBackOverlay()
         {
+            // VFX-7g: try sprite-based card back first
+            var backSprite = CardBackManager.GetCardBackSprite();
+            if (backSprite != null)
+            {
+                if (_cardBackSpriteImg == null)
+                {
+                    var go = new GameObject("CardBackSprite");
+                    go.transform.SetParent(transform, false);
+                    go.transform.SetAsLastSibling();
+                    var rt = go.AddComponent<RectTransform>();
+                    rt.anchorMin = Vector2.zero;
+                    rt.anchorMax = Vector2.one;
+                    rt.offsetMin = Vector2.zero;
+                    rt.offsetMax = Vector2.zero;
+                    _cardBackSpriteImg = go.AddComponent<Image>();
+                    _cardBackSpriteImg.raycastTarget = false;
+                    _cardBackSpriteImg.preserveAspect = true;
+                }
+                _cardBackSpriteImg.sprite = backSprite;
+                _cardBackSpriteImg.gameObject.SetActive(true);
+                if (_cardBackOverlay != null) _cardBackOverlay.SetActive(false);
+                return;
+            }
+
+            // Hide sprite back if switching away
+            if (_cardBackSpriteImg != null) _cardBackSpriteImg.gameObject.SetActive(false);
+
             if (_cardBackOverlay != null)
             {
                 _cardBackOverlay.SetActive(true);
@@ -475,7 +565,7 @@ namespace FWTCG.UI
                 _cardBg.color = baseColor;
             }
 
-            // Stunned overlay
+            // Stunned overlay + VFX-7o: stun particle FX
             if (_stunnedOverlay != null)
             {
                 bool stunned = _unit.Stunned;
@@ -487,11 +577,43 @@ namespace FWTCG.UI
                     StopCoroutine(_stunPulse);
                     _stunPulse = null;
                 }
+                // VFX-7o: mount/unmount ElectricFX for stun
+                if (stunned && _stunFX == null)
+                {
+                    var pfb = Resources.Load<GameObject>("Prefabs/FX/ElectricFX");
+                    if (pfb != null) _stunFX = FXTool.DoSnapFX(pfb, transform, Vector3.zero, 0f);
+                }
+                else if (!stunned && _stunFX != null)
+                { Destroy(_stunFX); _stunFX = null; }
             }
 
-            // Exhausted overlay (gray dim) — hidden in discard viewer
+            // VFX-7a: frame overlay (gold for spell/equipment, silver for units)
+            if (_frameOverlay != null)
+            {
+                bool isSpecial = _unit.CardData.IsSpell || _unit.CardData.IsEquipment;
+                var frameSpr = Resources.Load<Sprite>(isSpecial ? "UI/frame_gold" : "UI/frame_silver");
+                if (frameSpr != null)
+                {
+                    _frameOverlay.sprite = frameSpr;
+                    _frameOverlay.enabled = true;
+                }
+                else
+                    _frameOverlay.enabled = false;
+            }
+
+            // Exhausted overlay (gray dim) + VFX-7o: sleep particle FX
             if (_exhaustedOverlay != null)
-                _exhaustedOverlay.gameObject.SetActive(!_isDiscardView && _unit.Exhausted && !_unit.Stunned);
+            {
+                bool exhausted = !_isDiscardView && _unit.Exhausted && !_unit.Stunned;
+                _exhaustedOverlay.gameObject.SetActive(exhausted);
+                if (exhausted && _sleepFX == null)
+                {
+                    var pfb = Resources.Load<GameObject>("Prefabs/FX/Zzz");
+                    if (pfb != null) _sleepFX = FXTool.DoSnapFX(pfb, transform, new Vector3(15f, 25f, 0f), 0f);
+                }
+                else if (!exhausted && _sleepFX != null)
+                { Destroy(_sleepFX); _sleepFX = null; }
+            }
 
             // Glow border (playable = affordable + not exhausted for hand cards)
             bool playable = _isPlayerCard && !_unit.Exhausted && !_costInsufficient;
@@ -508,6 +630,13 @@ namespace FWTCG.UI
                 _sparkDots.Clear();
             }
             _lastPlayable = playable;
+
+            // VFX-7l: equipment glow — subtle gold when unit has equipment attached
+            if (_glowOverlay != null && _unit.AttachedEquipment != null
+                && _glowTargetAlpha < 0.01f) // don't override hover/select glow
+            {
+                SetGlowTarget(0.35f, GameColors.Gold);
+            }
 
             // Buff token indicator (legacy icon — kept for backward compat)
             if (_buffTokenIcon != null) _buffTokenIcon.SetActive(false);
@@ -586,6 +715,7 @@ namespace FWTCG.UI
                 _liftFloat = StartCoroutine(LiftFloatRoutine());
                 // DEV-28: start orbit light
                 StartOrbit();
+                ShowGlow(); // VFX-7k
             }
             else
             {
@@ -596,6 +726,7 @@ namespace FWTCG.UI
                 _returnToRest = StartCoroutine(ReturnToRestRoutine(rt.anchoredPosition.y));
                 // DEV-28: stop orbit light
                 StopOrbit();
+                HideGlow(); // VFX-7k
             }
         }
 
@@ -1111,8 +1242,14 @@ namespace FWTCG.UI
         // ── DEV-28: Target highlight ─────────────────────────────────────────
 
         /// <summary>Highlight this card as a valid spell target (green pulsing border).</summary>
+        // VFX-7j: smooth target highlight with MoveTowards fade
+        public const float TARGET_FADE_SPEED = 2f;
+        private float _targetAlpha;
+        private float _targetAlphaGoal;
+
         public void SetTargeted(bool targeted)
         {
+            _targetAlphaGoal = targeted ? 1f : 0f;
             if (targeted)
             {
                 if (_targetBorder == null)
@@ -1123,9 +1260,28 @@ namespace FWTCG.UI
             }
             else
             {
+                // Don't stop pulse immediately — let it fade out
                 if (_targetPulse != null) { StopCoroutine(_targetPulse); _targetPulse = null; }
-                if (_targetBorder != null) _targetBorder.color = new Color(0.29f, 0.87f, 0.50f, 0f);
+                if (_targetFadeOut != null) StopCoroutine(_targetFadeOut);
+                _targetFadeOut = StartCoroutine(TargetFadeOutRoutine());
             }
+        }
+
+        private Coroutine _targetFadeOut;
+
+        private IEnumerator TargetFadeOutRoutine()
+        {
+            while (_targetAlpha > 0.01f && _targetBorder != null)
+            {
+                _targetAlpha = Mathf.MoveTowards(_targetAlpha, 0f, TARGET_FADE_SPEED * Time.deltaTime);
+                var c = _targetBorder.color;
+                _targetBorder.color = new Color(c.r, c.g, c.b, _targetAlpha);
+                yield return null;
+            }
+            if (_targetBorder != null)
+                _targetBorder.color = new Color(0.29f, 0.87f, 0.50f, 0f);
+            _targetAlpha = 0f;
+            _targetFadeOut = null;
         }
 
         private IEnumerator TargetPulseRoutine()
@@ -1133,9 +1289,21 @@ namespace FWTCG.UI
             const float period = 1.2f;
             float t = 0f;
             var baseCol = new Color(0.29f, 0.87f, 0.50f, 1f);
+            // VFX-7j: smooth fade-in
+            while (_targetAlpha < 0.99f && _targetBorder != null)
+            {
+                _targetAlpha = Mathf.MoveTowards(_targetAlpha, 1f, TARGET_FADE_SPEED * Time.deltaTime);
+                float pulseA = (Mathf.Sin(t * Mathf.PI * 2f / period) + 1f) * 0.5f;
+                float alpha = Mathf.Lerp(0.3f, 0.85f, pulseA) * _targetAlpha;
+                _targetBorder.color = new Color(baseCol.r, baseCol.g, baseCol.b, alpha);
+                t += Time.deltaTime;
+                yield return null;
+            }
+            _targetAlpha = 1f;
+            // Normal pulse
             while (_targetBorder != null)
             {
-                float alpha = (Mathf.Sin(t * Mathf.PI * 2f / period) + 1f) * 0.5f; // 0..1
+                float alpha = (Mathf.Sin(t * Mathf.PI * 2f / period) + 1f) * 0.5f;
                 alpha = Mathf.Lerp(0.3f, 0.85f, alpha);
                 _targetBorder.color = new Color(baseCol.r, baseCol.g, baseCol.b, alpha);
                 t += Time.deltaTime;

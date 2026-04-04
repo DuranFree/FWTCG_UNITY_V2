@@ -74,22 +74,34 @@ namespace FWTCG.Editor
             var canvas = canvasGO.GetComponent<Canvas>();
             var canvasRT = canvasGO.GetComponent<RectTransform>();
 
-            // ── Background (DEV-8: HexGrid shader) ──────────────────────────
+            // ── Background (VFX-7i: bg_menu.png sprite, fallback to HexGrid shader) ──
             var background = CreateFullscreenPanel(canvasGO.transform, "Background",
                 HexColor("#010a13"));
             {
-                EnsureDirectory("Assets/Materials");
-                var hexMat = LoadOrCreateMaterial("Assets/Materials/BackgroundMat.mat", "UI/HexGrid");
-                if (hexMat != null)
+                var bgImg = background.GetComponent<Image>();
+                var bgMenuSpr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/bg_menu.png");
+                if (bgMenuSpr != null)
                 {
-                    hexMat.SetColor("_BgColor", HexColor("#010a13"));
-                    hexMat.SetColor("_GridColor", new Color(0.04f, 0.78f, 0.73f, 0.08f));
-                    hexMat.SetFloat("_GridScale", 40f);
-                    hexMat.SetFloat("_GridThickness", 0.04f);
-                    hexMat.SetFloat("_NoiseIntensity", 0.02f);
-                    hexMat.SetFloat("_VignetteIntensity", 0.3f);
-                    hexMat.SetColor("_VignetteColor", new Color(0.04f, 0.78f, 0.73f, 0.05f));
-                    background.GetComponent<Image>().material = hexMat;
+                    bgImg.sprite = bgMenuSpr;
+                    bgImg.color = Color.white;
+                    bgImg.preserveAspect = false;
+                }
+                else
+                {
+                    // Fallback: HexGrid shader (preserved for other uses)
+                    EnsureDirectory("Assets/Materials");
+                    var hexMat = LoadOrCreateMaterial("Assets/Materials/BackgroundMat.mat", "UI/HexGrid");
+                    if (hexMat != null)
+                    {
+                        hexMat.SetColor("_BgColor", HexColor("#010a13"));
+                        hexMat.SetColor("_GridColor", new Color(0.04f, 0.78f, 0.73f, 0.08f));
+                        hexMat.SetFloat("_GridScale", 40f);
+                        hexMat.SetFloat("_GridThickness", 0.04f);
+                        hexMat.SetFloat("_NoiseIntensity", 0.02f);
+                        hexMat.SetFloat("_VignetteIntensity", 0.3f);
+                        hexMat.SetColor("_VignetteColor", new Color(0.04f, 0.78f, 0.73f, 0.05f));
+                        bgImg.material = hexMat;
+                    }
                 }
             }
 
@@ -495,6 +507,8 @@ namespace FWTCG.Editor
             var particleManager   = gmGO.AddComponent<FWTCG.UI.ParticleManager>(); // DEV-21
             var mouseTrail        = gmGO.AddComponent<FWTCG.UI.MouseTrail>();      // DEV-21
             var spellVFX          = gmGO.AddComponent<FWTCG.UI.SpellVFX>();        // DEV-21
+            gmGO.AddComponent<FWTCG.UI.MouseLineFX>();   // VFX-7p
+            gmGO.AddComponent<FWTCG.UI.AimTargetFX>();   // VFX-7q
 
             // ── Wire UI references via SerializedObject ───────────────────────
             WireGameUI(gameUI, canvasGO.GetComponent<Canvas>(), cardPrefab, runePrefab,
@@ -1495,6 +1509,15 @@ namespace FWTCG.Editor
             confirmRunesBtn = CreateActionButton(actionPanel.transform, "ConfirmRunesBtn", "确认符文操作", GameColors.ActionBtnPrimary);
             skipReactionBtn = CreateActionButton(actionPanel.transform, "SkipReactionBtn", "跳过响应", GameColors.ActionBtnSecondary);
             endTurnButton = CreateActionButton(actionPanel.transform, "EndTurnButton", "结束行动", GameColors.ActionBtnPrimary);
+            // VFX-7d: apply EndTurn button sprite if available
+            var endTurnSpr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/button_endturn.png");
+            if (endTurnSpr != null)
+            {
+                var endImg = endTurnButton.GetComponent<Image>();
+                endImg.sprite = endTurnSpr;
+                endImg.type = Image.Type.Sliced;
+                endImg.color = Color.white;
+            }
             reactBtn = CreateActionButton(actionPanel.transform, "ReactButton", "反应", new Color(1f, 0.55f, 0f, 1f));
 
             // DEV-19: ButtonCharge hover sweep on key buttons
@@ -2807,6 +2830,36 @@ namespace FWTCG.Editor
             artRT.offsetMin = new Vector2(2f, 2f);
             artRT.offsetMax = new Vector2(-2f, -2f);
 
+            // ── VFX-7a: Frame overlay (gold/silver border, above art) ──
+            var frameGO = new GameObject("FrameOverlay");
+            frameGO.transform.SetParent(root.transform, false);
+            var frameImg = frameGO.AddComponent<Image>();
+            frameImg.color = Color.white;
+            frameImg.raycastTarget = false;
+            frameImg.preserveAspect = false;
+            frameImg.enabled = false; // enabled at runtime by CardView.Refresh
+            var frameRT = frameGO.GetComponent<RectTransform>();
+            frameRT.anchorMin = Vector2.zero;
+            frameRT.anchorMax = Vector2.one;
+            frameRT.offsetMin = Vector2.zero;
+            frameRT.offsetMax = Vector2.zero;
+
+            // ── VFX-7k: Glow overlay (ally green / enemy red, sprite-based) ──
+            var glowGO = new GameObject("GlowOverlay");
+            glowGO.transform.SetParent(root.transform, false);
+            var glowImg = glowGO.AddComponent<Image>();
+            var glowSpr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/FX/card_glow.png");
+            if (glowSpr != null) glowImg.sprite = glowSpr;
+            glowImg.color = new Color(1f, 1f, 1f, 0f); // starts invisible
+            glowImg.raycastTarget = false;
+            glowImg.type = Image.Type.Sliced;
+            glowImg.enabled = false;
+            var glowRT = glowGO.GetComponent<RectTransform>();
+            glowRT.anchorMin = Vector2.zero;
+            glowRT.anchorMax = Vector2.one;
+            glowRT.offsetMin = new Vector2(-6f, -6f); // extend beyond card edges for glow
+            glowRT.offsetMax = new Vector2(6f, 6f);
+
             // ── Bottom half overlay (gradient fade from transparent to dark) ──
             var bottomOverlay = new GameObject("BottomOverlay");
             bottomOverlay.transform.SetParent(root.transform, false);
@@ -2985,6 +3038,8 @@ namespace FWTCG.Editor
             so.FindProperty("_schCostText").objectReferenceValue    = schText;
             so.FindProperty("_schCostBg").objectReferenceValue      = schBgImg;
             so.FindProperty("_exhaustedOverlay").objectReferenceValue = exhaustedImg;
+            so.FindProperty("_frameOverlay").objectReferenceValue  = frameImg;    // VFX-7a
+            so.FindProperty("_glowOverlay").objectReferenceValue   = glowImg;     // VFX-7k
             // VFX-3: wire dissolve death material (null-safe — material may not exist yet)
             var killDissolveMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/KillDissolveFX.mat");
             so.FindProperty("_killDissolveMat").objectReferenceValue = killDissolveMat;
