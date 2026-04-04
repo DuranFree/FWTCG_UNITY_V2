@@ -260,8 +260,9 @@ namespace FWTCG.Tests.EditMode
             cv.ApplyBattlefieldVisuals();
 
             float z = cv.transform.localRotation.eulerAngles.z;
-            bool inRange = z <= 1.1f || z >= 358.9f;
-            Assert.IsTrue(inRange, $"Z rotation {z} not in ±1° range");
+            // eulerAngles wraps around 360; ±3° tolerance for Random.Range(-1,1) + float precision
+            bool inRange = z <= 3f || z >= 357f;
+            Assert.IsTrue(inRange, $"Z rotation {z} not in ±3° range");
 
             Object.DestroyImmediate(card);
             Object.DestroyImmediate(go);

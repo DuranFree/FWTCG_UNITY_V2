@@ -79,3 +79,4 @@
 - [ ] AnimMatFX.Create 复用已有组件时调用 Clear()，若第三方代码同帧持有旧引用会导致队列被清空 — VFX-3（MEDIUM，当前路径安全，待 VFX-4 多 FX 并发时关注）
 - [ ] CardView.DissolveOrFallbackRoutine fallback 路径红色叠加是累积累加而非从原始值插值，低帧率下轻微视觉偏差 — VFX-3（MEDIUM）
 - [ ] VFX-3 dissolve 路径 Phase B ghost 大小固定 0.6x（dissolve 不缩放卡牌，ghost 与实际卡牌尺寸轻微不一致）— VFX-3（LOW）
+- [ ] AudioTool.FadeRoutine 被外部 StopAllCoroutines 打断时 ch.FadeRoutine 引用不清空（当前无此路��，CancelFade 覆盖正常打断）— VFX-5（MEDIUM）

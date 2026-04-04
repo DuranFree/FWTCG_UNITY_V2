@@ -383,11 +383,11 @@
 - ❌ HP/ATK 受击数值变黄 — 用户确认不需要此功能（游戏无 HP 概念）— VFX-4 REMOVED
 
 ### VFX-5 — 音频框架升级
-- [ ] AudioManager 重写为 AudioTool 通道制（10+ 通道）— VFX-5
-- [ ] 优先级系统（高优先级打断低优先级）— VFX-5
-- [ ] 淡入淡出支持（FadeIn/FadeOut 协程）— VFX-5
-- [ ] 原有 9 个 SFX 字段接口保持兼容 — VFX-5
-- [ ] ButtonAudio 组件移植（按钮自动附加点击音效）— VFX-5
+- [x] AudioManager 重写为 AudioTool 通道制（11 通道）— VFX-5
+- [x] 优先级系统（高优先级打断低优先级）— VFX-5
+- [x] 淡入淡出支持（FadeIn/FadeOut/CrossFade 协程）— VFX-5
+- [x] 原有 9 个 SFX 字段接口保持兼容 — VFX-5
+- [x] ButtonAudio 组件移植（按钮自动附加点击音效）— VFX-5
 
 ### VFX-6 — 掷硬币 2D 翻转动画
 - [ ] CoinFlipFX.cs（scaleX 1→0→-1 循环，约 1.5s）— VFX-6

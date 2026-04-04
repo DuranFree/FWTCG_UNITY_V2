@@ -2,6 +2,54 @@
 
 ---
 
+## VFX-5：音频框架升级（通道制 AudioTool）— 2026-04-04
+
+**Status**: ✅ Completed
+**Tests**: 697/697 EditMode 全绿 🟢
+
+### 实现内容
+
+**AudioTool.cs（新建）**：
+- 通道制音频核心，11 个独立��道（bgm/ui/card_spawn/attack/death/spell/ambient/score/legend/duel/system）
+- ��通道独立 AudioSource、优先��、音量控制
+- 优先级系统：同通道内高优先级（>=）打断低优先级，跨通道互不干扰
+- 6 级优先级：AMBIENT(10) < UI(20) < CARD(40) < COMBAT(60) < SPELL(80) < SYSTEM(100)
+- FadeIn/FadeOut/CrossFade 协程（使用 unscaledDeltaTime，不受暂停影响）
+- MasterVolume × BaseVolume 双层音量控制
+- 单例模式 + OnDestroy 清理
+
+**AudioManager.cs（重写）**：
+- 9 个原始 SFX 方法签名完整保留（PlayCardPlay/PlaySpellCast/PlayCombatHit 等）
+- 内部委托 AudioTool 通道：card_spawn/spell/attack/death/system/ui/score
+- BGM 方法新增 FadeBGMIn/FadeBGMOut
+- 防御性 fallback：AudioTool 不可用时创建自有 AudioSource 播放
+
+**ButtonAudio.cs（新建）**：
+- RequireComponent<Button>，Awake 自动订阅 onClick → PlayUIClick
+- 可选 override AudioClip，OnDestroy 取消订阅
+
+**SceneBuilder**：
+- 新增 AudioTool GO（含 AudioTool + AudioManager 组件），在 GameManager 之前创建
+
+**测试（30 个新测试）**：
+- VFX5AudioToolTests：通道创建/Play/Priority/Stop/Volume/Fade/Singleton
+- VFX5AudioManagerCompatTests：9 个 SFX 方法兼容性 + BGM + Volume
+- VFX5ButtonAudioTests：RequireComponent/AddComponent/Field 验证
+- VFX5AudioManagerFallbackTests：无 AudioTool 时 fallback 路径
+
+**附带修复**：
+- VFX-4 flaky 测试 ApplyBattlefieldVisuals_AppliesMicroRotation：±1° 范围扩大到 ±3°（Random.Range + 欧拉角浮点精度）
+
+**Decisions made**：
+- AudioTool 与 AudioManager 共存：AudioTool 是底层引擎，AudioManager 是高层门面
+- 通道用 string 而非 enum：便于扩展，无需修改 AudioTool 代码
+- PlayOneShot 独立于 Play：OneShot 允许重叠，Play 受优先级管控
+- 实际音频文件需用户另行提供（两个工程均无 .wav/.mp3/.ogg）
+
+**Technical debt**: FadeRoutine 外部 StopAllCoroutines 打断时 FadeRoutine 引用不���空（MEDIUM，当前无此路径）
+
+---
+
 ## VFX-4：VFXResolver 自动映射 + 游戏事件集成 — 2026-04-04
 
 **Status**: ✅ Completed

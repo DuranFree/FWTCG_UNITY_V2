@@ -467,6 +467,11 @@ namespace FWTCG.Editor
             EnsureDirectory("Assets/Resources/Cards");
             CreateAllCardData();
 
+            // ── Audio (VFX-5) ────────────────────────────────────────────────
+            var audioGO = new GameObject("AudioTool");
+            audioGO.AddComponent<FWTCG.Audio.AudioTool>();
+            audioGO.AddComponent<FWTCG.Audio.AudioManager>();
+
             // ── GameManager GameObject ────────────────────────────────────────
             var gmGO = new GameObject("GameManager");
             var gameMgr      = gmGO.AddComponent<FWTCG.GameManager>();
