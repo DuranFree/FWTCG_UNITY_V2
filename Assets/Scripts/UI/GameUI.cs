@@ -1377,6 +1377,28 @@ namespace FWTCG.UI
                     fimg.color = new Color(1f, 0.85f, 0.3f, 1f); // 金色
                 }
             }
+
+            // VFX-7: update description text from CardData
+            if (legend.DisplayData != null)
+            {
+                Transform descT = legendContainer.Find("LegendDesc");
+                if (descT != null)
+                {
+                    var descText = descT.GetComponent<Text>();
+                    if (descText != null)
+                        descText.text = legend.DisplayData.Description ?? "";
+                }
+
+                // Also update name text
+                Transform nameT = legendContainer.Find("LegendText");
+                if (nameT == null) nameT = legendContainer.Find("EnemyLegendText");
+                if (nameT != null)
+                {
+                    var nameText = nameT.GetComponent<Text>();
+                    if (nameText != null)
+                        nameText.text = legend.DisplayData.CardName ?? "";
+                }
+            }
         }
 
         // ── Unit list renderer ────────────────────────────────────────────────

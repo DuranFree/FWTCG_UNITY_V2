@@ -1243,27 +1243,30 @@ namespace FWTCG.Editor
             textShadow.effectColor = new Color(0f, 0f, 0f, 0.9f);
             textShadow.effectDistance = new Vector2(1f, -1f);
 
-            // Description text — bottom area (skill name + description)
+            // Description text — bottom area (filled at runtime by RefreshLegendArt)
             var descGO = new GameObject("LegendDesc");
             descGO.transform.SetParent(go.transform, false);
             var descRT = descGO.AddComponent<RectTransform>();
-            descRT.anchorMin = new Vector2(0.05f, 0.03f);
-            descRT.anchorMax = new Vector2(0.95f, 0.45f);
+            descRT.anchorMin = new Vector2(0.04f, 0.02f);
+            descRT.anchorMax = new Vector2(0.96f, 0.46f);
             descRT.offsetMin = Vector2.zero;
             descRT.offsetMax = Vector2.zero;
             var descLE = descGO.AddComponent<LayoutElement>();
             descLE.ignoreLayout = true;
             var descText = descGO.AddComponent<Text>();
-            descText.text = isPlayer ? "虚空感知" : "[被动] 无极剑道";
-            descText.color = new Color(0.9f, 0.85f, 0.7f, 1f);
-            descText.fontSize = 9;
-            descText.alignment = TextAnchor.MiddleCenter;
+            descText.text = ""; // filled at runtime
+            descText.color = Color.white;
+            descText.fontSize = 8;
+            descText.alignment = TextAnchor.UpperCenter;
             descText.horizontalOverflow = HorizontalWrapMode.Wrap;
-            descText.verticalOverflow   = VerticalWrapMode.Overflow;
+            descText.verticalOverflow   = VerticalWrapMode.Truncate;
             if (_font != null) descText.font = _font;
             var descShadow = descGO.AddComponent<Shadow>();
-            descShadow.effectColor = new Color(0f, 0f, 0f, 0.9f);
+            descShadow.effectColor = new Color(0f, 0f, 0f, 1f);
             descShadow.effectDistance = new Vector2(1f, -1f);
+            var descOutline = descGO.AddComponent<Outline>();
+            descOutline.effectColor = new Color(0f, 0f, 0f, 0.7f);
+            descOutline.effectDistance = new Vector2(1f, -1f);
 
             // VFX-7k: glow overlay for hover highlight
             var glowGO = new GameObject("LegendGlowOverlay");
