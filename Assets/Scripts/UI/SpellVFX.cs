@@ -76,8 +76,9 @@ namespace FWTCG.UI
         }
 
         /// <summary>
-        /// VFX-6 fix: Get card's actual canvas-local position via GameUI.FindCardView.
-        /// Falls back to hardcoded ±180 if CardView not yet placed in UI.
+        /// VFX-6 fix: Get the target container's canvas position where the card will land.
+        /// Uses GameUI.GetCardPlayTargetPos which resolves base/hero/center by card type.
+        /// Falls back to hardcoded ±180 if GameUI unavailable.
         /// </summary>
         private Vector2 ResolveCardCanvasPos(UnitInstance card, string owner)
         {
@@ -86,23 +87,14 @@ namespace FWTCG.UI
 
             if (GameUI.Instance == null || card == null) return fallback;
 
-            var cv = GameUI.Instance.FindCardView(card);
-            if (cv == null) return fallback;
-
-            var cvRT = cv.GetComponent<RectTransform>();
-            if (cvRT == null) return fallback;
-
-            // Convert world position to vfxLayer-local coordinates
-            var layerRT = _vfxLayer as RectTransform;
-            if (layerRT == null) layerRT = _vfxLayer.GetComponent<RectTransform>();
-            if (layerRT == null) return fallback;
-
-            Vector2 screenPt = RectTransformUtility.WorldToScreenPoint(null, cvRT.position);
-            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                    layerRT, screenPt, null, out Vector2 localPos))
-                return localPos;
-
-            return fallback;
+            Vector2 pos = GameUI.Instance.GetCardPlayTargetPos(card, owner);
+            // GetCardPlayTargetPos returns Vector2.zero for spells (no landing container)
+            // — use fallback for spells so burst still appears near center
+            if (pos == Vector2.zero && card.CardData != null && !card.CardData.IsSpell)
+                return fallback; // zero means resolution failed for non-spell
+            if (pos == Vector2.zero)
+                return fallback;
+            return pos;
         }
 
         private void OnUnitDiedAtPos(UnitInstance unit, Vector2 canvasPos)

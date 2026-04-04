@@ -557,6 +557,45 @@ namespace FWTCG.UI
             return localPos;
         }
 
+        /// <summary>
+        /// VFX-6 fix: Returns the canvas-local position of the target container
+        /// where a card will land after being played (base/hero/center).
+        /// </summary>
+        public Vector2 GetCardPlayTargetPos(FWTCG.Core.UnitInstance card, string owner)
+        {
+            Canvas rootCanvas = GetRootCanvas();
+            if (rootCanvas == null) return Vector2.zero;
+
+            // Determine the target container based on card type
+            Transform target = null;
+            if (card?.CardData != null && card.CardData.IsSpell)
+            {
+                // Spells don't land in a container — use screen center
+                return Vector2.zero;
+            }
+            else if (card?.CardData != null && card.CardData.IsHero)
+            {
+                target = owner == FWTCG.Core.GameRules.OWNER_PLAYER
+                    ? _playerHeroContainer : _enemyHeroContainer;
+            }
+            else
+            {
+                // Units and equipment land in base
+                target = owner == FWTCG.Core.GameRules.OWNER_PLAYER
+                    ? _playerBaseContainer : _enemyBaseContainer;
+            }
+
+            if (target == null) return Vector2.zero;
+            var targetRT = target.GetComponent<RectTransform>();
+            if (targetRT == null) return Vector2.zero;
+
+            Vector2 screenPt = RectTransformUtility.WorldToScreenPoint(null, targetRT.position);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                rootCanvas.GetComponent<RectTransform>(), screenPt,
+                rootCanvas.worldCamera, out Vector2 localPos);
+            return localPos;
+        }
+
         // ── DEV-15: Legend evolution flash ───────────────────────────────────
 
         private void OnLegendEvolved(string owner, int newLevel)
