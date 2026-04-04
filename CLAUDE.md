@@ -20,11 +20,22 @@
 - `./plans/tech-debt.md`
 - `./plans/phase-roadmap.md`
 
+读取完成后，立即检查 git 状态：
+- 执行 `git status` 检查是否有未提交的修改
+- 执行 `git log origin/master..HEAD` 检查是否有未推送的 commit
+- 有未提交修改 → 告知用户：`⚠️ 检测到上次 Phase 有未提交内容，正在补 commit 并推送...`，自动 commit（commit message 基于 dev-log 最后一条 Phase 记录），然后 push
+- 有未推送 commit → 告知用户：`⚠️ 检测到上次 Phase 有未推送内容，正在补推...`，直接 push
+- push 失败 → 告知用户：`⚠️ [版本控制] push 失败，请检查网络或远程仓库状态`
+- 全部干净 → 静默继续，不打扰用户
+
 以上 4 个文件构成最小上下文。除非任务需要，不进行代码文件的全量或无目的预读；在执行任务时按调用链逐步加载相关代码。
 
 **开始新 Phase 前必须读取：**
 - `./plans/feature-checklist.md`
 - `./plans/visual-checklist.md`
+- `./plans/assets-index.json`（如存在）— 了解当前可用美术资产，涉及美术资源的决策必须基于此文件
+  - ⚠️ 禁止用 Read 工具直接读此文件（文件过大，Read 只能读到头部，会漏掉后半段资产）
+  - 必须用 python/bash 脚本按关键词过滤查询，例如：`python3 -c "import json; data=json.load(open('plans/assets-index.json')); [print(a['name'],a['path']) for a in data['assets'] if 'FX' in a['path']]"`
 
 检查 git status，如果以下文件出现在修改列表中，立即读取：
 - `plans/assets-index.json`
@@ -184,6 +195,12 @@
 - 最后两个 Phase 是否固定为 Tech-Debt Cleanup + 架构优化？
 
 **不得依赖记忆，必须读文件后才能改 roadmap。**
+
+**新增 Phase 后必须同步清单（不可跳过）：**
+roadmap 新增 Phase 后，立即把该 Phase 涉及的条目追加到对应清单，标记为 `[ ]`：
+- 功能项 → `plans/feature-checklist.md`
+- 视觉/特效/动画项 → `plans/visual-checklist.md`
+- 没有视觉项的 Phase 不需要追加 visual-checklist，但必须明确说明跳过原因
 
 ---
 

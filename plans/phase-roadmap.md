@@ -43,7 +43,7 @@
 | VFX-4 | VFXResolver 自动映射 | 50张卡技能 → FX 自动匹配 + 游戏事件集成 |
 | VFX-5 | 音频框架升级 | AudioTool 通道制替换 AudioManager |
 | VFX-6 | 掷硬币 2D 翻转动画 | CoinFlipFX（scaleX 翻转 + 粒子爆发） |
-| VFX-7 | UI 视觉迁移（9项） | 边框/法力图标/胜负屏/拖拽旋转/回合脉冲/卡背/背景等 |
+| VFX-7 | UI & 高亮视觉迁移（15项） | 边框/法力图标/胜负屏/拖拽旋转/脉冲/卡背/背景/双色发光/战斗动画/状态FX等 |
 | VFX-8 | 投射物系统（可选） | Projectile.cs + 飞行动画 |
 | DEV-31 | Tech-Debt Cleanup | 清理 tech-debt.md 中所有未解决项 |
 | DEV-32 | 架构优化 | Final Architecture Review |
@@ -788,10 +788,10 @@
 | VFX-4 | VFXResolver 自动映射 + 游戏事件集成（50张卡）| 视觉+功能 |
 | VFX-5 | 音频框架升级（通道制 AudioTool）| 架构 |
 | VFX-6 | 掷硬币 2D 翻转动画 | 视觉 |
-| VFX-7 | UI 视觉迁移（边框/图标条/胜负屏/旋转/脉冲/卡背/背景/警告/警告Banner）| 视觉 |
+| VFX-7 | UI & 高亮视觉迁移（7a~7o，15子项）| 视觉 |
 | VFX-8 | 投射物系统（可选）| 视觉 |
 
-*最后更新：2026-04-04（VFX-1 ~ VFX-8 新增：TCG Engine 美术资产迁移）*
+*最后更新：2026-04-04（VFX-7 扩展至 15 子项：新增 7j~7o 高亮/发光/战斗/状态FX替换）*
 
 ---
 
@@ -902,6 +902,16 @@
 | CardView 护盾/壁垒关键词 | Shield prefab 常驻（OnEnable 挂载）|
 | GameUI 抽牌事件 | Spawn 星光 FX |
 
+### 4d. 战场视觉细节（TCG Engine BoardCardFX / BoardCard 模式）
+
+| 功能 | 来源 | 说明 |
+|------|------|------|
+| Per-card idle_fx 常驻粒子 | `BoardCardFX.idle_fx` | 每个 CardData 可挂 idle_fx prefab，上场 1s 后实例化；火属性→Flame，冰属性→WaterFX 等；VFX-4 VFXResolver 按 RuneType 自动映射 |
+| Per-card spawn_fx / death_fx 覆盖 | `BoardCardFX.spawn_fx / death_fx` | CardData 允许自定义入场/死亡粒子，覆盖 VFX-3 的默认 Dissolve（传奇卡可有专属出场特效） |
+| 卡牌阴影层 | `BoardCard.card_shadow` | SpriteRenderer/Image 阴影在卡牌下方偏移渲染，0.4s 延迟后显示（模拟落地感），Screen Space 下用 Image 偏移实现 |
+| 战场卡随机微旋转 | `BoardCard.transform.rotation` | 上场时施加 `Random.Range(-1f, 1f)` 度 Z 轴旋转，模拟手动摆放自然感 |
+| HP/ATK 受击数值变黄 | `BoardCard.card_ui.hp.color` | `hp.color = damage > 0 ? Color.yellow : Color.white`，恢复时变回白色，直观反馈受伤状态 |
+
 ---
 
 ## VFX-5 — 音频框架升级
@@ -942,10 +952,10 @@
 
 ---
 
-## VFX-7 — UI 视觉迁移（9项）
+## VFX-7 — UI & 高亮视觉迁移（7a~7r，18子项）
 
-**前置条件：** VFX-1 完成，VFX-2 中 Shield/Phoenix prefab 可用
-**可玩 demo：** 卡牌有金/银边框、法力显示为图标条、胜负有光效、手牌拖拽有旋转
+**前置条件：** VFX-1 完成，VFX-2 中 card_glow/Shield/Zzz/ElectricFX prefab 可用
+**可玩 demo：** 卡牌有双色发光边框、法力显示为图标条、胜负有光效、手牌拖拽有旋转+扇形排列、瞄准线/准星、战斗动画有冲击感、状态粒子自动挂载
 
 ### 7a. 卡牌金/银边框 sprite
 - frame_gold.png / frame_silver.png → Assets/Sprites/UI/
@@ -990,11 +1000,85 @@
 - HexGrid.shader 文件保留不删除（其他地方可能复用）
 - ParticleManager 背景粒子层叠加在 bg_menu 之上
 
+### 7j. 战场 Slot 高亮平滑过渡
+- 参考 TCG Engine BSlot.cs 的 `Mathf.MoveTowards` 模式
+- 目标高亮区域（合法目标/可落牌区域）改为平滑淡入淡出，而非瞬间出现/消失
+- `target_alpha = 0f` 默认；满足条件时 `target_alpha = 1f`
+- `current_alpha = MoveTowards(current_alpha, target_alpha, 2f * deltaTime)`
+- 应用范围：战场区域目标高亮（BattlefieldGlow 或 CardView.SetTargeted 相关）
+
+### 7k. 卡牌双色发光叠加层（替换现有发光实现）
+- 来源：TCG Engine `BoardCard.card_glow`（SpriteRenderer sprite 叠加）
+- 导入 `card_glow.png` 和 `card_glow_board.png`（已在 VFX-2 的 Sprites/FX/）
+- CardView 新增独立 `cardGlowImage`（Image 组件，叠加在卡图之上）
+- 双色逻辑：己方单位 `glow_ally`（绿色），敌方单位 `glow_enemy`（红色）
+- 悬停/选中时 `target_alpha = 1f`，其余 `target_alpha = 0f`
+- `MoveTowards(current_alpha, target_alpha * color.a, 4f * deltaTime)`
+- 手牌发光：`cardGlowImage.enabled = IsFocus() || IsDrag()`（不再常驻）
+- **替换范围**：CardHoverScale 里的发光部分；CardGlow.shader 的选中发光（保留粒子轨迹可出牌提示）
+
+### 7l. 装备卡发光叠加层
+- 来源：TCG Engine `BoardCardEquip.equip_glow`
+- 装备卡 badge 上新增 `equipGlowImage`（同 7k 双色逻辑）
+- 速度：MoveTowards 4f；装备卡 focus 时主卡发光关闭（避免视觉冲突）
+
+### 7m. 按钮焦点高亮替换
+- 来源：TCG Engine `AbilityButton.focus_highlight`
+- 每个关键按钮（EndTurn / 反应按钮 / 确认符文按钮）新增 `focusHighlight` Image 子层
+- `focusHighlight.enabled = focus && interactable`
+- CanvasGroup alpha `MoveTowards(alpha, target, 5f * deltaTime)`
+- **替换范围**：ButtonCharge.cs 的光流扫过效果改为此模式（或两者叠加）
+
+### 7n. 战斗冲向动画替换（3阶段）
+- 来源：TCG Engine `BoardCardFX.ChargeInto`
+- 替换 `CombatAnimator.FlyAndReturnRoutine` 为 3 阶段：
+  - Phase A: 飞向目标（0.3s，MoveTowards）
+  - Phase B: 停顿碰撞（0.1s）
+  - Phase C: 回弹归位（0.3s）
+- 总时长 0.7s（原为 0.25s），冲击感更强
+
+### 7o. 状态效果粒子动态挂载（替换硬编码协程）
+- 来源：TCG Engine `BoardCardFX` 按 StatusType 动态生成/销毁粒子 prefab
+- 替换 `StunPulseRoutine` 等硬编码状态协程
+- 改为：进入状态时 `Instantiate(statusFXPrefab)`，退出状态时 `Destroy`
+- 覆盖状态：眩晕（ElectricFX）/ 法盾（Shield）/ 壁垒（Shield 变体）/ 休眠（Zzz）
+- 依赖 VFX-2 的 prefab 全部导入完毕
+
+### 7p. MouseLineFX — 卡牌到鼠标瞄准连线
+- 来源：TCG Engine `MouseLineFX.cs`（dot-chain from card to mouse cursor）
+- 拖拽 `IsRequireTarget()` 法术卡 / 战场卡选中时，从卡牌出发绘制点链连线到鼠标
+- 替换 / 增强现有 `MouseTrail`：从**卡牌坐标**出发而非固定起点，方向感更强
+- 点链参数：`dot_spacing = 0.2f`，点数随距离动态增减
+- 连线颜色：拖拽法术时绿色，选中单位时白色，非法目标时红色
+- 释放/取消选中时立即隐藏
+
+### 7q. AimTargetFX — 目标准星跟随
+- 来源：TCG Engine `AimTargetFX.cs`（crosshair prefab follows mouse during spell targeting）
+- `AimTarget.prefab` 已在 VFX-2 导入，此处规划使用方式
+- 拖拽 `IsRequireTarget()` 卡时，鼠标位置显示准星光环 prefab
+- 用 `RaycastMouseBoard()` 映射鼠标 → 世界坐标
+- 松手/取消时立即销毁
+
+### 7r. 手牌扇形排列
+- 来源：TCG Engine `HandCard.deck_angle`（fan-shape hand layout）
+- 手牌区每张牌根据位置计算倾斜角度：靠左的牌向左倾、靠右的牌向右倾，形成扇形展开
+- 最大倾斜角 ±15°（5张牌时每张 ±3°，10张时每张 ±1.5°，动态计算）
+- 拖拽时卡牌从扇形角度平滑过渡到 0°（`deck_angle = 0` 时 Lerp 归零）
+- 重排手牌时（打出/摸牌）平滑重新计算所有牌的角度（`HandCardArea.SortCards` 触发）
+
 | 测试 | 内容 |
 |------|------|
 | CardBackManager 切换 → PlayerPrefs 持久化验证 | 功能 |
 | EventBanner.ShowWarning 触发 → alpha 1→0 完成 | 视觉逻辑 |
 | IconBar 更新 → icon 数量与法力值一致 | 功能 |
+| Slot 高亮淡入 → 条件满足后 alpha 从 0 过渡到 1（不瞬变）| 视觉逻辑 |
+| 卡牌发光 → 悬停时亮起，离开时淡出，不瞬变 | 视觉逻辑 |
+| 双色验证 → 己方绿色 / 敌方红色 | 视觉逻辑 |
+| 战斗动画 → 3阶段完整播放，归位后卡牌位置正确 | 功能 |
+| 状态 FX → 眩晕时 ElectricFX 出现，状态解除后销毁 | 功能 |
+| MouseLineFX → 拖拽法术时点链从卡牌出发到鼠标，松手时消失 | 视觉逻辑 |
+| AimTargetFX → 拖拽法术时准星在鼠标位置，松手时销毁 | 视觉逻辑 |
+| 手牌扇形 → 5张牌时两侧倾斜角度对称，中间牌角度接近 0° | 视觉逻辑 |
 
 ---
 
@@ -1014,4 +1098,4 @@
 
 ---
 
-*VFX 系列最后更新：2026-04-04（VFX-1 ~ VFX-8 新增：TCG Engine 美术资产迁移）*
+*VFX 系列最后更新：2026-04-04（VFX-4 新增 4d 战场视觉细节5项；VFX-7 扩展至 18 子项：新增 7p MouseLineFX / 7q AimTargetFX / 7r 手牌扇形排列）*

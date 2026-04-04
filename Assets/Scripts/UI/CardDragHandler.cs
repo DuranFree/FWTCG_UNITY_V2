@@ -853,6 +853,10 @@ namespace FWTCG.UI
                     overlay.transform.SetAsLastSibling();
                     overlayObjs.Add(overlay);
 
+                    // Cancel any running EnterAnimRoutine before taking over alpha management
+                    // to prevent the two coroutines from racing over cg.alpha (Bug fix: 2nd/3rd
+                    // card placed to base stays invisible when EnterAnim and DropAnim conflict).
+                    cv.CancelEnterAnim();
                     var cardCG = cv.GetComponent<CanvasGroup>() ?? cv.gameObject.AddComponent<CanvasGroup>();
                     cardCG.alpha = 0f;
                     items.Add((cardCG, oRT, fromPos, finalPos));

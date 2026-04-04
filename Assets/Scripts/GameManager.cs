@@ -253,14 +253,14 @@ namespace FWTCG
         }
 
         /// <summary>
-        /// <summary>
-        /// Hero card dragged from hero zone to base — same as clicking the hero card.
+        /// Hero card dragged from hero zone to base — routes through rune confirm flow
+        /// so the player sees a cost prompt before resources are spent.
         /// </summary>
         public void OnDragHeroToBase(UnitInstance hero)
         {
             if (!IsPlayerActionPhase()) return;
             if (_gs == null || _gs.PHero != hero) return;
-            _ = TryPlayHeroAsync(hero);
+            _ = PlayHeroWithRuneConfirmAsync(hero);
         }
 
         /// DEV-22: Drag base units to a battlefield — equivalent to multi-selecting then clicking the BF.
@@ -396,7 +396,9 @@ namespace FWTCG
                     onRune: OnRuneClicked,
                     onCardRightClick: OnCardRightClicked,
                     onCardHoverEnter: OnCardHoverEnter,
-                    onCardHoverExit:  OnCardHoverExit
+                    onCardHoverExit:  OnCardHoverExit,
+                    onHeroHoverEnter: OnHeroHoverEnter,
+                    onHeroHoverExit:  OnHeroHoverExit
                 );
                 _ui.SetPileClickCallback(OnPileClicked);
                 _ui.WirePileButtons();
@@ -625,10 +627,10 @@ namespace FWTCG
                 return;
             }
 
-            // ── Hero zone: play hero card to base ──
+            // ── Hero zone: play hero card to base (with rune confirm) ──
             if (_gs.PHero == unit)
             {
-                _ = TryPlayHeroAsync(unit);
+                _ = PlayHeroWithRuneConfirmAsync(unit);
                 return;
             }
 
@@ -958,6 +960,97 @@ namespace FWTCG
                 }
             }
             return false; // can't afford
+        }
+
+        // ── Hero hover: show rune cost preview ──────────────────────────────
+
+        private void OnHeroHoverEnter(UnitInstance unit)
+        {
+            if (_ui == null || _gs == null) return;
+            if (_gs.Turn != GameRules.OWNER_PLAYER || _gs.Phase != GameRules.PHASE_ACTION) return;
+            if (_gs.PHero != unit) return;
+
+            var plan = RuneAutoConsume.Compute(unit, _gs, GameRules.OWNER_PLAYER);
+            if (plan.NeedsOps)
+            {
+                _ui.SetRuneHighlights(plan.TapIndices, plan.RecycleIndices);
+                _ui.Refresh(_gs);
+            }
+        }
+
+        private void OnHeroHoverExit(UnitInstance unit)
+        {
+            if (_ui == null) return;
+            _ui.ClearRuneHighlights();
+            _ui.Refresh(_gs);
+        }
+
+        // ── Hero rune confirm flow ──────────────────────────────────────────
+
+        private async System.Threading.Tasks.Task PlayHeroWithRuneConfirmAsync(UnitInstance hero)
+        {
+            if (_gs == null || _gs.GameOver) return;
+
+            var plan = RuneAutoConsume.Compute(hero, _gs, GameRules.OWNER_PLAYER);
+
+            if (!plan.CanAfford)
+            {
+                int haveMana = _gs.PMana;
+                int haveSch  = _gs.GetSch(GameRules.OWNER_PLAYER, hero.CardData.RuneType);
+                ShowPlayError(
+                    $"[提示] 资源不足：需要法力{hero.CardData.Cost}（当前{haveMana}）" +
+                    (hero.CardData.RuneCost > 0
+                        ? $"，需要符能{hero.CardData.RuneCost} {hero.CardData.RuneType.ToColoredText()}（当前{haveSch}）"
+                        : ""),
+                    hero);
+                return;
+            }
+
+            if (plan.NeedsOps)
+            {
+                _ui?.SetRuneHighlights(plan.TapIndices, plan.RecycleIndices);
+                _ui?.Refresh(_gs);
+
+                bool ok = false;
+                try
+                {
+                    ok = await (AskPromptUI.Instance?.WaitForConfirm(
+                        "英雄出场",
+                        plan.BuildConfirmText(hero),
+                        "确认出场",
+                        "取消") ?? System.Threading.Tasks.Task.FromResult(false));
+                }
+                catch (System.OperationCanceledException)
+                {
+                    ok = false;
+                }
+
+                _ui?.ClearRuneHighlights();
+                _ui?.Refresh(_gs);
+
+                if (!ok) return;
+
+                // Re-validate after async prompt
+                if (_gs == null || _gs.GameOver) return;
+                if (_gs.Turn != GameRules.OWNER_PLAYER || _gs.Phase != GameRules.PHASE_ACTION) return;
+                if (_gs.PHero != hero) return;
+
+                var freshPlan = RuneAutoConsume.Compute(hero, _gs, GameRules.OWNER_PLAYER);
+                if (!freshPlan.CanAfford)
+                {
+                    ShowPlayError("[提示] 资源状态已变更，操作已取消", hero);
+                    return;
+                }
+
+                ExecuteRunePlan(freshPlan, GameRules.OWNER_PLAYER);
+            }
+
+            // Final re-validate
+            if (_gs == null || _gs.GameOver) return;
+            if (_gs.Turn != GameRules.OWNER_PLAYER || _gs.Phase != GameRules.PHASE_ACTION) return;
+            if (_gs.PHero != hero) return;
+
+            _ = TryPlayHeroAsync(hero);
         }
 
         // ── DEV-20: Rune auto-consume hover ──────────────────────────────────

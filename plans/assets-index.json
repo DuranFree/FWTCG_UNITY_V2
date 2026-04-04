@@ -1,5 +1,5 @@
 {
-  "generated": "2026-03-31",
+  "generated": "2026-04-04",
   "platform": "Unity",
   "source_asset_path": "E:/claudeCode/FWTCG_V3d_V9/tempPic",
   "folders_scanned": [
@@ -10,72 +10,2444 @@
     "UI"
   ],
   "assets": [
-    { "name": "0d52fc2f224cd039153ecafeaac56671.png", "path": "cards/jiansheng/0d52fc2f224cd039153ecafeaac56671.png", "type": "Texture", "cardId": "yi_hero", "unityName": "yi_hero.png", "ported": true },
-    { "name": "14eff213c1f8d04fcb765333549b834c.png", "path": "cards/jiansheng/14eff213c1f8d04fcb765333549b834c.png", "type": "Texture", "cardId": "forgotten_monument", "unityName": "bf_forgotten_monument.png", "ported": true },
-    { "name": "7d5448422bef5eca5ed729cd25a37381.png", "path": "cards/jiansheng/7d5448422bef5eca5ed729cd25a37381.png", "type": "Texture", "cardId": "slam", "unityName": "slam.png", "ported": true },
-    { "name": "863d9bc2f7ece270f7bd9bfee0d9a9c7.png", "path": "cards/jiansheng/863d9bc2f7ece270f7bd9bfee0d9a9c7.png", "type": "Texture", "cardId": "tiyana_warden", "unityName": "tiyana_warden.png", "ported": true },
-    { "name": "8939ea12cc51f1f5f40a7249fc842c83.png", "path": "cards/jiansheng/8939ea12cc51f1f5f40a7249fc842c83.png", "type": "Texture", "cardId": "flash_counter", "unityName": "flash_counter.png", "ported": true },
-    { "name": "896b0c45d8a3c7843acd205ce9b909a5.png", "path": "cards/jiansheng/896b0c45d8a3c7843acd205ce9b909a5.png", "type": "Texture", "cardId": "sandshoal_deserter", "unityName": "sandshoal_deserter.png", "ported": true },
-    { "name": "905f91c9d6c10d27fc654480753d225e.png", "path": "cards/jiansheng/905f91c9d6c10d27fc654480753d225e.png", "type": "Texture", "cardId": "dorans_blade", "unityName": "dorans_blade.png", "ported": true },
-    { "name": "9e49b7d03df8a4741178ba8ebbb886ec.png", "path": "cards/jiansheng/9e49b7d03df8a4741178ba8ebbb886ec.png", "type": "Texture", "cardId": "strike_ask_later", "unityName": "strike_ask_later.png", "ported": true },
-    { "name": "OGN-042a.png", "path": "cards/jiansheng/OGN-042a.png", "type": "Texture", "cardId": null, "note": "unused — no matching card in cards.js", "ported": false },
-    { "name": "OGN-045.png", "path": "cards/jiansheng/OGN-045.png", "type": "Texture", "cardId": "scoff", "unityName": "scoff.png", "ported": true },
-    { "name": "OGN-046.png", "path": "cards/jiansheng/OGN-046.png", "type": "Texture", "cardId": "duel_stance", "unityName": "duel_stance.png", "ported": true },
-    { "name": "OGN-047.png", "path": "cards/jiansheng/OGN-047.png", "type": "Texture", "cardId": "balance_resolve", "unityName": "balance_resolve.png", "ported": true },
-    { "name": "OGN-058.png", "path": "cards/jiansheng/OGN-058.png", "type": "Texture", "cardId": "well_trained", "unityName": "well_trained.png", "ported": true },
-    { "name": "OGN-064.png", "path": "cards/jiansheng/OGN-064.png", "type": "Texture", "cardId": "wind_wall", "unityName": "wind_wall.png", "ported": true },
-    { "name": "OGN-077.png", "path": "cards/jiansheng/OGN-077.png", "type": "Texture", "cardId": "zhonya", "unityName": "zhonya.png", "ported": true },
-    { "name": "OGN-126a.png", "path": "cards/jiansheng/OGN-126a.png", "type": "Texture", "cardId": null, "note": "unused — no matching card in cards.js", "ported": false },
-    { "name": "OGN-129.png", "path": "cards/jiansheng/OGN-129.png", "type": "Texture", "cardId": "rally_call", "unityName": "rally_call.png", "ported": true },
-    { "name": "OGN-276.jpg", "path": "cards/jiansheng/OGN-276.jpg", "type": "Texture", "cardId": "ascending_stairs", "unityName": "bf_ascending_stairs.jpg", "ported": true },
-    { "name": "OGN-287.jpg", "path": "cards/jiansheng/OGN-287.jpg", "type": "Texture", "cardId": "thunder_rune", "unityName": "bf_thunder_rune.jpg", "ported": true },
-    { "name": "OGS-019.png", "path": "cards/jiansheng/OGS-019.png", "type": "Texture", "cardId": "masteryi", "unityName": "yi_legend.png", "ported": true },
-    { "name": "a1fadf48792b23b1c801ecb7650c5246.png", "path": "cards/jiansheng/a1fadf48792b23b1c801ecb7650c5246.png", "type": "Texture", "cardId": "guardian_angel", "unityName": "guardian_angel.png", "ported": true },
-    { "name": "dd5eaf315bcfef1d67ccda6e8a1d7f52.png", "path": "cards/jiansheng/dd5eaf315bcfef1d67ccda6e8a1d7f52.png", "type": "Texture", "cardId": "wailing_poro", "unityName": "wailing_poro.png", "ported": true },
-    { "name": "e519a7660073c27bdae3b95d442a85b3.png", "path": "cards/jiansheng/e519a7660073c27bdae3b95d442a85b3.png", "type": "Texture", "cardId": "jax", "unityName": "jax.png", "ported": true },
-    { "name": "e8e40a9fd575e57366dc036e78097887.png", "path": "cards/jiansheng/e8e40a9fd575e57366dc036e78097887.png", "type": "Texture", "cardId": "trinity_force", "unityName": "trinity_force.png", "ported": true },
-
-    { "name": "48a3eb5c3f6ef4a03252800ab3a42878.png", "path": "cards/ksha/48a3eb5c3f6ef4a03252800ab3a42878.png", "type": "Texture", "cardId": "reaver_row", "unityName": "bf_reaver_row.png", "ported": true },
-    { "name": "63ed0654ba38d470c09a5588e9acfd7d.png", "path": "cards/ksha/63ed0654ba38d470c09a5588e9acfd7d.png", "type": "Texture", "cardId": "yordel_instructor", "unityName": "yordel_instructor.png", "ported": true },
-    { "name": "6b3952eb842015548665beedb956616e.png", "path": "cards/ksha/6b3952eb842015548665beedb956616e.png", "type": "Texture", "cardId": "foresight_mech", "unityName": "foresight_mech.png", "ported": true },
-    { "name": "6bf1588a987c67803aa7f1837d75bc4b.png", "path": "cards/ksha/6bf1588a987c67803aa7f1837d75bc4b.png", "type": "Texture", "cardId": "divine_ray", "unityName": "divine_ray.png", "ported": true },
-    { "name": "70554b8cc94ac28f5a3acca7b5a0094a.png", "path": "cards/ksha/70554b8cc94ac28f5a3acca7b5a0094a.png", "type": "Texture", "cardId": "trifarian_warcamp", "unityName": "bf_trifarian_warcamp.png", "ported": true },
-    { "name": "7e82f267463942a42497347255fedcc9.png", "path": "cards/ksha/7e82f267463942a42497347255fedcc9.png", "type": "Texture", "cardId": "rengar", "unityName": "rengar.png", "ported": true },
-    { "name": "OGN-007.png", "path": "cards/ksha/OGN-007.png", "type": "Texture", "cardId": null, "note": "unused — no matching card in cards.js", "ported": false },
-    { "name": "OGN-008.png", "path": "cards/ksha/OGN-008.png", "type": "Texture", "cardId": "guilty_pleasure", "unityName": "guilty_pleasure.png", "ported": true },
-    { "name": "OGN-009.png", "path": "cards/ksha/OGN-009.png", "type": "Texture", "cardId": "hex_ray", "unityName": "hex_ray.png", "ported": true },
-    { "name": "OGN-012.png", "path": "cards/ksha/OGN-012.png", "type": "Texture", "cardId": "noxus_recruit", "unityName": "noxus_recruit.png", "ported": true },
-    { "name": "OGN-022.png", "path": "cards/ksha/OGN-022.png", "type": "Texture", "cardId": "reckoner_arena", "unityName": "bf_reckoner_arena.png", "ported": true },
-    { "name": "OGN-024.jpg", "path": "cards/ksha/OGN-024.jpg", "type": "Texture", "cardId": "void_seek", "unityName": "void_seek.jpg", "ported": true },
-    { "name": "OGN-026.png", "path": "cards/ksha/OGN-026.png", "type": "Texture", "cardId": "aspirant_climb", "unityName": "bf_aspirant_climb.png", "ported": true },
-    { "name": "OGN-027a.png", "path": "cards/ksha/OGN-027a.png", "type": "Texture", "cardId": "darius", "unityName": "darius.png", "ported": true },
-    { "name": "OGN-029.png", "path": "cards/ksha/OGN-029.png", "type": "Texture", "cardId": "stardrop", "unityName": "stardrop.png", "ported": true },
-    { "name": "OGN-039.png", "path": "cards/ksha/OGN-039.png", "type": "Texture", "cardId": "kaisa_hero", "unityName": "kaisa_hero.png", "ported": true },
-    { "name": "OGN-089.png", "path": "cards/ksha/OGN-089.png", "type": "Texture", "cardId": null, "note": "unused — no matching card in cards.js", "ported": false },
-    { "name": "OGN-093.png", "path": "cards/ksha/OGN-093.png", "type": "Texture", "cardId": "smoke_bomb", "unityName": "smoke_bomb.png", "ported": true },
-    { "name": "OGN-095.png", "path": "cards/ksha/OGN-095.png", "type": "Texture", "cardId": "swindle", "unityName": "swindle.png", "ported": true },
-    { "name": "OGN-096.png", "path": "cards/ksha/OGN-096.png", "type": "Texture", "cardId": "alert_sentinel", "unityName": "alert_sentinel.png", "ported": true },
-    { "name": "OGN-104.png", "path": "cards/ksha/OGN-104.png", "type": "Texture", "cardId": "retreat_rune", "unityName": "retreat_rune.png", "ported": true },
-    { "name": "OGN-105.png", "path": "cards/ksha/OGN-105.png", "type": "Texture", "cardId": "starburst", "unityName": "starburst.png", "ported": true },
-    { "name": "OGN-114.png", "path": "cards/ksha/OGN-114.png", "type": "Texture", "cardId": "evolve_day", "unityName": "evolve_day.png", "ported": true },
-    { "name": "OGN-116.png", "path": "cards/ksha/OGN-116.png", "type": "Texture", "cardId": "thousand_tail", "unityName": "thousand_tail.png", "ported": true },
-    { "name": "OGN-122.png", "path": "cards/ksha/OGN-122.png", "type": "Texture", "cardId": "time_warp", "unityName": "time_warp.png", "ported": true },
-    { "name": "OGN-123.png", "path": "cards/ksha/OGN-123.png", "type": "Texture", "cardId": "altar_unity", "unityName": "bf_altar_unity.png", "ported": true },
-    { "name": "OGN-247.png", "path": "cards/ksha/OGN-247.png", "type": "Texture", "cardId": "kaisa", "unityName": "kaisa_legend.png", "ported": true },
-    { "name": "OGN-248.png", "path": "cards/ksha/OGN-248.png", "type": "Texture", "cardId": "akasi_storm", "unityName": "akasi_storm.png", "ported": true },
-    { "name": "OGN-284.png", "path": "cards/ksha/OGN-284.png", "type": "Texture", "cardId": "strength_obelisk", "unityName": "bf_strength_obelisk.png", "ported": true },
-    { "name": "OGN-288.png", "path": "cards/ksha/OGN-288.png", "type": "Texture", "cardId": "star_peak", "unityName": "bf_star_peak.png", "ported": true },
-    { "name": "OGN-296.jpg", "path": "cards/ksha/OGN-296.jpg", "type": "Texture", "cardId": "void_gate", "unityName": "bf_void_gate.jpg", "ported": true },
-    { "name": "a4babdeaba1b4f3a28f3df114afad0b8.png", "path": "cards/ksha/a4babdeaba1b4f3a28f3df114afad0b8.png", "type": "Texture", "cardId": "furnace_blast", "unityName": "furnace_blast.png", "ported": true },
-    { "name": "cf27269a640f60bca0cd4f9b4c235257.png", "path": "cards/ksha/cf27269a640f60bca0cd4f9b4c235257.png", "type": "Texture", "cardId": "bad_poro", "unityName": "bad_poro.png", "ported": true },
-    { "name": "logo2-CU_n5aUA.png", "path": "cards/ksha/logo2-CU_n5aUA.png", "type": "Texture", "cardId": null, "note": "game logo, not a card art", "ported": false },
-
-    { "name": "card_back_01.png", "path": "cards/card_back/card_back_01.png", "type": "Texture", "cardId": "card_back", "unityName": "card_back.png", "ported": true },
-
-    { "name": "houshou.png", "path": "coins/houshou.png", "type": "Texture", "cardId": "coin_back", "unityName": "houshou.png", "ported": true },
-    { "name": "xianshou.png", "path": "coins/xianshou.png", "type": "Texture", "cardId": "coin_front", "unityName": "xianshou.png", "ported": true },
-
-    { "name": "Textures.jpg", "path": "UI/Textures.jpg", "type": "Texture", "cardId": null, "note": "UI texture sheet", "ported": false },
-    { "name": "UI.jpg", "path": "UI/UI.jpg", "type": "Texture", "cardId": null, "note": "UI texture sheet", "ported": false }
+    {
+      "name": "0d52fc2f224cd039153ecafeaac56671.png",
+      "path": "cards/jiansheng/0d52fc2f224cd039153ecafeaac56671.png",
+      "type": "Texture",
+      "cardId": "yi_hero",
+      "unityName": "yi_hero.png",
+      "ported": true
+    },
+    {
+      "name": "14eff213c1f8d04fcb765333549b834c.png",
+      "path": "cards/jiansheng/14eff213c1f8d04fcb765333549b834c.png",
+      "type": "Texture",
+      "cardId": "forgotten_monument",
+      "unityName": "bf_forgotten_monument.png",
+      "ported": true
+    },
+    {
+      "name": "7d5448422bef5eca5ed729cd25a37381.png",
+      "path": "cards/jiansheng/7d5448422bef5eca5ed729cd25a37381.png",
+      "type": "Texture",
+      "cardId": "slam",
+      "unityName": "slam.png",
+      "ported": true
+    },
+    {
+      "name": "863d9bc2f7ece270f7bd9bfee0d9a9c7.png",
+      "path": "cards/jiansheng/863d9bc2f7ece270f7bd9bfee0d9a9c7.png",
+      "type": "Texture",
+      "cardId": "tiyana_warden",
+      "unityName": "tiyana_warden.png",
+      "ported": true
+    },
+    {
+      "name": "8939ea12cc51f1f5f40a7249fc842c83.png",
+      "path": "cards/jiansheng/8939ea12cc51f1f5f40a7249fc842c83.png",
+      "type": "Texture",
+      "cardId": "flash_counter",
+      "unityName": "flash_counter.png",
+      "ported": true
+    },
+    {
+      "name": "896b0c45d8a3c7843acd205ce9b909a5.png",
+      "path": "cards/jiansheng/896b0c45d8a3c7843acd205ce9b909a5.png",
+      "type": "Texture",
+      "cardId": "sandshoal_deserter",
+      "unityName": "sandshoal_deserter.png",
+      "ported": true
+    },
+    {
+      "name": "905f91c9d6c10d27fc654480753d225e.png",
+      "path": "cards/jiansheng/905f91c9d6c10d27fc654480753d225e.png",
+      "type": "Texture",
+      "cardId": "dorans_blade",
+      "unityName": "dorans_blade.png",
+      "ported": true
+    },
+    {
+      "name": "9e49b7d03df8a4741178ba8ebbb886ec.png",
+      "path": "cards/jiansheng/9e49b7d03df8a4741178ba8ebbb886ec.png",
+      "type": "Texture",
+      "cardId": "strike_ask_later",
+      "unityName": "strike_ask_later.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-042a.png",
+      "path": "cards/jiansheng/OGN-042a.png",
+      "type": "Texture",
+      "cardId": null,
+      "note": "unused — no matching card in cards.js",
+      "ported": false
+    },
+    {
+      "name": "OGN-045.png",
+      "path": "cards/jiansheng/OGN-045.png",
+      "type": "Texture",
+      "cardId": "scoff",
+      "unityName": "scoff.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-046.png",
+      "path": "cards/jiansheng/OGN-046.png",
+      "type": "Texture",
+      "cardId": "duel_stance",
+      "unityName": "duel_stance.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-047.png",
+      "path": "cards/jiansheng/OGN-047.png",
+      "type": "Texture",
+      "cardId": "balance_resolve",
+      "unityName": "balance_resolve.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-058.png",
+      "path": "cards/jiansheng/OGN-058.png",
+      "type": "Texture",
+      "cardId": "well_trained",
+      "unityName": "well_trained.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-064.png",
+      "path": "cards/jiansheng/OGN-064.png",
+      "type": "Texture",
+      "cardId": "wind_wall",
+      "unityName": "wind_wall.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-077.png",
+      "path": "cards/jiansheng/OGN-077.png",
+      "type": "Texture",
+      "cardId": "zhonya",
+      "unityName": "zhonya.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-126a.png",
+      "path": "cards/jiansheng/OGN-126a.png",
+      "type": "Texture",
+      "cardId": null,
+      "note": "unused — no matching card in cards.js",
+      "ported": false
+    },
+    {
+      "name": "OGN-129.png",
+      "path": "cards/jiansheng/OGN-129.png",
+      "type": "Texture",
+      "cardId": "rally_call",
+      "unityName": "rally_call.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-276.jpg",
+      "path": "cards/jiansheng/OGN-276.jpg",
+      "type": "Texture",
+      "cardId": "ascending_stairs",
+      "unityName": "bf_ascending_stairs.jpg",
+      "ported": true
+    },
+    {
+      "name": "OGN-287.jpg",
+      "path": "cards/jiansheng/OGN-287.jpg",
+      "type": "Texture",
+      "cardId": "thunder_rune",
+      "unityName": "bf_thunder_rune.jpg",
+      "ported": true
+    },
+    {
+      "name": "OGS-019.png",
+      "path": "cards/jiansheng/OGS-019.png",
+      "type": "Texture",
+      "cardId": "masteryi",
+      "unityName": "yi_legend.png",
+      "ported": true
+    },
+    {
+      "name": "a1fadf48792b23b1c801ecb7650c5246.png",
+      "path": "cards/jiansheng/a1fadf48792b23b1c801ecb7650c5246.png",
+      "type": "Texture",
+      "cardId": "guardian_angel",
+      "unityName": "guardian_angel.png",
+      "ported": true
+    },
+    {
+      "name": "dd5eaf315bcfef1d67ccda6e8a1d7f52.png",
+      "path": "cards/jiansheng/dd5eaf315bcfef1d67ccda6e8a1d7f52.png",
+      "type": "Texture",
+      "cardId": "wailing_poro",
+      "unityName": "wailing_poro.png",
+      "ported": true
+    },
+    {
+      "name": "e519a7660073c27bdae3b95d442a85b3.png",
+      "path": "cards/jiansheng/e519a7660073c27bdae3b95d442a85b3.png",
+      "type": "Texture",
+      "cardId": "jax",
+      "unityName": "jax.png",
+      "ported": true
+    },
+    {
+      "name": "e8e40a9fd575e57366dc036e78097887.png",
+      "path": "cards/jiansheng/e8e40a9fd575e57366dc036e78097887.png",
+      "type": "Texture",
+      "cardId": "trinity_force",
+      "unityName": "trinity_force.png",
+      "ported": true
+    },
+    {
+      "name": "48a3eb5c3f6ef4a03252800ab3a42878.png",
+      "path": "cards/ksha/48a3eb5c3f6ef4a03252800ab3a42878.png",
+      "type": "Texture",
+      "cardId": "reaver_row",
+      "unityName": "bf_reaver_row.png",
+      "ported": true
+    },
+    {
+      "name": "63ed0654ba38d470c09a5588e9acfd7d.png",
+      "path": "cards/ksha/63ed0654ba38d470c09a5588e9acfd7d.png",
+      "type": "Texture",
+      "cardId": "yordel_instructor",
+      "unityName": "yordel_instructor.png",
+      "ported": true
+    },
+    {
+      "name": "6b3952eb842015548665beedb956616e.png",
+      "path": "cards/ksha/6b3952eb842015548665beedb956616e.png",
+      "type": "Texture",
+      "cardId": "foresight_mech",
+      "unityName": "foresight_mech.png",
+      "ported": true
+    },
+    {
+      "name": "6bf1588a987c67803aa7f1837d75bc4b.png",
+      "path": "cards/ksha/6bf1588a987c67803aa7f1837d75bc4b.png",
+      "type": "Texture",
+      "cardId": "divine_ray",
+      "unityName": "divine_ray.png",
+      "ported": true
+    },
+    {
+      "name": "70554b8cc94ac28f5a3acca7b5a0094a.png",
+      "path": "cards/ksha/70554b8cc94ac28f5a3acca7b5a0094a.png",
+      "type": "Texture",
+      "cardId": "trifarian_warcamp",
+      "unityName": "bf_trifarian_warcamp.png",
+      "ported": true
+    },
+    {
+      "name": "7e82f267463942a42497347255fedcc9.png",
+      "path": "cards/ksha/7e82f267463942a42497347255fedcc9.png",
+      "type": "Texture",
+      "cardId": "rengar",
+      "unityName": "rengar.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-007.png",
+      "path": "cards/ksha/OGN-007.png",
+      "type": "Texture",
+      "cardId": null,
+      "note": "unused — no matching card in cards.js",
+      "ported": false
+    },
+    {
+      "name": "OGN-008.png",
+      "path": "cards/ksha/OGN-008.png",
+      "type": "Texture",
+      "cardId": "guilty_pleasure",
+      "unityName": "guilty_pleasure.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-009.png",
+      "path": "cards/ksha/OGN-009.png",
+      "type": "Texture",
+      "cardId": "hex_ray",
+      "unityName": "hex_ray.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-012.png",
+      "path": "cards/ksha/OGN-012.png",
+      "type": "Texture",
+      "cardId": "noxus_recruit",
+      "unityName": "noxus_recruit.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-022.png",
+      "path": "cards/ksha/OGN-022.png",
+      "type": "Texture",
+      "cardId": "reckoner_arena",
+      "unityName": "bf_reckoner_arena.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-024.jpg",
+      "path": "cards/ksha/OGN-024.jpg",
+      "type": "Texture",
+      "cardId": "void_seek",
+      "unityName": "void_seek.jpg",
+      "ported": true
+    },
+    {
+      "name": "OGN-026.png",
+      "path": "cards/ksha/OGN-026.png",
+      "type": "Texture",
+      "cardId": "aspirant_climb",
+      "unityName": "bf_aspirant_climb.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-027a.png",
+      "path": "cards/ksha/OGN-027a.png",
+      "type": "Texture",
+      "cardId": "darius",
+      "unityName": "darius.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-029.png",
+      "path": "cards/ksha/OGN-029.png",
+      "type": "Texture",
+      "cardId": "stardrop",
+      "unityName": "stardrop.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-039.png",
+      "path": "cards/ksha/OGN-039.png",
+      "type": "Texture",
+      "cardId": "kaisa_hero",
+      "unityName": "kaisa_hero.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-089.png",
+      "path": "cards/ksha/OGN-089.png",
+      "type": "Texture",
+      "cardId": null,
+      "note": "unused — no matching card in cards.js",
+      "ported": false
+    },
+    {
+      "name": "OGN-093.png",
+      "path": "cards/ksha/OGN-093.png",
+      "type": "Texture",
+      "cardId": "smoke_bomb",
+      "unityName": "smoke_bomb.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-095.png",
+      "path": "cards/ksha/OGN-095.png",
+      "type": "Texture",
+      "cardId": "swindle",
+      "unityName": "swindle.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-096.png",
+      "path": "cards/ksha/OGN-096.png",
+      "type": "Texture",
+      "cardId": "alert_sentinel",
+      "unityName": "alert_sentinel.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-104.png",
+      "path": "cards/ksha/OGN-104.png",
+      "type": "Texture",
+      "cardId": "retreat_rune",
+      "unityName": "retreat_rune.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-105.png",
+      "path": "cards/ksha/OGN-105.png",
+      "type": "Texture",
+      "cardId": "starburst",
+      "unityName": "starburst.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-114.png",
+      "path": "cards/ksha/OGN-114.png",
+      "type": "Texture",
+      "cardId": "evolve_day",
+      "unityName": "evolve_day.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-116.png",
+      "path": "cards/ksha/OGN-116.png",
+      "type": "Texture",
+      "cardId": "thousand_tail",
+      "unityName": "thousand_tail.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-122.png",
+      "path": "cards/ksha/OGN-122.png",
+      "type": "Texture",
+      "cardId": "time_warp",
+      "unityName": "time_warp.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-123.png",
+      "path": "cards/ksha/OGN-123.png",
+      "type": "Texture",
+      "cardId": "altar_unity",
+      "unityName": "bf_altar_unity.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-247.png",
+      "path": "cards/ksha/OGN-247.png",
+      "type": "Texture",
+      "cardId": "kaisa",
+      "unityName": "kaisa_legend.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-248.png",
+      "path": "cards/ksha/OGN-248.png",
+      "type": "Texture",
+      "cardId": "akasi_storm",
+      "unityName": "akasi_storm.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-284.png",
+      "path": "cards/ksha/OGN-284.png",
+      "type": "Texture",
+      "cardId": "strength_obelisk",
+      "unityName": "bf_strength_obelisk.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-288.png",
+      "path": "cards/ksha/OGN-288.png",
+      "type": "Texture",
+      "cardId": "star_peak",
+      "unityName": "bf_star_peak.png",
+      "ported": true
+    },
+    {
+      "name": "OGN-296.jpg",
+      "path": "cards/ksha/OGN-296.jpg",
+      "type": "Texture",
+      "cardId": "void_gate",
+      "unityName": "bf_void_gate.jpg",
+      "ported": true
+    },
+    {
+      "name": "a4babdeaba1b4f3a28f3df114afad0b8.png",
+      "path": "cards/ksha/a4babdeaba1b4f3a28f3df114afad0b8.png",
+      "type": "Texture",
+      "cardId": "furnace_blast",
+      "unityName": "furnace_blast.png",
+      "ported": true
+    },
+    {
+      "name": "cf27269a640f60bca0cd4f9b4c235257.png",
+      "path": "cards/ksha/cf27269a640f60bca0cd4f9b4c235257.png",
+      "type": "Texture",
+      "cardId": "bad_poro",
+      "unityName": "bad_poro.png",
+      "ported": true
+    },
+    {
+      "name": "logo2-CU_n5aUA.png",
+      "path": "cards/ksha/logo2-CU_n5aUA.png",
+      "type": "Texture",
+      "cardId": null,
+      "note": "game logo, not a card art",
+      "ported": false
+    },
+    {
+      "name": "card_back_01.png",
+      "path": "cards/card_back/card_back_01.png",
+      "type": "Texture",
+      "cardId": "card_back",
+      "unityName": "card_back.png",
+      "ported": true
+    },
+    {
+      "name": "houshou.png",
+      "path": "coins/houshou.png",
+      "type": "Texture",
+      "cardId": "coin_back",
+      "unityName": "houshou.png",
+      "ported": true
+    },
+    {
+      "name": "xianshou.png",
+      "path": "coins/xianshou.png",
+      "type": "Texture",
+      "cardId": "coin_front",
+      "unityName": "xianshou.png",
+      "ported": true
+    },
+    {
+      "name": "Textures.jpg",
+      "path": "UI/Textures.jpg",
+      "type": "Texture",
+      "cardId": null,
+      "note": "UI texture sheet",
+      "ported": false
+    },
+    {
+      "name": "UI.jpg",
+      "path": "UI/UI.jpg",
+      "type": "Texture",
+      "cardId": null,
+      "note": "UI texture sheet",
+      "ported": false
+    },
+    {
+      "name": "OpenSans-Bold.ttf",
+      "path": "TcgEngine/Fonts/OpenSans-Bold.ttf",
+      "type": "Font",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "OpenSans-Light.ttf",
+      "path": "TcgEngine/Fonts/OpenSans-Light.ttf",
+      "type": "Font",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "OpenSans-Medium.ttf",
+      "path": "TcgEngine/Fonts/OpenSans-Medium.ttf",
+      "type": "Font",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "OpenSans-Regular.ttf",
+      "path": "TcgEngine/Fonts/OpenSans-Regular.ttf",
+      "type": "Font",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "logo.png",
+      "path": "TcgEngine/Sprites/logo.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "logo_color.png",
+      "path": "TcgEngine/Sprites/logo_color.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "bear.png",
+      "path": "TcgEngine/Sprites/Avatar/bear.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "cockatoo.png",
+      "path": "TcgEngine/Sprites/Avatar/cockatoo.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "falcon.png",
+      "path": "TcgEngine/Sprites/Avatar/falcon.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "horse.png",
+      "path": "TcgEngine/Sprites/Avatar/horse.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "lion.png",
+      "path": "TcgEngine/Sprites/Avatar/lion.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "lizard.png",
+      "path": "TcgEngine/Sprites/Avatar/lizard.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "moose.png",
+      "path": "TcgEngine/Sprites/Avatar/moose.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "squirrel.png",
+      "path": "TcgEngine/Sprites/Avatar/squirrel.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "turtle.png",
+      "path": "TcgEngine/Sprites/Avatar/turtle.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "unknow.png",
+      "path": "TcgEngine/Sprites/Avatar/unknow.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "unknown2.png",
+      "path": "TcgEngine/Sprites/Avatar/unknown2.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "wolf.png",
+      "path": "TcgEngine/Sprites/Avatar/wolf.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "cardback_circle.png",
+      "path": "TcgEngine/Sprites/Cardbacks/cardback_circle.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "cardback_diamond.png",
+      "path": "TcgEngine/Sprites/Cardbacks/cardback_diamond.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "cardback_gold.png",
+      "path": "TcgEngine/Sprites/Cardbacks/cardback_gold.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "cardback_silver.png",
+      "path": "TcgEngine/Sprites/Cardbacks/cardback_silver.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "deck_circle.png",
+      "path": "TcgEngine/Sprites/Cardbacks/deck_circle.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "deck_diamond.png",
+      "path": "TcgEngine/Sprites/Cardbacks/deck_diamond.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "deck_gold.png",
+      "path": "TcgEngine/Sprites/Cardbacks/deck_gold.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "deck_silver.png",
+      "path": "TcgEngine/Sprites/Cardbacks/deck_silver.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "pack_gold.png",
+      "path": "TcgEngine/Sprites/Cardbacks/pack_gold.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "pack_silver.png",
+      "path": "TcgEngine/Sprites/Cardbacks/pack_silver.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "aerial_strike.png",
+      "path": "TcgEngine/Sprites/Cards/aerial_strike.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "armageddon.png",
+      "path": "TcgEngine/Sprites/Cards/armageddon.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "armored_beast.png",
+      "path": "TcgEngine/Sprites/Cards/armored_beast.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "bay.png",
+      "path": "TcgEngine/Sprites/Cards/bay.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "bear.png",
+      "path": "TcgEngine/Sprites/Cards/bear.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "blank_blue.png",
+      "path": "TcgEngine/Sprites/Cards/blank_blue.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "blank_green.png",
+      "path": "TcgEngine/Sprites/Cards/blank_green.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "blank_red.png",
+      "path": "TcgEngine/Sprites/Cards/blank_red.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "bull.png",
+      "path": "TcgEngine/Sprites/Cards/bull.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "cave.png",
+      "path": "TcgEngine/Sprites/Cards/cave.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "coin.png",
+      "path": "TcgEngine/Sprites/Cards/coin.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "crab.png",
+      "path": "TcgEngine/Sprites/Cards/crab.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "dragon_blue.png",
+      "path": "TcgEngine/Sprites/Cards/dragon_blue.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "dragon_egg.png",
+      "path": "TcgEngine/Sprites/Cards/dragon_egg.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "dragon_green.png",
+      "path": "TcgEngine/Sprites/Cards/dragon_green.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "dragon_red.png",
+      "path": "TcgEngine/Sprites/Cards/dragon_red.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "eagle.png",
+      "path": "TcgEngine/Sprites/Cards/eagle.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "eel.png",
+      "path": "TcgEngine/Sprites/Cards/eel.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "extinct.png",
+      "path": "TcgEngine/Sprites/Cards/extinct.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "fire_chicken.png",
+      "path": "TcgEngine/Sprites/Cards/fire_chicken.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "fire_element.png",
+      "path": "TcgEngine/Sprites/Cards/fire_element.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "fire_horse.png",
+      "path": "TcgEngine/Sprites/Cards/fire_horse.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "fire_projectiles.png",
+      "path": "TcgEngine/Sprites/Cards/fire_projectiles.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "fire_sword.png",
+      "path": "TcgEngine/Sprites/Cards/fire_sword.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "firefox.png",
+      "path": "TcgEngine/Sprites/Cards/firefox.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "fish.png",
+      "path": "TcgEngine/Sprites/Cards/fish.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "flood.png",
+      "path": "TcgEngine/Sprites/Cards/flood.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "frog.png",
+      "path": "TcgEngine/Sprites/Cards/frog.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "furious_wolf.png",
+      "path": "TcgEngine/Sprites/Cards/furious_wolf.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "gorilla.png",
+      "path": "TcgEngine/Sprites/Cards/gorilla.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "hedgehog.png",
+      "path": "TcgEngine/Sprites/Cards/hedgehog.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "hell_hound.png",
+      "path": "TcgEngine/Sprites/Cards/hell_hound.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "hibernate.png",
+      "path": "TcgEngine/Sprites/Cards/hibernate.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "hot_stones.png",
+      "path": "TcgEngine/Sprites/Cards/hot_stones.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "imp.png",
+      "path": "TcgEngine/Sprites/Cards/imp.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "jaguar.png",
+      "path": "TcgEngine/Sprites/Cards/jaguar.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "killer_whale.png",
+      "path": "TcgEngine/Sprites/Cards/killer_whale.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "kraken.png",
+      "path": "TcgEngine/Sprites/Cards/kraken.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "lava_beast.png",
+      "path": "TcgEngine/Sprites/Cards/lava_beast.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "lava_snake.png",
+      "path": "TcgEngine/Sprites/Cards/lava_snake.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "mammoth.png",
+      "path": "TcgEngine/Sprites/Cards/mammoth.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "monkey.png",
+      "path": "TcgEngine/Sprites/Cards/monkey.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "octopus.png",
+      "path": "TcgEngine/Sprites/Cards/octopus.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "owl.png",
+      "path": "TcgEngine/Sprites/Cards/owl.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "penguin.png",
+      "path": "TcgEngine/Sprites/Cards/penguin.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "pheonix.png",
+      "path": "TcgEngine/Sprites/Cards/pheonix.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "pheonix_egg.png",
+      "path": "TcgEngine/Sprites/Cards/pheonix_egg.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "plant_growth.png",
+      "path": "TcgEngine/Sprites/Cards/plant_growth.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "potion_blue.png",
+      "path": "TcgEngine/Sprites/Cards/potion_blue.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "potion_green.png",
+      "path": "TcgEngine/Sprites/Cards/potion_green.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "potion_red.png",
+      "path": "TcgEngine/Sprites/Cards/potion_red.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "pufferfish.png",
+      "path": "TcgEngine/Sprites/Cards/pufferfish.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "raccoon.png",
+      "path": "TcgEngine/Sprites/Cards/raccoon.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "reaper.png",
+      "path": "TcgEngine/Sprites/Cards/reaper.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "ring.png",
+      "path": "TcgEngine/Sprites/Cards/ring.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "sasquatch.png",
+      "path": "TcgEngine/Sprites/Cards/sasquatch.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "sea-storm.png",
+      "path": "TcgEngine/Sprites/Cards/sea-storm.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "sea_monster.png",
+      "path": "TcgEngine/Sprites/Cards/sea_monster.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "seagull.png",
+      "path": "TcgEngine/Sprites/Cards/seagull.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "shark.png",
+      "path": "TcgEngine/Sprites/Cards/shark.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "shield.png",
+      "path": "TcgEngine/Sprites/Cards/shield.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "snake.png",
+      "path": "TcgEngine/Sprites/Cards/snake.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "spell_fire.png",
+      "path": "TcgEngine/Sprites/Cards/spell_fire.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "spell_forest.png",
+      "path": "TcgEngine/Sprites/Cards/spell_forest.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "spell_water.png",
+      "path": "TcgEngine/Sprites/Cards/spell_water.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "spirit_fire.png",
+      "path": "TcgEngine/Sprites/Cards/spirit_fire.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "spirit_forest.png",
+      "path": "TcgEngine/Sprites/Cards/spirit_forest.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "spirit_water.png",
+      "path": "TcgEngine/Sprites/Cards/spirit_water.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "stomp.png",
+      "path": "TcgEngine/Sprites/Cards/stomp.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "submerge.png",
+      "path": "TcgEngine/Sprites/Cards/submerge.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "town_forest.png",
+      "path": "TcgEngine/Sprites/Cards/town_forest.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "town_underwater.png",
+      "path": "TcgEngine/Sprites/Cards/town_underwater.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "town_volano.png",
+      "path": "TcgEngine/Sprites/Cards/town_volano.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "trap_bomb.png",
+      "path": "TcgEngine/Sprites/Cards/trap_bomb.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "trap_crack.png",
+      "path": "TcgEngine/Sprites/Cards/trap_crack.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "trap_expode.png",
+      "path": "TcgEngine/Sprites/Cards/trap_expode.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "trap_fish.png",
+      "path": "TcgEngine/Sprites/Cards/trap_fish.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "trap_mine.png",
+      "path": "TcgEngine/Sprites/Cards/trap_mine.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "trap_net.png",
+      "path": "TcgEngine/Sprites/Cards/trap_net.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "trap_spike.png",
+      "path": "TcgEngine/Sprites/Cards/trap_spike.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "treasure.png",
+      "path": "TcgEngine/Sprites/Cards/treasure.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "tree.png",
+      "path": "TcgEngine/Sprites/Cards/tree.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "turtle.png",
+      "path": "TcgEngine/Sprites/Cards/turtle.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "unicorn.png",
+      "path": "TcgEngine/Sprites/Cards/unicorn.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "wolf.png",
+      "path": "TcgEngine/Sprites/Cards/wolf.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "wolf_baby.png",
+      "path": "TcgEngine/Sprites/Cards/wolf_baby.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "wolf_stalker.png",
+      "path": "TcgEngine/Sprites/Cards/wolf_stalker.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "woodland.png",
+      "path": "TcgEngine/Sprites/Cards/woodland.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "armored_beast_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/armored_beast_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "bay_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/bay_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "bear_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/bear_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "blank_blue_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/blank_blue_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "blank_green_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/blank_green_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "blank_red_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/blank_red_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "bull_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/bull_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "cave_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/cave_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "crab_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/crab_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "dragon_blue_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/dragon_blue_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "dragon_green_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/dragon_green_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "dragon_red_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/dragon_red_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "eagle_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/eagle_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "eel_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/eel_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "fire_chicken_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/fire_chicken_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "fire_element_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/fire_element_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "fire_horse_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/fire_horse_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "fire_sword_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/fire_sword_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "firefox_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/firefox_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "fish_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/fish_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "frog_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/frog_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "furious_wolf_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/furious_wolf_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "gorilla_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/gorilla_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "hedgehog_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/hedgehog_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "hell_hound_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/hell_hound_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "imp_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/imp_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "jaguar_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/jaguar_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "killer_whale_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/killer_whale_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "kraken_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/kraken_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "lava_beast_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/lava_beast_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "lava_snake_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/lava_snake_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "mammoth_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/mammoth_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "monkey_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/monkey_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "octopus_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/octopus_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "owl_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/owl_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "penguin_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/penguin_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "pheonix_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/pheonix_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "pheonix_egg_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/pheonix_egg_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "pufferfish_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/pufferfish_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "raccoon_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/raccoon_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "reaper_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/reaper_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "ring_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/ring_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "sasquatch_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/sasquatch_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "sea_monster_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/sea_monster_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "seagull_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/seagull_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "shark_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/shark_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "shield_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/shield_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "snake_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/snake_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "town_forest_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/town_forest_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "town_underwater_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/town_underwater_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "town_volcano_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/town_volcano_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "tree_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/tree_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "turtle_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/turtle_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "unicorn_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/unicorn_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "wolf_baby_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/wolf_baby_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "wolf_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/wolf_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "wolf_stalker_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/wolf_stalker_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "woodland_board.png",
+      "path": "TcgEngine/Sprites/CardsBoard/woodland_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "Circle.png",
+      "path": "TcgEngine/Sprites/FX/Circle.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "CircleBlur.png",
+      "path": "TcgEngine/Sprites/FX/CircleBlur.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "CircleFade.png",
+      "path": "TcgEngine/Sprites/FX/CircleFade.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "LineFX.png",
+      "path": "TcgEngine/Sprites/FX/LineFX.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "arrow.png",
+      "path": "TcgEngine/Sprites/FX/arrow.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "big_flash.png",
+      "path": "TcgEngine/Sprites/FX/big_flash.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "card_glow.png",
+      "path": "TcgEngine/Sprites/FX/card_glow.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "card_glow_board.png",
+      "path": "TcgEngine/Sprites/FX/card_glow_board.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "card_gradient.png",
+      "path": "TcgEngine/Sprites/FX/card_gradient.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "dice.png",
+      "path": "TcgEngine/Sprites/FX/dice.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "fire_fx.png",
+      "path": "TcgEngine/Sprites/FX/fire_fx.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "flame.png",
+      "path": "TcgEngine/Sprites/FX/flame.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "glow.png",
+      "path": "TcgEngine/Sprites/FX/glow.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "leaf_fx.png",
+      "path": "TcgEngine/Sprites/FX/leaf_fx.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "lightning.png",
+      "path": "TcgEngine/Sprites/FX/lightning.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "pack_glow.png",
+      "path": "TcgEngine/Sprites/FX/pack_glow.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "ray.png",
+      "path": "TcgEngine/Sprites/FX/ray.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "root_entangle_fx.png",
+      "path": "TcgEngine/Sprites/FX/root_entangle_fx.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "shield_fx.png",
+      "path": "TcgEngine/Sprites/FX/shield_fx.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "shield_gray.png",
+      "path": "TcgEngine/Sprites/FX/shield_gray.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "slash.png",
+      "path": "TcgEngine/Sprites/FX/slash.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "slash2.png",
+      "path": "TcgEngine/Sprites/FX/slash2.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "smoke.png",
+      "path": "TcgEngine/Sprites/FX/smoke.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "smoke2.png",
+      "path": "TcgEngine/Sprites/FX/smoke2.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "splash_fx.png",
+      "path": "TcgEngine/Sprites/FX/splash_fx.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "star.png",
+      "path": "TcgEngine/Sprites/FX/star.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "star2.png",
+      "path": "TcgEngine/Sprites/FX/star2.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "target.png",
+      "path": "TcgEngine/Sprites/FX/target.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "thorn_fx.png",
+      "path": "TcgEngine/Sprites/FX/thorn_fx.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "turtle_shell.png",
+      "path": "TcgEngine/Sprites/FX/turtle_shell.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "water_fx.png",
+      "path": "TcgEngine/Sprites/FX/water_fx.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "zzz.png",
+      "path": "TcgEngine/Sprites/FX/zzz.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "card_icon.png",
+      "path": "TcgEngine/Sprites/Icons/card_icon.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "discard_icon.png",
+      "path": "TcgEngine/Sprites/Icons/discard_icon.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "rarity_common.png",
+      "path": "TcgEngine/Sprites/Icons/rarity_common.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "rarity_mythic.png",
+      "path": "TcgEngine/Sprites/Icons/rarity_mythic.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "rarity_rare.png",
+      "path": "TcgEngine/Sprites/Icons/rarity_rare.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "rarity_uncommon.png",
+      "path": "TcgEngine/Sprites/Icons/rarity_uncommon.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "secret_icon.png",
+      "path": "TcgEngine/Sprites/Icons/secret_icon.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "type_fire.png",
+      "path": "TcgEngine/Sprites/Icons/type_fire.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "type_fire_off.png",
+      "path": "TcgEngine/Sprites/Icons/type_fire_off.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "type_forest.png",
+      "path": "TcgEngine/Sprites/Icons/type_forest.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "type_forest_off.png",
+      "path": "TcgEngine/Sprites/Icons/type_forest_off.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "type_water.png",
+      "path": "TcgEngine/Sprites/Icons/type_water.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "type_water_off.png",
+      "path": "TcgEngine/Sprites/Icons/type_water_off.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "adventure_bg.png",
+      "path": "TcgEngine/Sprites/Menu/adventure_bg.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "bg_menu.png",
+      "path": "TcgEngine/Sprites/Menu/bg_menu.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "box1.png",
+      "path": "TcgEngine/Sprites/Menu/box1.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "box2.png",
+      "path": "TcgEngine/Sprites/Menu/box2.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "box3.png",
+      "path": "TcgEngine/Sprites/Menu/box3.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "collection_deck_title.png",
+      "path": "TcgEngine/Sprites/Menu/collection_deck_title.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "collection_panel_left.png",
+      "path": "TcgEngine/Sprites/Menu/collection_panel_left.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "collection_panel_right.png",
+      "path": "TcgEngine/Sprites/Menu/collection_panel_right.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "collection_section.png",
+      "path": "TcgEngine/Sprites/Menu/collection_section.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "collection_section_small.png",
+      "path": "TcgEngine/Sprites/Menu/collection_section_small.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "friend_avatar_frame.png",
+      "path": "TcgEngine/Sprites/Menu/friend_avatar_frame.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "friend_name_bar.png",
+      "path": "TcgEngine/Sprites/Menu/friend_name_bar.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "home_panel_deck_area.png",
+      "path": "TcgEngine/Sprites/Menu/home_panel_deck_area.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "home_title_bar1.png",
+      "path": "TcgEngine/Sprites/Menu/home_title_bar1.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "home_title_bar2.png",
+      "path": "TcgEngine/Sprites/Menu/home_title_bar2.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "home_title_bar3.png",
+      "path": "TcgEngine/Sprites/Menu/home_title_bar3.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "home_title_bar4.png",
+      "path": "TcgEngine/Sprites/Menu/home_title_bar4.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "leaderboard_highlight.png",
+      "path": "TcgEngine/Sprites/Menu/leaderboard_highlight.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "leaderboard_line.png",
+      "path": "TcgEngine/Sprites/Menu/leaderboard_line.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "panel_black.png",
+      "path": "TcgEngine/Sprites/Menu/panel_black.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "play-turtle-off.png",
+      "path": "TcgEngine/Sprites/Menu/play-turtle-off.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "play-turtle.png",
+      "path": "TcgEngine/Sprites/Menu/play-turtle.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "play-wolf-off.png",
+      "path": "TcgEngine/Sprites/Menu/play-wolf-off.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "play-wolf.png",
+      "path": "TcgEngine/Sprites/Menu/play-wolf.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "play_horse.png",
+      "path": "TcgEngine/Sprites/Menu/play_horse.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "play_horse_off.png",
+      "path": "TcgEngine/Sprites/Menu/play_horse_off.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "play_turtle2.png",
+      "path": "TcgEngine/Sprites/Menu/play_turtle2.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "play_turtle2_off.png",
+      "path": "TcgEngine/Sprites/Menu/play_turtle2_off.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "player_bar_bottom.png",
+      "path": "TcgEngine/Sprites/Menu/player_bar_bottom.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "player_bar_bottom2.png",
+      "path": "TcgEngine/Sprites/Menu/player_bar_bottom2.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "player_stats_box.png",
+      "path": "TcgEngine/Sprites/Menu/player_stats_box.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "tab_bar.png",
+      "path": "TcgEngine/Sprites/Menu/tab_bar.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "tab_big_active.png",
+      "path": "TcgEngine/Sprites/Menu/tab_big_active.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "tab_big_inactive.png",
+      "path": "TcgEngine/Sprites/Menu/tab_big_inactive.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "tab_small_active.png",
+      "path": "TcgEngine/Sprites/Menu/tab_small_active.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "tab_small_inactive.png",
+      "path": "TcgEngine/Sprites/Menu/tab_small_inactive.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "title_bar.png",
+      "path": "TcgEngine/Sprites/Menu/title_bar.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "top_bar1.png",
+      "path": "TcgEngine/Sprites/Menu/top_bar1.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "top_bar2.png",
+      "path": "TcgEngine/Sprites/Menu/top_bar2.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "top_bar_line.png",
+      "path": "TcgEngine/Sprites/Menu/top_bar_line.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "Square.png",
+      "path": "TcgEngine/Sprites/UI/Square.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "ability_btn.png",
+      "path": "TcgEngine/Sprites/UI/ability_btn.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "arena_target_box.png",
+      "path": "TcgEngine/Sprites/UI/arena_target_box.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "arena_time_icon.png",
+      "path": "TcgEngine/Sprites/UI/arena_time_icon.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "arena_turn_box.png",
+      "path": "TcgEngine/Sprites/UI/arena_turn_box.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "arrow.png",
+      "path": "TcgEngine/Sprites/UI/arrow.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "avatar_frame1.png",
+      "path": "TcgEngine/Sprites/UI/avatar_frame1.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "avatar_frame2.png",
+      "path": "TcgEngine/Sprites/UI/avatar_frame2.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "avatar_killed.png",
+      "path": "TcgEngine/Sprites/UI/avatar_killed.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "blue_box.png",
+      "path": "TcgEngine/Sprites/UI/blue_box.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "board_slot.png",
+      "path": "TcgEngine/Sprites/UI/board_slot.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "board_slot_long.png",
+      "path": "TcgEngine/Sprites/UI/board_slot_long.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "button_accept.png",
+      "path": "TcgEngine/Sprites/UI/button_accept.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "button_endturn.png",
+      "path": "TcgEngine/Sprites/UI/button_endturn.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "button_large.png",
+      "path": "TcgEngine/Sprites/UI/button_large.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "button_reject.png",
+      "path": "TcgEngine/Sprites/UI/button_reject.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "button_square.png",
+      "path": "TcgEngine/Sprites/UI/button_square.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "button_thin.png",
+      "path": "TcgEngine/Sprites/UI/button_thin.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "collection_team_icon.png",
+      "path": "TcgEngine/Sprites/UI/collection_team_icon.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "dice_icon.png",
+      "path": "TcgEngine/Sprites/UI/dice_icon.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "equip_glow.png",
+      "path": "TcgEngine/Sprites/UI/equip_glow.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "exit.png",
+      "path": "TcgEngine/Sprites/UI/exit.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "frame_board_gold.png",
+      "path": "TcgEngine/Sprites/UI/frame_board_gold.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "frame_board_silver.png",
+      "path": "TcgEngine/Sprites/UI/frame_board_silver.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "frame_circle_gold.png",
+      "path": "TcgEngine/Sprites/UI/frame_circle_gold.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "frame_circle_silver.png",
+      "path": "TcgEngine/Sprites/UI/frame_circle_silver.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "frame_gold.png",
+      "path": "TcgEngine/Sprites/UI/frame_gold.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "frame_silver.png",
+      "path": "TcgEngine/Sprites/UI/frame_silver.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "friend_offline.png",
+      "path": "TcgEngine/Sprites/UI/friend_offline.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "friend_online.png",
+      "path": "TcgEngine/Sprites/UI/friend_online.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "gradient.png",
+      "path": "TcgEngine/Sprites/UI/gradient.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "hourglass.png",
+      "path": "TcgEngine/Sprites/UI/hourglass.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "icon_accept.png",
+      "path": "TcgEngine/Sprites/UI/icon_accept.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "icon_reject.png",
+      "path": "TcgEngine/Sprites/UI/icon_reject.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "input_field.png",
+      "path": "TcgEngine/Sprites/UI/input_field.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "input_field_long.png",
+      "path": "TcgEngine/Sprites/UI/input_field_long.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "input_field_white.png",
+      "path": "TcgEngine/Sprites/UI/input_field_white.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "input_search.png",
+      "path": "TcgEngine/Sprites/UI/input_search.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "internet-icon.png",
+      "path": "TcgEngine/Sprites/UI/internet-icon.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "level_box.png",
+      "path": "TcgEngine/Sprites/UI/level_box.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "loading.png",
+      "path": "TcgEngine/Sprites/UI/loading.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "logout.png",
+      "path": "TcgEngine/Sprites/UI/logout.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "mana_empty.png",
+      "path": "TcgEngine/Sprites/UI/mana_empty.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "mana_full.png",
+      "path": "TcgEngine/Sprites/UI/mana_full.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "menu.png",
+      "path": "TcgEngine/Sprites/UI/menu.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "observe.png",
+      "path": "TcgEngine/Sprites/UI/observe.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "orange_box.png",
+      "path": "TcgEngine/Sprites/UI/orange_box.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "quantity_bar.png",
+      "path": "TcgEngine/Sprites/UI/quantity_bar.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "quantity_bar2.png",
+      "path": "TcgEngine/Sprites/UI/quantity_bar2.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "red_box.png",
+      "path": "TcgEngine/Sprites/UI/red_box.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "red_box2.png",
+      "path": "TcgEngine/Sprites/UI/red_box2.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "scroll_bg.png",
+      "path": "TcgEngine/Sprites/UI/scroll_bg.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "scroll_fill.png",
+      "path": "TcgEngine/Sprites/UI/scroll_fill.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "settings.png",
+      "path": "TcgEngine/Sprites/UI/settings.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "sword.png",
+      "path": "TcgEngine/Sprites/UI/sword.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "tchat.png",
+      "path": "TcgEngine/Sprites/UI/tchat.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "toggle_box.png",
+      "path": "TcgEngine/Sprites/UI/toggle_box.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "ui_frame.png",
+      "path": "TcgEngine/Sprites/UI/ui_frame.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "win_glow.png",
+      "path": "TcgEngine/Sprites/UI/win_glow.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "win_particles.png",
+      "path": "TcgEngine/Sprites/UI/win_particles.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "win_text.png",
+      "path": "TcgEngine/Sprites/UI/win_text.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "win_vs.png",
+      "path": "TcgEngine/Sprites/UI/win_vs.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    },
+    {
+      "name": "x_large.png",
+      "path": "TcgEngine/Sprites/UI/x_large.png",
+      "type": "Texture",
+      "source": "external:E:/project/unity/TCG Engine"
+    }
+  ],
+  "external_sources": [
+    "E:/project/unity/TCG Engine (Assets/ only)"
   ]
 }

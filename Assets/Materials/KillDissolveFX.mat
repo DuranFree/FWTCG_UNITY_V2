@@ -8,8 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: KillDissolveFX
-  m_Shader: {fileID: -6465566751694194690, guid: 548a99008a9d1e544b6a6de1ca3a5267,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 548a99008a9d1e544b6a6de1ca3a5267, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -109,7 +108,7 @@ Material:
     - _WorkflowMode: 1
     - _ZWrite: 1
     - noise_fade: 0.91
-    - noise_size: 4
+    - noise_size: 20
     - outline_size: 0.04
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}

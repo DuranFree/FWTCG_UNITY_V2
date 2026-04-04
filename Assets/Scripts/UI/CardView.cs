@@ -43,6 +43,7 @@ namespace FWTCG.UI
         private UnitInstance _unit;
 
         private bool _isPlayerCard;
+        private bool _isDiscardView;   // discard/exile viewer — hide runtime-state decorations
         private Action<UnitInstance> _onClick;
         private Action<UnitInstance> _onRightClick;
         private Action<UnitInstance> _onHoverEnter;
@@ -103,6 +104,7 @@ namespace FWTCG.UI
 
         // ── DEV-28: Hand enter animation ─────────────────────────────────────
         private bool _enterAnimPlayed;
+        private Coroutine _enterAnimCoroutine;
 
         // ── DEV-29: Card back overlay (geometric pattern) ────────────────────
         private GameObject _cardBackOverlay;
@@ -181,6 +183,8 @@ namespace FWTCG.UI
         {
             if (_clickButton != null)
                 _clickButton.onClick.RemoveListener(HandleClick);
+            if (_enterAnimCoroutine != null) StopCoroutine(_enterAnimCoroutine);
+            _enterAnimCoroutine = null;
             if (_stunPulse   != null) StopCoroutine(_stunPulse);
             if (_shake       != null) StopCoroutine(_shake);   // DEV-26
             if (_flash       != null) StopCoroutine(_flash);   // DEV-26
@@ -201,9 +205,14 @@ namespace FWTCG.UI
             _badgeScaleCos.Clear();
             // H-3: destroy floating tooltip to prevent canvas leak when card is removed
             if (_statusTooltip != null) { Destroy(_statusTooltip); _statusTooltip = null; _currentStatusTip = null; }
-            // VFX-3: clear dissolve material reference before destroying clone (prevents dangling ref if coroutine was interrupted)
-            if (_cardBg != null) _cardBg.material = null;
-            if (_clonedDissolveMat != null) { SafeDestroy(_clonedDissolveMat); _clonedDissolveMat = null; }
+            // VFX-3: clear dissolve material on all images before destroying clone (prevents dangling ref if coroutine was interrupted)
+            if (_clonedDissolveMat != null)
+            {
+                foreach (var img in GetComponentsInChildren<Image>(true))
+                    if (img != null) img.material = null;
+                SafeDestroy(_clonedDissolveMat);
+                _clonedDissolveMat = null;
+            }
             // DEV-30 V6: destroy cloned shine material
             if (_foilSweep != null) StopCoroutine(_foilSweep);
             if (_shineMat  != null) { SafeDestroy(_shineMat); _shineMat = null; }
@@ -216,11 +225,13 @@ namespace FWTCG.UI
         public void Setup(UnitInstance unit, bool isPlayerCard, Action<UnitInstance> onClick,
                           Action<UnitInstance> onRightClick  = null,
                           Action<UnitInstance> onHoverEnter  = null,
-                          Action<UnitInstance> onHoverExit   = null)
+                          Action<UnitInstance> onHoverExit   = null,
+                          bool isDiscardView = false)
         {
             bool isNewUnit = _unit != unit;
             _unit = unit;
             _isPlayerCard = isPlayerCard;
+            _isDiscardView = isDiscardView;
             _onClick = onClick;
             _onRightClick = onRightClick;
             _onHoverEnter = onHoverEnter;
@@ -248,7 +259,7 @@ namespace FWTCG.UI
             // Guard: coroutine can't start on an inactive GO (e.g. card inside hidden panel)
             // _enterAnimPlayed is set inside the coroutine to allow retry if GO is deactivated mid-frame.
             if (isNewUnit && !_enterAnimPlayed && gameObject.activeInHierarchy)
-                StartCoroutine(EnterAnimRoutine());
+                _enterAnimCoroutine = StartCoroutine(EnterAnimRoutine());
         }
 
         public void OnPointerEnter(PointerEventData eventData)
@@ -465,9 +476,9 @@ namespace FWTCG.UI
                 }
             }
 
-            // Exhausted overlay (gray dim)
+            // Exhausted overlay (gray dim) — hidden in discard viewer
             if (_exhaustedOverlay != null)
-                _exhaustedOverlay.gameObject.SetActive(_unit.Exhausted && !_unit.Stunned);
+                _exhaustedOverlay.gameObject.SetActive(!_isDiscardView && _unit.Exhausted && !_unit.Stunned);
 
             // Glow border (playable = affordable + not exhausted for hand cards)
             bool playable = _isPlayerCard && !_unit.Exhausted && !_costInsufficient;
@@ -488,8 +499,9 @@ namespace FWTCG.UI
             // Buff token indicator (legacy icon — kept for backward compat)
             if (_buffTokenIcon != null) _buffTokenIcon.SetActive(false);
 
-            // Status badges: ▲ buff (left-bottom) and ▼ debuff (right-bottom)
-            RefreshStatusBadges();
+            // Status badges: ▲ buff (left-bottom) and ▼ debuff (right-bottom) — hidden in discard viewer
+            if (_isDiscardView) HideBadges();
+            else RefreshStatusBadges();
 
             // Schematic (rune) cost display — uses Effective values for runtime changes
             if (_schCostText != null && _schCostBg != null)
@@ -1204,6 +1216,31 @@ namespace FWTCG.UI
 
         // ── DEV-28: Hand enter animation ─────────────────────────────────────
 
+        /// <summary>
+        /// Stops the enter animation if running and restores alpha/scale to final values.
+        /// Called by DropAnimHost before it takes over alpha management to prevent races.
+        /// </summary>
+        public void CancelEnterAnim()
+        {
+            if (_enterAnimCoroutine != null)
+            {
+                StopCoroutine(_enterAnimCoroutine);
+                _enterAnimCoroutine = null;
+            }
+            // Restore visual state so the card is not stuck at alpha=0 / shrunk scale
+            var cg = GetComponent<CanvasGroup>();
+            if (cg != null) cg.alpha = 1f;
+            transform.localScale = Vector3.one;
+            _enterAnimPlayed = true; // prevent re-start
+
+            // Force parent HLG to recalculate — EnterAnimRoutine manually sets
+            // anchoredPosition (Y-30 offset), so if cancelled mid-animation the
+            // card is stuck below its correct layout position.
+            var rt = transform as RectTransform;
+            if (rt != null && rt.parent != null)
+                UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(rt.parent as RectTransform);
+        }
+
         private IEnumerator EnterAnimRoutine()
         {
             // Mark in-progress to prevent duplicate starts; reset below if we exit early.
@@ -1225,7 +1262,13 @@ namespace FWTCG.UI
             yield return null;
             if (this == null || !gameObject.activeInHierarchy)
             {
-                // GO was deactivated this frame — allow the animation to retry next time.
+                // GO was deactivated this frame — restore visual state so card is not
+                // stuck invisible when it becomes active again.
+                if (this != null)
+                {
+                    cg.alpha = 1f;
+                    transform.localScale = Vector3.one;
+                }
                 _enterAnimPlayed = false;
                 yield break;
             }
@@ -1250,6 +1293,7 @@ namespace FWTCG.UI
             rt.anchoredPosition = endPos;
             transform.localScale = endScale;
             cg.alpha = 1f;
+            _enterAnimCoroutine = null;
 
             // DEV-30 V6: trigger foil sweep after card enters
             EnsureShineOverlay();
@@ -1492,7 +1536,10 @@ namespace FWTCG.UI
                 var cloned = Instantiate(_killDissolveMat);
                 _clonedDissolveMat = cloned;
                 cloned.SetFloat("noise_fade", 0f);
-                _cardBg.material = cloned;
+
+                // Apply shared clone to ALL Image children so every layer dissolves in sync
+                var images = GetComponentsInChildren<Image>(true);
+                foreach (var img in images) img.material = cloned;
 
                 // AnimMatFX drives noise_fade 0 → 1
                 bool dissolveDone = false;
@@ -1500,13 +1547,10 @@ namespace FWTCG.UI
                 animFX.SetFloat("noise_fade", 1f, dissolveTime);
                 animFX.Callback(0f, () => dissolveDone = true);
 
-                // Capture child element original colors for parallel fade
-                var images = GetComponentsInChildren<Image>(true);
+                // Texts still fade independently (Text doesn't support ShaderGraph materials)
                 var texts  = GetComponentsInChildren<Text>(true);
-                Color[] imgColors = new Color[images.Length];
                 Color[] txtColors = new Color[texts.Length];
-                for (int i = 0; i < images.Length; i++) imgColors[i] = images[i].color;
-                for (int i = 0; i < texts.Length;  i++) txtColors[i] = texts[i].color;
+                for (int i = 0; i < texts.Length; i++) txtColors[i] = texts[i].color;
 
                 float elapsed = 0f;
                 const float timeout = dissolveTime + 0.25f; // safety
@@ -1515,12 +1559,6 @@ namespace FWTCG.UI
                     elapsed += Time.deltaTime;
                     float t = Mathf.Clamp01(elapsed / dissolveTime);
                     float alpha = 1f - t;
-                    // Fade non-background elements (background dissolves via shader)
-                    for (int i = 0; i < images.Length; i++)
-                    {
-                        if (images[i] == _cardBg) continue;
-                        var c = imgColors[i]; c.a = imgColors[i].a * alpha; images[i].color = c;
-                    }
                     for (int i = 0; i < texts.Length; i++)
                     {
                         var c = txtColors[i]; c.a = txtColors[i].a * alpha; texts[i].color = c;
@@ -1528,8 +1566,9 @@ namespace FWTCG.UI
                     yield return null;
                 }
 
-                // Cleanup cloned material
-                _cardBg.material = null;
+                // Cleanup: restore default material on all images
+                foreach (var img in images)
+                    if (img != null) img.material = null;
                 if (_clonedDissolveMat != null) { SafeDestroy(_clonedDissolveMat); _clonedDissolveMat = null; }
             }
             else

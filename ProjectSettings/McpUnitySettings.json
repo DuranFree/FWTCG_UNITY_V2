@@ -1,8 +1,9 @@
 {
     "Port": 8090,
-    "RequestTimeoutSeconds": 10,
+    "RequestTimeoutSeconds": 120,
     "AutoStartServer": true,
     "EnableInfoLogs": true,
     "NpmExecutablePath": "",
-    "AllowRemoteConnections": false
+    "AllowRemoteConnections": false,
+    "MaxConnections": 5
 }

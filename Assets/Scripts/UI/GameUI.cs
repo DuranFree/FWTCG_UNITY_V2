@@ -204,6 +204,8 @@ namespace FWTCG.UI
         private Action<UnitInstance> _onCardRightClicked;
         private Action<UnitInstance> _onCardHoverEnter;
         private Action<UnitInstance> _onCardHoverExit;
+        private Action<UnitInstance> _onHeroHoverEnter;
+        private Action<UnitInstance> _onHeroHoverExit;
 
         // ── DEV-22: Drag callbacks ────────────────────────────────────────────
         private Action<UnitInstance>            _onDragCardToBase;      // hand unit (single) → base
@@ -638,7 +640,9 @@ namespace FWTCG.UI
                                  Action<UnitInstance> onUnit, Action<int, bool> onRune,
                                  Action<UnitInstance> onCardRightClick = null,
                                  Action<UnitInstance> onCardHoverEnter = null,
-                                 Action<UnitInstance> onCardHoverExit  = null)
+                                 Action<UnitInstance> onCardHoverExit  = null,
+                                 Action<UnitInstance> onHeroHoverEnter = null,
+                                 Action<UnitInstance> onHeroHoverExit  = null)
         {
             _onEndTurnClicked   = onEndTurn;
             _onBFClicked        = onBF;
@@ -647,6 +651,8 @@ namespace FWTCG.UI
             _onCardRightClicked = onCardRightClick;
             _onCardHoverEnter   = onCardHoverEnter;
             _onCardHoverExit    = onCardHoverExit;
+            _onHeroHoverEnter   = onHeroHoverEnter;
+            _onHeroHoverExit    = onHeroHoverExit;
         }
 
         /// <summary>
@@ -1157,7 +1163,9 @@ namespace FWTCG.UI
 
                 if (cv != null)
                 {
-                    cv.Setup(hero, isPlayer, isPlayer ? _onUnitClicked : null, _onCardRightClicked);
+                    cv.Setup(hero, isPlayer, isPlayer ? _onUnitClicked : null, _onCardRightClicked,
+                             isPlayer ? _onHeroHoverEnter : null,
+                             isPlayer ? _onHeroHoverExit  : null);
                     // Wire drag callback for player hero card
                     if (isPlayer)
                     {
@@ -1896,7 +1904,7 @@ namespace FWTCG.UI
                         GameObject go = Instantiate(_cardViewPrefab, _viewerCardContainer);
                         CardView cv = go.GetComponent<CardView>();
                         if (cv != null)
-                            cv.Setup(cards[i], true, null, _onCardRightClicked);
+                            cv.Setup(cards[i], true, null, _onCardRightClicked, isDiscardView: true);
                     }
                 }
             }
