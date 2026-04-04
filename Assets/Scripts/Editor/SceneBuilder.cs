@@ -2902,19 +2902,24 @@ namespace FWTCG.Editor
             descText.horizontalOverflow = HorizontalWrapMode.Wrap;
             descText.verticalOverflow = VerticalWrapMode.Truncate;
 
-            // ── CostText — top-left cost badge (above bottom overlay) ──
+            // ── Circle sprite for round badges ──
+            var circleSpr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/FX/Circle.png");
+
+            // ── CostBadge — top-left circle (法力费用) ──
+            // Card is 76×110. Badge: 18×18px circle, inset 4px from top-left corner
             var costBadgeGO = new GameObject("CostBadge");
             costBadgeGO.transform.SetParent(root.transform, false);
             var costBadgeImg = costBadgeGO.AddComponent<Image>();
             costBadgeImg.color = new Color(0.78f, 0.67f, 0.43f, 0.95f);
             costBadgeImg.raycastTarget = false;
+            if (circleSpr != null) { costBadgeImg.sprite = circleSpr; costBadgeImg.type = Image.Type.Simple; }
             var costBadgeRT = costBadgeGO.GetComponent<RectTransform>();
-            costBadgeRT.anchorMin = new Vector2(0f, 0.85f);
-            costBadgeRT.anchorMax = new Vector2(0.25f, 1f);
-            costBadgeRT.offsetMin = new Vector2(1f, 1f);
-            costBadgeRT.offsetMax = new Vector2(-1f, -1f);
+            costBadgeRT.anchorMin = costBadgeRT.anchorMax = new Vector2(0f, 1f); // top-left corner
+            costBadgeRT.pivot = new Vector2(0f, 1f);
+            costBadgeRT.sizeDelta = new Vector2(18f, 18f);
+            costBadgeRT.anchoredPosition = new Vector2(4f, -4f); // inset from edge
 
-            var costText = CreateTMPText(costBadgeGO.transform, "CostText", "0", Color.white, 12, TextAnchor.MiddleCenter);
+            var costText = CreateTMPText(costBadgeGO.transform, "CostText", "0", Color.white, 11, TextAnchor.MiddleCenter);
             costText.fontStyle = FontStyle.Bold;
             costText.gameObject.AddComponent<Shadow>().effectColor = new Color(0f, 0f, 0f, 1f);
             var costRT = costText.GetComponent<RectTransform>();
@@ -2923,42 +2928,43 @@ namespace FWTCG.Editor
             costRT.offsetMin = Vector2.zero;
             costRT.offsetMax = Vector2.zero;
 
-            // ── AtkText — top-right badge (deep orange bg, black text) ──
+            // ── AtkBadge — top-right circle (战力) ──
             var atkBadgeGO = new GameObject("AtkBadge");
             atkBadgeGO.transform.SetParent(root.transform, false);
             var atkBadgeImg = atkBadgeGO.AddComponent<Image>();
             atkBadgeImg.color = new Color(0.85f, 0.35f, 0.15f, 0.95f);
             atkBadgeImg.raycastTarget = false;
+            if (circleSpr != null) { atkBadgeImg.sprite = circleSpr; atkBadgeImg.type = Image.Type.Simple; }
             var atkBadgeRT = atkBadgeGO.GetComponent<RectTransform>();
-            atkBadgeRT.anchorMin = new Vector2(0.75f, 0.85f);
-            atkBadgeRT.anchorMax = new Vector2(1f, 1f);
-            atkBadgeRT.offsetMin = new Vector2(1f, 1f);
-            atkBadgeRT.offsetMax = new Vector2(-1f, -1f);
+            atkBadgeRT.anchorMin = atkBadgeRT.anchorMax = new Vector2(1f, 1f); // top-right corner
+            atkBadgeRT.pivot = new Vector2(1f, 1f);
+            atkBadgeRT.sizeDelta = new Vector2(18f, 18f);
+            atkBadgeRT.anchoredPosition = new Vector2(-4f, -4f);
 
-            var atkText = CreateTMPText(atkBadgeGO.transform, "AtkText", "0", new Color(0.05f, 0.05f, 0.05f, 1f), 12, TextAnchor.MiddleCenter);
+            var atkText = CreateTMPText(atkBadgeGO.transform, "AtkText", "0", Color.white, 11, TextAnchor.MiddleCenter);
             atkText.fontStyle = FontStyle.Bold;
-            atkText.gameObject.AddComponent<Shadow>().effectColor = new Color(1f, 1f, 1f, 0.3f);
+            atkText.gameObject.AddComponent<Shadow>().effectColor = new Color(0f, 0f, 0f, 1f);
             var atkRT = atkText.GetComponent<RectTransform>();
             atkRT.anchorMin = Vector2.zero;
             atkRT.anchorMax = Vector2.one;
             atkRT.offsetMin = Vector2.zero;
             atkRT.offsetMax = Vector2.zero;
 
-            // ── Schematic (rune) cost display — stacked below CostBadge (top-left) ──
-            // DEV-25: moved from bottom-left overlay to group both costs at top-left.
+            // ── SchCostBg — below CostBadge circle (符纹费用) ──
             var schBgGO = new GameObject("SchCostBg");
             schBgGO.transform.SetParent(root.transform, false);
             var schBgImg = schBgGO.AddComponent<Image>();
-            schBgImg.color = new Color(1f, 0.55f, 0.1f, 0.8f); // default blazing, runtime changes
+            schBgImg.color = new Color(1f, 0.55f, 0.1f, 0.8f);
             schBgImg.raycastTarget = false;
+            if (circleSpr != null) { schBgImg.sprite = circleSpr; schBgImg.type = Image.Type.Simple; }
             var schBgRT = schBgGO.GetComponent<RectTransform>();
-            schBgRT.anchorMin = new Vector2(0f, 0.70f);  // directly below CostBadge (0,0.85-1.0)
-            schBgRT.anchorMax = new Vector2(0.25f, 0.84f);
-            schBgRT.offsetMin = new Vector2(1f, 1f);
-            schBgRT.offsetMax = new Vector2(-1f, -1f);
+            schBgRT.anchorMin = schBgRT.anchorMax = new Vector2(0f, 1f); // top-left
+            schBgRT.pivot = new Vector2(0f, 1f);
+            schBgRT.sizeDelta = new Vector2(18f, 18f);
+            schBgRT.anchoredPosition = new Vector2(4f, -24f); // below cost badge (4+18+2=24)
             schBgGO.SetActive(false);
 
-            var schText = CreateTMPText(schBgGO.transform, "SchCostText", "炽×1", Color.white, 8, TextAnchor.MiddleCenter);
+            var schText = CreateTMPText(schBgGO.transform, "SchCostText", "炽×1", Color.white, 7, TextAnchor.MiddleCenter);
             schText.fontStyle = FontStyle.Bold;
             schText.gameObject.AddComponent<Shadow>().effectColor = new Color(0f, 0f, 0f, 1f);
             var schTextRT = schText.GetComponent<RectTransform>();
