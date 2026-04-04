@@ -738,7 +738,9 @@ namespace FWTCG.UI
         private void RefreshAtkGlow(bool modified)
         {
             if (_atkText == null) return;
-            _atkText.color = Color.white;
+            // VFX-4: preserve damage-yellow tint; only reset to white if not in yellow state
+            if (!_hasDamageYellow)
+                _atkText.color = Color.white;
             RefreshStatGlow(ref _atkBreath, ref _atkGlowImg,
                 (RectTransform)_atkText.transform, modified);
         }
