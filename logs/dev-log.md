@@ -2,6 +2,53 @@
 
 ---
 
+## VFX-4：VFXResolver 自动映射 + 游戏事件集成 — 2026-04-04
+
+**Status**: ✅ Completed
+**Tests**: 617/617 EditMode 全绿 🟢
+
+### 实现内容
+
+**VFXResolver.cs（新建）**：
+- 静态类，两层 FX 解析：effectId 精确映射 → RuneType 元素兜底
+- FXConfig 结构体：prefab/delay/repeat/interval/tint/scale/duration
+- 38 个 effectId → FX 组合硬编码映射（含多段/延迟/着色/缩放）
+- 死亡 FX 独立映射表（deathwish 卡有专属死亡特效）
+- RuneType → spawn_fx / idle_fx 自动映射（6 种元素各有对应粒子）
+- Resources.Load 缓存机制，null 也缓存避免重复查找
+
+**SpellVFX 集成**：
+- OnCardPlayed：VFXResolver.Resolve → SpawnResolvedFX 协程（含延迟/重复/着色）
+- OnUnitDiedAtPos：VFXResolver.ResolveDeathFX → SpawnResolvedFX
+- 原有径向爆裂粒子保留作为环境层叠加
+
+**CardView 战场视觉（4d）**：
+- ApplyBattlefieldVisuals()：微旋转 ±1° + 阴影层 + idle FX + Shield 常驻
+- CreateShadow()：偏移半透明 Image，0.4s 延迟 + 0.3s 淡入
+- SpawnIdleFXDelayed()：1s 延迟后按 RuneType 生成 SnapFX 跟随粒子
+- RefreshShieldFX()：SpellShield/Barrier → Shield prefab 常驻，状态解除时销毁
+- HP/ATK 受击变黄：_lastKnownHp 追踪，HP 下降 → Color.yellow，恢复 → white
+- ClearBattlefieldVisuals()：离场时清理所有战场视觉
+
+**GameUI 集成**：
+- RefreshBattlefields() 后自动调用 ApplyBFVisuals() 应用战场视觉
+
+**FX Prefab 迁移**：
+- 23 个 FX prefab 从 Assets/Prefabs/FX/ 移至 Assets/Resources/Prefabs/FX/，支持 Resources.Load
+
+**推迟项**：
+- 抽牌 FX（无 OnDrawCard 事件，需侵入多个 System）
+- spawn_fx / death_fx CardData 覆盖（需新增字段，待有传奇卡专属特效需求时）
+
+**Decisions made**：
+- FX prefab 用 Resources.Load 而非 Inspector 引用，避免 SceneBuilder 膨胀
+- idle FX 用 SnapFX 跟随而非挂载到 CardView 子节点，粒子在世界空间渲染
+- 阴影用 UI Image 而非 SpriteRenderer，保持 Screen Space Overlay 一致性
+
+**Technical debt**: 无新增
+
+---
+
 ## VFX-2：FX 粒子预制体 & 材质 — 2026-04-04
 
 **Status**: ✅ Completed

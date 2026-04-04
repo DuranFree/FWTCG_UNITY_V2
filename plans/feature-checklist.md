@@ -370,17 +370,17 @@
 - [x] 材质缺失时退回原缩放+淡出 fallback — VFX-3
 
 ### VFX-4 — VFXResolver 自动映射
-- [ ] VFXResolver.cs 创建（RuneType × EffectMechanic → FX 映射，50张卡）— VFX-4
-- [ ] FXConfig 数据结构（prefab/position/delay/repeatCount/tint）— VFX-4
-- [ ] SpellVFX.OnCardPlayed 接入 VFXResolver — VFX-4
-- [ ] SpellVFX.OnUnitDied 触发 HitFX + Destroy prefab — VFX-4
-- [ ] 护盾/壁垒关键词 → Shield prefab 常驻（CardView OnEnable）— VFX-4
-- [ ] 抽牌事件 → Spawn 星光 FX — VFX-4
-- [ ] Per-card idle_fx 常驻粒子（CardData 挂 idle_fx prefab，上场 1s 后实例化，VFXResolver 按 RuneType 自动映射）— VFX-4
-- [ ] Per-card spawn_fx / death_fx 覆盖（CardData 自定义入场/死亡粒子，覆盖默认 Dissolve，传奇卡专属特效）— VFX-4
-- [ ] 卡牌阴影层（Image 偏移 shadow，0.4s 延迟显示，模拟落地感）— VFX-4
-- [ ] 战场卡随机微旋转（上场时 Random.Range(-1f, 1f) 度 Z 轴旋转）— VFX-4
-- [ ] HP/ATK 受击数值变黄（damage > 0 时 Color.yellow，恢复后 Color.white）— VFX-4
+- [x] VFXResolver.cs 创建（RuneType × EffectMechanic → FX 映射，38张卡 effectId）— VFX-4
+- [x] FXConfig 数据结构（prefab/position/delay/repeatCount/tint/scale/duration）— VFX-4
+- [x] SpellVFX.OnCardPlayed 接入 VFXResolver（Resolve → SpawnResolvedFX）— VFX-4
+- [x] SpellVFX.OnUnitDied 触发 ResolveDeathFX（默认 Destroy + 自定义覆盖）— VFX-4
+- [x] 护盾/壁垒关键词 → Shield prefab 常驻（CardView.RefreshShieldFX）— VFX-4
+- [ ] 抽牌事件 → Spawn 星光 FX — VFX-4（推迟：无 OnDrawCard 事件，需侵入多个 System，优先级低）
+- [x] Per-card idle_fx 常驻粒子（VFXResolver.GetIdleFXName 按 RuneType 映射，上场 1s 后 FXTool.DoSnapFX）— VFX-4
+- [ ] Per-card spawn_fx / death_fx 覆盖（需 CardData 新增字段，推迟到有传奇卡专属特效需求时）— VFX-4
+- [x] 卡牌阴影层（CardView.CreateShadow，Image 偏移 shadow，0.4s 延迟淡入）— VFX-4
+- [x] 战场卡随机微旋转（CardView.ApplyBattlefieldVisuals ±1° Z 轴）— VFX-4
+- [x] HP/ATK 受击数值变黄（CardView.Refresh 检测 HP 下降 → Color.yellow，恢复后 Color.white）— VFX-4
 
 ### VFX-5 — 音频框架升级
 - [ ] AudioManager 重写为 AudioTool 通道制（10+ 通道）— VFX-5

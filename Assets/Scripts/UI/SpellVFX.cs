@@ -1,18 +1,21 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using FWTCG.Core;
 using FWTCG.Data;
+using FWTCG.FX;
 using FWTCG.Systems;
+using FWTCG.VFX;
 
 namespace FWTCG.UI
 {
     /// <summary>
-    /// DEV-21: Spell / unit death / legend VFX system.
+    /// DEV-21 / VFX-4: Spell / unit death / legend VFX system.
     ///
     /// Subscribes to game events and spawns transient particle effects:
-    ///   OnCardPlayed   → 16-point radial burst (color by RuneType) at canvas centre.
-    ///   OnUnitDiedAtPos → 12-point death explosion at unit's canvas position.
+    ///   OnCardPlayed   → VFXResolver FX prefabs + radial burst (color by RuneType).
+    ///   OnUnitDiedAtPos → VFXResolver death FX + death explosion.
     ///   LegendSystem.OnLegendEvolved → 20-particle flame (3 s) near legend zone.
     ///
     /// All VFX objects are self-Destroyed after their animation finishes.
@@ -25,8 +28,7 @@ namespace FWTCG.UI
         // ── Particle ownership tracking ───────────────────────────────────────
         // Tracks all particle GOs currently alive so OnDestroy can clean up any
         // that were orphaned by a coroutine interrupted mid-animation.
-        private readonly System.Collections.Generic.HashSet<GameObject> _ownedParticles
-            = new System.Collections.Generic.HashSet<GameObject>();
+        private readonly HashSet<GameObject> _ownedParticles = new();
 
         // ── Lifecycle ─────────────────────────────────────────────────────────
 
@@ -58,15 +60,33 @@ namespace FWTCG.UI
         {
             if (!this) return;
             if (!isActiveAndEnabled || _vfxLayer == null) return;
-            // Burst from player's area (bottom) or enemy's area (top)
-            float y = (owner == GameRules.OWNER_PLAYER) ? -180f : 180f;
-            StartCoroutine(BurstParticles(new Vector2(0f, y), GetCardBurstColor(card), 12));
+
+            // VFX-4: Spawn resolved FX prefabs
+            if (card?.CardData != null)
+            {
+                float y = (owner == GameRules.OWNER_PLAYER) ? -180f : 180f;
+                var configs = VFXResolver.Resolve(card.CardData);
+                StartCoroutine(SpawnResolvedFX(configs, new Vector3(0f, y, 0f)));
+            }
+
+            // Original radial burst (kept as ambient particle layer)
+            float burstY = (owner == GameRules.OWNER_PLAYER) ? -180f : 180f;
+            StartCoroutine(BurstParticles(new Vector2(0f, burstY), GetCardBurstColor(card), 12));
         }
 
         private void OnUnitDiedAtPos(UnitInstance unit, Vector2 canvasPos)
         {
             if (!this) return;
             if (!isActiveAndEnabled || _vfxLayer == null) return;
+
+            // VFX-4: Spawn resolved death FX prefabs
+            if (unit?.CardData != null)
+            {
+                var configs = VFXResolver.ResolveDeathFX(unit.CardData);
+                StartCoroutine(SpawnResolvedFX(configs, new Vector3(canvasPos.x, canvasPos.y, 0f)));
+            }
+
+            // Original death burst
             StartCoroutine(BurstParticles(canvasPos, new Color(1f, 0.30f, 0.15f, 1f), 12));
         }
 
@@ -89,6 +109,59 @@ namespace FWTCG.UI
                 ? GameUI.Instance.GetZoneCanvasPos(zone)
                 : new Vector2(owner == GameRules.OWNER_PLAYER ? -400f : 400f, 0f);
             StartCoroutine(BurstParticles(pos, GameColors.Gold, 20));
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // VFX-4: Resolved FX prefab spawning
+        // ═══════════════════════════════════════════════════════════════════════
+
+        /// <summary>Spawn a list of FXConfig entries as world-space prefabs (with delays/repeats).</summary>
+        private IEnumerator SpawnResolvedFX(List<FXConfig> configs, Vector3 worldPos)
+        {
+            foreach (var cfg in configs)
+            {
+                if (cfg.Delay > 0f)
+                    yield return new WaitForSeconds(cfg.Delay);
+
+                var prefab = VFXResolver.GetPrefab(cfg.PrefabName);
+                if (prefab == null) continue;
+
+                for (int i = 0; i < cfg.RepeatCount; i++)
+                {
+                    if (i > 0 && cfg.RepeatInterval > 0f)
+                        yield return new WaitForSeconds(cfg.RepeatInterval);
+
+                    float lifetime = cfg.Duration > 0f ? cfg.Duration : 3f;
+                    var fx = FXTool.DoFX(prefab, worldPos, lifetime);
+                    if (fx != null)
+                    {
+                        _ownedParticles.Add(fx);
+
+                        if (cfg.Scale != 1f)
+                            fx.transform.localScale *= cfg.Scale;
+
+                        if (cfg.HasTint)
+                        {
+                            // Tint all particle system renderers
+                            var ps = fx.GetComponentInChildren<ParticleSystem>();
+                            if (ps != null)
+                            {
+                                var main = ps.main;
+                                main.startColor = cfg.Tint;
+                            }
+                        }
+
+                        // Auto-remove from tracking when destroyed
+                        StartCoroutine(RemoveAfterDelay(fx, lifetime));
+                    }
+                }
+            }
+        }
+
+        private IEnumerator RemoveAfterDelay(GameObject go, float delay)
+        {
+            yield return new WaitForSeconds(delay + 0.1f);
+            _ownedParticles.Remove(go);
         }
 
         // ═══════════════════════════════════════════════════════════════════════

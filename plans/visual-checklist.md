@@ -220,15 +220,15 @@
 - [x] 单位阵亡时播放溶解动画（噪点溶解 0.6s，替代原缩放淡出）— VFX-3
 
 ### VFX-4 — VFXResolver 自动映射视觉
-- [ ] 打出法术牌时自动触发对应元素 FX（RuneType 着色）— VFX-4
-- [ ] 护盾/壁垒关键词单位显示 Shield prefab 常驻光效 — VFX-4
-- [ ] 抽牌事件触发 Spawn 星光粒子 — VFX-4
-- [ ] 战场单位常驻环境粒子（idle_fx，火牌有火焰飘动、冰牌有冰晶，上场 1s 后出现）— VFX-4
-- [ ] 传奇/特殊卡专属入场粒子（spawn_fx override，替代默认 Spawn FX）— VFX-4
-- [ ] 传奇/特殊卡专属死亡粒子（death_fx override，替代默认 Destroy FX）— VFX-4
-- [ ] 战场卡片阴影层（偏移半透明阴影，0.4s 延迟淡入，模拟落地感）— VFX-4
-- [ ] 战场卡随机微倾斜（每张卡 ±1° 内随机旋转，消除机器感）— VFX-4
-- [ ] HP/ATK 数值受击变黄（单位受伤时数值黄色，恢复后白色）— VFX-4
+- [x] 打出法术牌时自动触发对应元素 FX（VFXResolver.Resolve → SpawnResolvedFX，38个 effectId 映射）— VFX-4
+- [x] 护盾/壁垒关键词单位显示 Shield prefab 常驻光效（CardView.RefreshShieldFX）— VFX-4
+- [ ] 抽牌事件触发 Spawn 星光粒子 — VFX-4（推迟：无 OnDrawCard 事件）
+- [x] 战场单位常驻环境粒子（idle_fx，火牌→Flame、冰牌→WaterFX，上场 1s 后 SnapFX 跟随）— VFX-4
+- [ ] 传奇/特殊卡专属入场粒子（spawn_fx override）— VFX-4（推迟：需 CardData 新增字段）
+- [ ] 传奇/特殊卡专属死亡粒子（death_fx override）— VFX-4（推迟：需 CardData 新增字段）
+- [x] 战场卡片阴影层（偏移半透明 Image，0.4s 延迟淡入 0.3s）— VFX-4
+- [x] 战场卡随机微倾斜（±1° Z 轴随机旋转，ClearBattlefieldVisuals 归零）— VFX-4
+- [x] HP/ATK 数值受击变黄（_lastKnownHp 追踪，HP 下降→黄色，恢复→白色）— VFX-4
 
 ### VFX-6 — 掷硬币翻转动画
 - [ ] 硬币 scaleX 翻转动画（约 1.5s，正反面切换）— VFX-6

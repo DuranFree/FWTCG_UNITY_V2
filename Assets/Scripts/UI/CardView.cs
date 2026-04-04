@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using FWTCG.Core;
 using FWTCG.FX;
+using FWTCG.VFX;
 
 namespace FWTCG.UI
 {
@@ -120,6 +121,14 @@ namespace FWTCG.UI
         private readonly System.Collections.Generic.List<GameObject> _sparkDots =
             new System.Collections.Generic.List<GameObject>();
 
+        // ── VFX-4: Battlefield visual details ────────────────────────────────
+        private GameObject _idleFX;          // persistent rune-type particle (snapped)
+        private GameObject _shieldFX;        // persistent Shield/Barrier FX
+        private GameObject _shadowImage;     // offset shadow Image below card
+        private bool       _idleFXSpawned;
+        private bool       _hasDamageYellow; // tracks ATK text yellow tint state
+        private int        _lastKnownHp = -1; // to detect damage for yellow flash
+
         private void Awake()
         {
             // Auto-wire SerializeField refs by child name if Inspector connections were lost
@@ -220,6 +229,10 @@ namespace FWTCG.UI
             if (_playableSpark != null) StopCoroutine(_playableSpark);
             foreach (var d in _sparkDots) if (d) SafeDestroy(d);
             _sparkDots.Clear();
+            // VFX-4: cleanup idle FX, shield FX, and shadow
+            if (_idleFX != null) { SafeDestroy(_idleFX); _idleFX = null; }
+            if (_shieldFX != null) { SafeDestroy(_shieldFX); _shieldFX = null; }
+            if (_shadowImage != null) { SafeDestroy(_shadowImage); _shadowImage = null; }
         }
 
         public void Setup(UnitInstance unit, bool isPlayerCard, Action<UnitInstance> onClick,
@@ -419,6 +432,20 @@ namespace FWTCG.UI
                     _atkText.text = _unit.CurrentHp != _unit.CurrentAtk
                         ? $"{_unit.CurrentHp}/{effAtk}"
                         : $"{effAtk}";
+
+                    // VFX-4: HP/ATK text turns yellow when unit took damage
+                    int curHp = _unit.CurrentHp;
+                    if (_lastKnownHp >= 0 && curHp < _lastKnownHp)
+                    {
+                        _atkText.color = Color.yellow;
+                        _hasDamageYellow = true;
+                    }
+                    else if (_hasDamageYellow && curHp >= _unit.CardData.Atk)
+                    {
+                        _atkText.color = Color.white;
+                        _hasDamageYellow = false;
+                    }
+                    _lastKnownHp = curHp;
 
                     // Glow when any modifier is active
                     bool modified = _unit.HasBuff || _unit.HasDebuff
@@ -1603,6 +1630,120 @@ namespace FWTCG.UI
                     yield return null;
                 }
             }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // VFX-4: Battlefield visual details
+        // ═══════════════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// Call after a unit card is placed on the battlefield to apply visual details:
+        /// micro-rotation, shadow layer, idle FX (delayed 1s).
+        /// </summary>
+        public void ApplyBattlefieldVisuals()
+        {
+            if (_unit?.CardData == null) return;
+
+            // Micro-rotation (±1° Z axis for natural feel)
+            float angle = UnityEngine.Random.Range(-1f, 1f);
+            transform.localRotation = Quaternion.Euler(0f, 0f, angle);
+
+            // Shadow layer (offset Image below card)
+            CreateShadow();
+
+            // Idle FX (persistent rune-type particle, delayed 1s)
+            if (!_idleFXSpawned && gameObject.activeInHierarchy)
+                StartCoroutine(SpawnIdleFXDelayed());
+
+            // Shield/Barrier persistent FX
+            RefreshShieldFX();
+        }
+
+        private void CreateShadow()
+        {
+            if (_shadowImage != null) return;
+            var go = new GameObject("CardShadow");
+            go.transform.SetParent(transform, false);
+            go.transform.SetAsFirstSibling(); // render below card content
+
+            var rt = go.AddComponent<RectTransform>();
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
+            rt.offsetMin = new Vector2(3f, -5f); // offset down-right for shadow
+            rt.offsetMax = new Vector2(5f, -3f);
+
+            var img = go.AddComponent<Image>();
+            img.color = new Color(0f, 0f, 0f, 0.35f);
+            img.raycastTarget = false;
+
+            _shadowImage = go;
+
+            // Fade in shadow after 0.4s delay
+            if (gameObject.activeInHierarchy)
+                StartCoroutine(FadeShadowIn(img));
+        }
+
+        private IEnumerator FadeShadowIn(Image shadowImg)
+        {
+            if (shadowImg == null) yield break;
+            shadowImg.color = new Color(0f, 0f, 0f, 0f);
+            yield return new WaitForSeconds(0.4f);
+
+            const float fadeDur = 0.3f;
+            float elapsed = 0f;
+            while (elapsed < fadeDur)
+            {
+                elapsed += Time.deltaTime;
+                float a = Mathf.Lerp(0f, 0.35f, elapsed / fadeDur);
+                if (shadowImg != null)
+                    shadowImg.color = new Color(0f, 0f, 0f, a);
+                yield return null;
+            }
+        }
+
+        private IEnumerator SpawnIdleFXDelayed()
+        {
+            _idleFXSpawned = true;
+            yield return new WaitForSeconds(1f);
+
+            if (_unit?.CardData == null || !gameObject.activeInHierarchy) yield break;
+
+            string fxName = VFXResolver.GetIdleFXName(_unit.CardData.RuneType);
+            if (fxName == null) yield break;
+
+            var prefab = VFXResolver.GetPrefab(fxName);
+            if (prefab == null) yield break;
+
+            _idleFX = FXTool.DoSnapFX(prefab, transform, Vector3.zero, 0f); // 0 = no auto-destroy
+        }
+
+        /// <summary>Show/hide Shield FX based on unit keyword state.</summary>
+        private void RefreshShieldFX()
+        {
+            if (_unit == null) return;
+            bool needsShield = _unit.HasSpellShield || _unit.HasBarrier;
+            if (needsShield && _shieldFX == null)
+            {
+                var prefab = VFXResolver.GetPrefab(VFXResolver.FX_SHIELD);
+                if (prefab != null)
+                    _shieldFX = FXTool.DoSnapFX(prefab, transform, Vector3.zero, 0f);
+            }
+            else if (!needsShield && _shieldFX != null)
+            {
+                SafeDestroy(_shieldFX);
+                _shieldFX = null;
+            }
+        }
+
+        /// <summary>Cleans up battlefield visuals when unit leaves the field.</summary>
+        public void ClearBattlefieldVisuals()
+        {
+            if (_idleFX != null) { SafeDestroy(_idleFX); _idleFX = null; }
+            if (_shieldFX != null) { SafeDestroy(_shieldFX); _shieldFX = null; }
+            _idleFXSpawned = false;
+            if (_shadowImage != null) { SafeDestroy(_shadowImage); _shadowImage = null; }
+            transform.localRotation = Quaternion.identity;
+            _hasDamageYellow = false;
+            _lastKnownHp = -1;
         }
     }
 }

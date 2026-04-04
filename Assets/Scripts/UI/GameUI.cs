@@ -942,6 +942,12 @@ namespace FWTCG.UI
             RefreshUnitList(_bf2PlayerContainer, gs.BF[1].PlayerUnits, true, _onUnitClicked);
             RefreshUnitList(_bf2EnemyContainer, gs.BF[1].EnemyUnits, false, _onUnitClicked);
 
+            // VFX-4: Apply battlefield visuals (shadow, micro-rotation, idle FX) to units on field
+            ApplyBFVisuals(_bf1PlayerContainer);
+            ApplyBFVisuals(_bf1EnemyContainer);
+            ApplyBFVisuals(_bf2PlayerContainer);
+            ApplyBFVisuals(_bf2EnemyContainer);
+
             if (_bf1CtrlText != null)
             {
                 string bf1Name = gs.BFNames != null && gs.BFNames.Length > 0 ? GameRules.GetBattlefieldDisplayName(gs.BFNames[0]) : "战场1";
@@ -963,6 +969,17 @@ namespace FWTCG.UI
             // Wire right-click on BF art slots for detail popup
             WireBFRightClick(_bf1PlayerContainer, gs.BFNames != null && gs.BFNames.Length > 0 ? gs.BFNames[0] : null);
             WireBFRightClick(_bf2PlayerContainer, gs.BFNames != null && gs.BFNames.Length > 1 ? gs.BFNames[1] : null);
+        }
+
+        /// <summary>VFX-4: Apply battlefield visuals to all CardViews in a container.</summary>
+        private static void ApplyBFVisuals(Transform container)
+        {
+            if (container == null) return;
+            for (int i = 0; i < container.childCount; i++)
+            {
+                var cv = container.GetChild(i).GetComponent<CardView>();
+                if (cv != null) cv.ApplyBattlefieldVisuals();
+            }
         }
 
         private void WireBFRightClick(Transform bfContainer, string bfId)
