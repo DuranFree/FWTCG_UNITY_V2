@@ -1,4 +1,5 @@
 using UnityEngine;
+using FWTCG.VFX;
 
 namespace FWTCG.FX
 {
@@ -52,6 +53,21 @@ namespace FWTCG.FX
             return fx;
         }
 
-        // DoProjectileFX — implemented in VFX-8 (Projectile system)
+        /// <summary>
+        /// VFX-8: Spawn a projectile that flies along a Bezier arc from <paramref name="start"/>
+        /// to <paramref name="end"/>. Optional <paramref name="onArrived"/> callback fires on arrival,
+        /// then the GO is auto-destroyed.
+        /// </summary>
+        public static GameObject DoProjectileFX(GameObject prefab, Vector3 start, Vector3 end,
+                                                 float duration = Projectile.DEFAULT_DURATION,
+                                                 System.Action onArrived = null)
+        {
+            if (prefab == null) return null;
+
+            GameObject fx = Object.Instantiate(prefab, start, Quaternion.identity);
+            var proj = fx.AddComponent<Projectile>();
+            proj.Init(start, end, duration, onArrived);
+            return fx;
+        }
     }
 }

@@ -2,6 +2,41 @@
 
 ---
 
+## VFX-8：投射物系统 — 2026-04-05
+
+**Status**: ✅ Completed
+**Tests**: 759/759 EditMode 全绿 🟢（新增 27 个测试）
+
+### 实现内容
+
+**Projectile.cs（新建）**：
+- 二次贝塞尔弧线飞行组件（start → control → end）
+- 弧线高度 = 距离 × 0.3（ARC_HEIGHT_RATIO），默认飞行时间 0.4s
+- 飞行期间 Z 轴旋转朝向运动切线方向
+- 到达后调用 onArrived 回调 + Destroy(gameObject)
+
+**FXTool.cs（编辑）**：
+- 新增 DoProjectileFX(prefab, start, end, duration, onArrived)
+- 实例化 prefab + AddComponent<Projectile> + Init
+
+**VFXResolver.cs（编辑）**：
+- 新增 ResolveProjectile(CardData) 三层解析：effectId 精确映射 → IsSpell/IsEquipment 按 RuneType → unit 返回 null
+- 新增 GetProjectileFXName(RuneType) 6 种元素投射物映射
+- 9 个 effectId 专属投射物覆盖（hex_ray/furnace_blast/divine_ray/slam 等）
+
+**SpellVFX.cs（编辑）**：
+- DelayedCardPlayFX 新增投射物路径判断：法术/装备卡自动走 ProjectileThenFXRoutine
+- ProjectileThenFXRoutine：发射投射物 → 等待到达 → spawn impact FX + 白色 8 点径向爆裂
+- 投射物起点：玩家手牌区(Y=-300) / AI屏幕上方(Y=340)
+- 无投射物的卡保持原有直接 FX spawn 逻辑
+
+**测试（27 个新测试）**：
+- VFX8ProjectileTests：Projectile 常量/Init/控制点/边界、FXTool.DoProjectileFX 创建/null/回调、VFXResolver.ResolveProjectile 各类型卡/effectId/RuneType 全覆盖、SpellVFX 常量
+
+**Technical debt**: 无新增
+
+---
+
 ## VFX-7：UI & 高亮视觉迁移（18 子项）— 2026-04-04
 
 **Status**: ✅ Completed

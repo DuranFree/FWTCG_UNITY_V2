@@ -204,6 +204,57 @@ namespace FWTCG.VFX
 
         /// <summary>Clear the prefab cache (useful for tests or scene transitions).</summary>
         public static void ClearCache() => _prefabCache.Clear();
+
+        // ── VFX-8: Projectile mapping ────────────────────────────────────────
+
+        /// <summary>
+        /// Resolve the projectile FX prefab name for a card.
+        /// Returns null if no projectile should be used (non-spell cards, etc.).
+        /// Only spell/equipment cards with a direct-damage effectId get projectiles.
+        /// </summary>
+        public static string ResolveProjectile(CardData card)
+        {
+            if (card == null) return null;
+
+            // Check effectId-specific projectile override
+            if (!string.IsNullOrEmpty(card.EffectId) && s_projectileMap.TryGetValue(card.EffectId, out var projFX))
+                return projFX;
+
+            // Spell/equipment cards get a RuneType-based projectile
+            if (card.IsSpell || card.IsEquipment)
+                return GetProjectileFXName(card.RuneType);
+
+            return null; // unit cards don't fire projectiles
+        }
+
+        /// <summary>Elemental projectile FX by rune type.</summary>
+        public static string GetProjectileFXName(RuneType rt)
+        {
+            switch (rt)
+            {
+                case RuneType.Blazing:  return FX_FLAME;
+                case RuneType.Radiant:  return FX_RAYGLOW;
+                case RuneType.Verdant:  return FX_LEAF;
+                case RuneType.Crushing: return FX_HIT;
+                case RuneType.Chaos:    return FX_CAST;
+                case RuneType.Order:    return FX_WATER;
+                default:                return FX_HIT;
+            }
+        }
+
+        /// <summary>effectId → projectile FX override (for specific spells with unique projectiles).</summary>
+        private static readonly Dictionary<string, string> s_projectileMap = new()
+        {
+            ["hex_ray"]           = FX_FLAME,
+            ["furnace_blast"]     = FX_FLAME,
+            ["divine_ray"]        = FX_RAYGLOW,
+            ["starburst"]         = FX_RAYGLOW,
+            ["slam"]              = FX_ELECTRIC,
+            ["akasi_storm"]       = FX_ELECTRIC,
+            ["void_seek"]         = FX_FLAME,
+            ["flash_counter"]     = FX_ELECTRIC,
+            ["wind_wall"]         = FX_WATER,
+        };
     }
 
     // ═════════════════════════════════════════════════════════════════════════

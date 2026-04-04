@@ -67,6 +67,13 @@ namespace FWTCG.UI
             StartCoroutine(DelayedCardPlayFX(card, owner));
         }
 
+        // ── VFX-8 projectile constants ──────────────────────────────────────
+        public const float PROJECTILE_DURATION = 0.4f;
+        /// <summary>Y offset for projectile origin (player hand area).</summary>
+        public const float PLAYER_HAND_Y = -300f;
+        /// <summary>Y offset for AI projectile origin (top of screen).</summary>
+        public const float AI_ORIGIN_Y = 340f;
+
         private IEnumerator DelayedCardPlayFX(UnitInstance card, string owner)
         {
             // Wait for card entrance animation to finish before spawning FX at landing spot
@@ -75,16 +82,71 @@ namespace FWTCG.UI
 
             // After delay, find the CardView at its final position
             Vector2 cardPos = ResolveCardFinalPos(card, owner);
+            Vector3 endPos = new Vector3(cardPos.x, cardPos.y, 0f);
 
-            // VFX-4: Spawn resolved FX prefabs
+            // VFX-8: Try projectile path first (spell/equipment cards)
+            bool usedProjectile = false;
             if (card?.CardData != null)
             {
+                string projFXName = VFXResolver.ResolveProjectile(card.CardData);
+                if (projFXName != null)
+                {
+                    var projPrefab = VFXResolver.GetPrefab(projFXName);
+                    if (projPrefab != null)
+                    {
+                        // Projectile origin: player → hand area, AI → top of screen
+                        float originY = (owner == GameRules.OWNER_PLAYER) ? PLAYER_HAND_Y : AI_ORIGIN_Y;
+                        Vector3 startPos = new Vector3(0f, originY, 0f);
+
+                        var configs = VFXResolver.Resolve(card.CardData);
+                        StartCoroutine(ProjectileThenFXRoutine(projPrefab, startPos, endPos, configs));
+                        usedProjectile = true;
+                    }
+                }
+            }
+
+            // Fallback: direct FX spawn (units, or cards without projectile prefab)
+            if (!usedProjectile && card?.CardData != null)
+            {
                 var configs = VFXResolver.Resolve(card.CardData);
-                StartCoroutine(SpawnResolvedFX(configs, new Vector3(cardPos.x, cardPos.y, 0f)));
+                StartCoroutine(SpawnResolvedFX(configs, endPos));
             }
 
             // Original radial burst (kept as ambient particle layer)
             StartCoroutine(BurstParticles(cardPos, GetCardBurstColor(card), 12));
+        }
+
+        /// <summary>
+        /// VFX-8: Launch projectile from start to end, then spawn impact FX at arrival.
+        /// </summary>
+        private IEnumerator ProjectileThenFXRoutine(GameObject projPrefab, Vector3 start, Vector3 end,
+                                                     List<FXConfig> impactConfigs)
+        {
+            bool arrived = false;
+            var projGO = FXTool.DoProjectileFX(projPrefab, start, end, PROJECTILE_DURATION, () => arrived = true);
+            if (projGO != null)
+                _ownedParticles.Add(projGO);
+
+            // Wait for projectile to arrive (or timeout safety)
+            float timeout = PROJECTILE_DURATION + 0.5f;
+            float waited = 0f;
+            while (!arrived && waited < timeout)
+            {
+                waited += Time.deltaTime;
+                yield return null;
+            }
+
+            // Clean up tracking (projectile self-destroys)
+            if (projGO != null) _ownedParticles.Remove(projGO);
+
+            if (!this || !isActiveAndEnabled) yield break;
+
+            // Spawn impact FX at target
+            if (impactConfigs != null && impactConfigs.Count > 0)
+                StartCoroutine(SpawnResolvedFX(impactConfigs, end));
+
+            // Impact hit burst
+            StartCoroutine(BurstParticles((Vector2)end, Color.white, 8));
         }
 
         /// <summary>

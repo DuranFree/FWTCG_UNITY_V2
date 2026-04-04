@@ -255,3 +255,9 @@
 - [x] MouseLineFX 点链瞄准线（12 点均匀间距，合法绿色/非法红色）— VFX-7p
 - [x] AimTargetFX 准星光环（48px target.png，alpha 0.4↔0.8 2Hz 脉冲）— VFX-7q
 - ❌ 手牌扇形展开 — 用户确认不需要，保留水平排列 — VFX-7r REMOVED
+
+### VFX-8 — 投射物系统
+- [x] 法术/装备卡投射物弧线飞行（0.4s 二次贝塞尔弧线，手牌区→目标位置）— VFX-8
+- [x] 投射物到达目标时触发 impact FX + 白色径向爆裂 — VFX-8
+- [x] 投射物飞行中 Z 轴旋转朝向运动切线方向 — VFX-8
+- [x] 按 RuneType 元素匹配投射物外观（火→Flame，雷→ElectricFX，光→RayGlow 等）— VFX-8

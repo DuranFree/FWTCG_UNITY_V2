@@ -354,7 +354,7 @@
 - [ ] ShaderHolo.shadergraph 导入并编译通过 — VFX-1
 - [ ] Grayscale.shader 导入并可挂 UI Image — VFX-1
 - [ ] KillDissolveFX.mat / GrayscaleUI.mat 导入 — VFX-1
-- [ ] FXTool.cs 移植（DoFX/DoSnapFX/DoProjectileFX，适配 FWTCG 命名空间）— VFX-1
+- [x] FXTool.cs 移植（DoFX/DoSnapFX/DoProjectileFX，适配 FWTCG 命名空间）— VFX-1 + VFX-8
 - [ ] AnimMatFX.cs 移植（材质属性插值，Dissolve 动画驱动）— VFX-1
 
 ### VFX-2 — FX 粒子预制体 & 材质
@@ -419,7 +419,8 @@
 - ❌ 手牌扇形排列 — 用户确认不需要，保留水平排列 — VFX-7r REMOVED
 
 ### VFX-8 — 投射物系统（可选）
-- [ ] Projectile.cs 移植（速度/轨迹/到达回调）— VFX-8
-- [ ] FXTool.DoProjectileFX 扩展（起点/终点/prefab/onArrived）— VFX-8
-- [ ] 法术选目标后投射物飞行（0.3-0.5s 抛物弧线）— VFX-8
-- [ ] 投射物到达触发 HitFX — VFX-8
+- [x] Projectile.cs 新建（二次贝塞尔弧线飞行 + 切线旋转 + onArrived 回调 + 自毁）— VFX-8
+- [x] FXTool.DoProjectileFX 扩展（起点/终点/prefab/duration/onArrived）— VFX-8
+- [x] VFXResolver.ResolveProjectile（effectId 精确映射 + RuneType 元素投射物）— VFX-8
+- [x] SpellVFX 投射物路径集成（ProjectileThenFXRoutine，法术/装备卡自动飞行 0.4s 弧线）— VFX-8
+- [x] 投射物到达触发 impact FX + 白色 8 点径向爆裂 — VFX-8
