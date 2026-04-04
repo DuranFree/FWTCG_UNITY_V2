@@ -587,14 +587,40 @@ namespace FWTCG.UI
                 { Destroy(_stunFX); _stunFX = null; }
             }
 
-            // VFX-7a: frame overlay (gold for spell/equipment, silver for units)
+            // VFX-7a: frame overlay — color by card type
             if (_frameOverlay != null)
             {
-                bool isSpecial = _unit.CardData.IsSpell || _unit.CardData.IsEquipment;
-                var frameSpr = Resources.Load<Sprite>(isSpecial ? "UI/frame_gold" : "UI/frame_silver");
+                bool isLegend = _unit.CardData.Id != null && _unit.CardData.Id.Contains("legend");
+                bool isHero = _unit.CardData.IsHero;
+                bool isSkill = _unit.CardData.IsSpell || _unit.CardData.IsEquipment;
+
+                Sprite frameSpr;
+                Color frameTint;
+                if (isLegend)
+                {
+                    frameSpr = Resources.Load<Sprite>("UI/frame_gold");
+                    frameTint = new Color(1f, 0.85f, 0.3f, 1f); // 金色
+                }
+                else if (isHero)
+                {
+                    frameSpr = Resources.Load<Sprite>("UI/frame_gold");
+                    frameTint = new Color(0.7f, 0.4f, 0.9f, 1f); // 紫色
+                }
+                else if (isSkill)
+                {
+                    frameSpr = Resources.Load<Sprite>("UI/frame_gold");
+                    frameTint = new Color(0.9f, 0.25f, 0.2f, 1f); // 红色
+                }
+                else
+                {
+                    frameSpr = Resources.Load<Sprite>("UI/frame_silver");
+                    frameTint = Color.white; // 银色原色
+                }
+
                 if (frameSpr != null)
                 {
                     _frameOverlay.sprite = frameSpr;
+                    _frameOverlay.color = frameTint;
                     _frameOverlay.enabled = true;
                 }
                 else
