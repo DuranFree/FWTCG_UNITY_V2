@@ -58,8 +58,9 @@ namespace FWTCG.UI
 
             if (dividerOrb != null) StartCoroutine(DividerOrbLoop());
             if (cornerGems != null && cornerGems.Length > 0) StartCoroutine(CornerGemLoop());
-            if (playerLegendGlow != null) StartCoroutine(LegendGlowLoop(playerLegendGlow));
-            if (enemyLegendGlow  != null) StartCoroutine(LegendGlowLoop(enemyLegendGlow));
+            // VFX-7: legend glow disabled — gold frame border replaces breathing effect
+            // if (playerLegendGlow != null) StartCoroutine(LegendGlowLoop(playerLegendGlow));
+            // if (enemyLegendGlow  != null) StartCoroutine(LegendGlowLoop(enemyLegendGlow));
         }
 
         // ── Private coroutines ────────────────────────────────────────────────

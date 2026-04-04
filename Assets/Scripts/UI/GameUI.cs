@@ -1302,6 +1302,31 @@ namespace FWTCG.UI
                 if (artImg != null)
                     artImg.sprite = legend.DisplayData.ArtSprite;
             }
+
+            // VFX-7a: gold frame overlay for legend card
+            Transform frameTransform = legendContainer.Find("LegendFrame");
+            if (frameTransform == null)
+            {
+                var frameGO = new GameObject("LegendFrame");
+                frameGO.transform.SetParent(legendContainer, false);
+                frameGO.transform.SetAsLastSibling();
+                var frt = frameGO.AddComponent<RectTransform>();
+                frt.anchorMin = Vector2.zero;
+                frt.anchorMax = Vector2.one;
+                frt.offsetMin = Vector2.zero;
+                frt.offsetMax = Vector2.zero;
+                var fle = frameGO.AddComponent<LayoutElement>();
+                fle.ignoreLayout = true;
+                var fimg = frameGO.AddComponent<Image>();
+                fimg.raycastTarget = false;
+                fimg.preserveAspect = false;
+                var frameSpr = Resources.Load<Sprite>("UI/frame_gold");
+                if (frameSpr != null)
+                {
+                    fimg.sprite = frameSpr;
+                    fimg.color = new Color(1f, 0.85f, 0.3f, 1f); // 金色
+                }
+            }
         }
 
         // ── Unit list renderer ────────────────────────────────────────────────
