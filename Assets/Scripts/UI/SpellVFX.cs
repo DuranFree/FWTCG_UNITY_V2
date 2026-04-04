@@ -56,13 +56,25 @@ namespace FWTCG.UI
 
         // ── Event handlers ────────────────────────────────────────────────────
 
+        /// <summary>Card enter animation is 0.42s; delay FX to sync with landing.</summary>
+        private const float CARD_PLAY_FX_DELAY = 0.43f;
+
         private void OnCardPlayed(UnitInstance card, string owner)
         {
             if (!this) return;
             if (!isActiveAndEnabled || _vfxLayer == null) return;
 
-            // Resolve the card's canvas-local position for FX placement
-            Vector2 cardPos = ResolveCardCanvasPos(card, owner);
+            StartCoroutine(DelayedCardPlayFX(card, owner));
+        }
+
+        private IEnumerator DelayedCardPlayFX(UnitInstance card, string owner)
+        {
+            // Wait for card entrance animation to finish before spawning FX at landing spot
+            yield return new WaitForSeconds(CARD_PLAY_FX_DELAY);
+            if (!this || !isActiveAndEnabled || _vfxLayer == null) yield break;
+
+            // After delay, find the CardView at its final position
+            Vector2 cardPos = ResolveCardFinalPos(card, owner);
 
             // VFX-4: Spawn resolved FX prefabs
             if (card?.CardData != null)
@@ -76,25 +88,36 @@ namespace FWTCG.UI
         }
 
         /// <summary>
-        /// VFX-6 fix: Get the target container's canvas position where the card will land.
-        /// Uses GameUI.GetCardPlayTargetPos which resolves base/hero/center by card type.
-        /// Falls back to hardcoded ±180 if GameUI unavailable.
+        /// VFX-6 fix: After delay, find the CardView at its final resting position.
+        /// Falls back to target container pos, then hardcoded ±180.
         /// </summary>
-        private Vector2 ResolveCardCanvasPos(UnitInstance card, string owner)
+        private Vector2 ResolveCardFinalPos(UnitInstance card, string owner)
         {
             float fallbackY = (owner == GameRules.OWNER_PLAYER) ? -180f : 180f;
             Vector2 fallback = new Vector2(0f, fallbackY);
 
             if (GameUI.Instance == null || card == null) return fallback;
 
-            Vector2 pos = GameUI.Instance.GetCardPlayTargetPos(card, owner);
-            // GetCardPlayTargetPos returns Vector2.zero for spells (no landing container)
-            // — use fallback for spells so burst still appears near center
-            if (pos == Vector2.zero && card.CardData != null && !card.CardData.IsSpell)
-                return fallback; // zero means resolution failed for non-spell
-            if (pos == Vector2.zero)
-                return fallback;
-            return pos;
+            // After delay, card should be at its final position — find it directly
+            var cv = GameUI.Instance.FindCardView(card);
+            if (cv != null)
+            {
+                var cvRT = cv.GetComponent<RectTransform>();
+                var layerRT = _vfxLayer as RectTransform ?? _vfxLayer.GetComponent<RectTransform>();
+                if (cvRT != null && layerRT != null)
+                {
+                    Vector2 screenPt = RectTransformUtility.WorldToScreenPoint(null, cvRT.position);
+                    if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                            layerRT, screenPt, null, out Vector2 localPos))
+                        return localPos;
+                }
+            }
+
+            // Fallback: use target container position
+            Vector2 containerPos = GameUI.Instance.GetCardPlayTargetPos(card, owner);
+            if (containerPos != Vector2.zero) return containerPos;
+
+            return fallback;
         }
 
         private void OnUnitDiedAtPos(UnitInstance unit, Vector2 canvasPos)
