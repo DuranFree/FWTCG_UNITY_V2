@@ -1153,18 +1153,18 @@ namespace FWTCG.UI
             RefreshLegendArt(_playerLegendContainer, gs.PLegend);
             RefreshLegendArt(_enemyLegendContainer, gs.ELegend);
 
-            // VFX-7: wire legend hover glow
-            WireLegendHoverGlow(_playerLegendContainer);
-            WireLegendHoverGlow(_enemyLegendContainer);
+            // VFX-7: wire legend hover glow (green for player, red for enemy)
+            WireLegendHoverGlow(_playerLegendContainer, true);
+            WireLegendHoverGlow(_enemyLegendContainer, false);
 
             // Wire right-click on legend containers for detail popup
             WireLegendRightClick(_playerLegendContainer, gs.PLegend);
             WireLegendRightClick(_enemyLegendContainer, gs.ELegend);
         }
 
-        // VFX-7: hover glow for legend cards
+        // VFX-7: hover glow for legend cards (green=player, red=enemy, half intensity)
         private readonly System.Collections.Generic.HashSet<int> _legendGlowWired = new();
-        private void WireLegendHoverGlow(Transform container)
+        private void WireLegendHoverGlow(Transform container, bool isPlayer)
         {
             if (container == null) return;
             int id = container.GetInstanceID();
@@ -1173,6 +1173,10 @@ namespace FWTCG.UI
             if (glowT == null) return;
             var glowImg = glowT.GetComponent<Image>();
             if (glowImg == null) return;
+
+            // Set base color: green for player, red for enemy
+            Color baseColor = isPlayer ? GameColors.PlayerGreen : GameColors.EnemyRed;
+            glowImg.color = new Color(baseColor.r, baseColor.g, baseColor.b, 0f);
 
             _legendGlowWired.Add(id);
             var et = container.GetComponent<UnityEngine.EventSystems.EventTrigger>();
@@ -1183,7 +1187,7 @@ namespace FWTCG.UI
             enterEntry.callback.AddListener((_) =>
             {
                 if (glowImg != null)
-                    StartCoroutine(FadeLegendGlow(glowImg, 0.5f));
+                    StartCoroutine(FadeLegendGlow(glowImg, 0.25f));
             });
             et.triggers.Add(enterEntry);
 

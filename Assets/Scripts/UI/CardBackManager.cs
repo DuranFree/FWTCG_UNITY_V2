@@ -16,7 +16,7 @@ namespace FWTCG.UI
         }
 
         private const string PREF_KEY = "FWTCG_CardBack";
-        private static CardBackVariant _current = CardBackVariant.Default;
+        private static CardBackVariant _current = CardBackVariant.Back01;
         private static bool _loaded;
         private static Sprite _cachedSprite;
 
@@ -62,7 +62,8 @@ namespace FWTCG.UI
         private static void Load()
         {
             _loaded = true;
-            _current = (CardBackVariant)PlayerPrefs.GetInt(PREF_KEY, (int)CardBackVariant.Default);
+            // Always use Back01 sprite — ignore PlayerPrefs legacy value
+            _current = CardBackVariant.Back01;
         }
 
         /// <summary>Test hook: reset cached state.</summary>

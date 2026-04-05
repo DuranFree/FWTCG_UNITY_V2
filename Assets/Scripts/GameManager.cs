@@ -1788,8 +1788,10 @@ namespace FWTCG
                 }
             }
 
-            // Wait for hit-flash + shake animations to complete before RefreshUI destroys CardViews
-            await Task.Delay(550);
+            // Wait for death animation to complete before RefreshUI rebuilds containers.
+            // DeathRoutine = Phase A dissolve ~0.6s + Phase B ghost fly ~0.5s = ~1.1s total.
+            // 550ms was too short — caused grey ghost cards when base units died mid-animation.
+            await Task.Delay(1200);
 
             _aiReactionPending = false;
             RefreshUI();

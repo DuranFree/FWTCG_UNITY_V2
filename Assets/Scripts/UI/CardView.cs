@@ -274,12 +274,12 @@ namespace FWTCG.UI
             _glowTargetColor = color;
         }
 
-        /// <summary>VFX-7k: Show glow for hover/select (ally green or enemy red).</summary>
+        /// <summary>VFX-7k: Show glow for hover/select (ally green or enemy red). Half intensity.</summary>
         public void ShowGlow()
         {
             if (_glowOverlay == null) return;
             var color = _isPlayerCard ? GameColors.PlayerGreen : GameColors.EnemyRed;
-            SetGlowTarget(0.65f, color);
+            SetGlowTarget(0.32f, color);
         }
 
         /// <summary>VFX-7k: Hide glow with smooth fade-out.</summary>
@@ -374,13 +374,32 @@ namespace FWTCG.UI
             if (_atkText  != null) _atkText.gameObject.SetActive(!hide);
             if (_descText != null) _descText.gameObject.SetActive(!hide);
             if (_artImage != null) _artImage.enabled = !hide;
-            if (_cardBg   != null) _cardBg.color = hide ? GameColors.CardFaceDown
-                : (_selected ? GameColors.CardSelected
-                : (_unit != null && _unit.Exhausted ? GameColors.CardExhausted
-                : (_isPlayerCard ? GameColors.CardPlayer : GameColors.CardEnemy)));
+            if (_cardBg   != null)
+            {
+                if (hide)
+                    _cardBg.enabled = false; // hide background entirely — card back sprite covers all
+                else
+                {
+                    _cardBg.enabled = true;
+                    _cardBg.color = _selected ? GameColors.CardSelected
+                        : (_unit != null && _unit.Exhausted ? GameColors.CardExhausted
+                        : (_isPlayerCard ? GameColors.CardPlayer : GameColors.CardEnemy));
+                }
+            }
             if (_clickButton != null) _clickButton.interactable = !hide;
             if (_stunnedOverlay != null) _stunnedOverlay.gameObject.SetActive(false);
             if (_buffTokenIcon != null) _buffTokenIcon.SetActive(false);
+
+            // Hide badge circles (CostBadge, AtkBadge, SchCostBg) when face-down
+            if (_costText != null && _costText.transform.parent != null
+                && _costText.transform.parent != transform)
+                _costText.transform.parent.gameObject.SetActive(!hide);
+            if (_atkText != null && _atkText.transform.parent != null
+                && _atkText.transform.parent != transform)
+                _atkText.transform.parent.gameObject.SetActive(!hide);
+            if (_schCostBg != null) _schCostBg.gameObject.SetActive(!hide);
+            if (_schCostText != null) _schCostText.gameObject.SetActive(!hide);
+            if (_frameOverlay != null) _frameOverlay.enabled = !hide;
 
             // DEV-29 + VFX-7g: show/hide card-back overlay (sprite or geometric)
             if (hide)
@@ -614,7 +633,7 @@ namespace FWTCG.UI
                 else
                 {
                     frameSpr = Resources.Load<Sprite>("UI/frame_silver");
-                    frameTint = Color.white; // 银色原色
+                    frameTint = new Color(1f, 0.82f, 0.86f, 1f); // 浅粉色
                 }
 
                 if (frameSpr != null)

@@ -74,11 +74,28 @@ namespace FWTCG.UI
         /// <summary>Y offset for AI projectile origin (top of screen).</summary>
         public const float AI_ORIGIN_Y = 340f;
 
+        /// <summary>Max seconds to wait for showcase panel to close before giving up.</summary>
+        private const float SHOWCASE_WAIT_TIMEOUT = 5f;
+
         private IEnumerator DelayedCardPlayFX(UnitInstance card, string owner)
         {
             // Wait for card entrance animation to finish before spawning FX at landing spot
             yield return new WaitForSeconds(CARD_PLAY_FX_DELAY);
             if (!this || !isActiveAndEnabled || _vfxLayer == null) yield break;
+
+            // VFX-8 fix: If spell showcase panel is showing, wait for it to close
+            // so the projectile isn't hidden behind the full-screen showcase overlay.
+            if (SpellShowcaseUI.Instance != null && SpellShowcaseUI.Instance.IsShowing)
+            {
+                float waited = 0f;
+                while (SpellShowcaseUI.Instance != null && SpellShowcaseUI.Instance.IsShowing
+                       && waited < SHOWCASE_WAIT_TIMEOUT)
+                {
+                    waited += Time.deltaTime;
+                    yield return null;
+                }
+                if (!this || !isActiveAndEnabled || _vfxLayer == null) yield break;
+            }
 
             // After delay, find the CardView at its final position
             Vector2 cardPos = ResolveCardFinalPos(card, owner);
